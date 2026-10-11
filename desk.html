@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#F7F6F1">
+  <title>Desk — STMDeskly</title>
+
+  <!-- OG tags are populated by desk.js after the Desk loads -->
+  <meta property="og:title" content="STMDeskly">
+  <meta property="og:description" content="Your own place on the internet.">
+  <meta property="og:type" content="profile">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css?v=9">
+  <link rel="stylesheet" href="desk.css?v=2">
+  
+</head>
+
+<body class="page-desk">
+
+  <!-- Loading -->
+  <div class="desk-loading" id="loading">
+    <div class="desk-loading-dot"></div>
+    <div class="desk-loading-dot"></div>
+    <div class="desk-loading-dot"></div>
+  </div>
+
+  <!-- Missing -->
+  <div class="desk-missing" id="missing" hidden>
+    <h1>Desk not found</h1>
+    <p>This link doesn't point to a Desk yet.</p>
+    <a href="/" class="desk-missing-link">Make your own</a>
+  </div>
+
+  <!-- The Desk -->
+  <main class="desk-shell" id="desk" hidden>
+
+    <!-- Brand band -->
+    <header class="desk-brand">
+      <div class="desk-brand-inner">
+        <div class="desk-mark" id="mark"></div>
+        <h1 class="desk-name" id="name"></h1>
+        <p class="desk-role" id="role" hidden></p>
+        <p class="desk-tagline" id="tagline" hidden></p>
+      </div>
+    </header>
+
+    <!-- Content sections injected by desk.js -->
+    <div class="desk-content" id="content"></div>
+
+    <!-- Footer -->
+    <footer class="desk-footer">
+      <a href="/">
+        <span class="desk-footer-dot"></span>
+        Made with <strong>STMDeskly</strong>
+      </a>
+    </footer>
+
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script src="desk.js?v=3"></script>
+  <script src="/theme.js"></script>
+</body>
+</html>
