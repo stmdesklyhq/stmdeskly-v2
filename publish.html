@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#F7F6F1">
+<title>Your Desk is live — STMDeskly</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=8">
+<link rel="stylesheet" href="publish.css?v=1">
+</head>
+<body class="publish-page">
+<header class="publish-topbar">
+  <a href="edit.html" class="publish-back" aria-label="Back to editor"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5m7 7-7-7 7-7"/></svg></a>
+  <a class="publish-brand" href="/">STMDeskly</a>
+</header>
+<main class="publish-success">
+  <div class="success-mark" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="m13 25 7.5 7.5L35 17"/></svg></div>
+  <h1>Your Desk is live.</h1>
+  <p class="publish-subcopy">Anyone with this link can see it.</p>
+  <section class="published-link-card">
+    <small>Your Desk link</small>
+    <div class="published-link-row">
+      <a href="#" id="publishedDeskLink">loading…</a>
+      <button type="button" class="copy-published-link" id="copyPublishedLink">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+        <span>Copy link</span>
+      </button>
+    </div>
+    <span class="copy-feedback" id="copyFeedback" aria-live="polite"></span>
+  </section>
+  <div class="publish-actions">
+    <button class="share-button" type="button" id="shareDesk">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.7 10.7 6.6-4.4m-6.6 9.4 6.6 2.6"/></svg>
+      Share it
+    </button>
+    <a class="open-desk-button" href="#" target="_blank" rel="noopener" id="openDesk">
+      Open my Desk
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4h6v6m-11 4L20 4M18 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h6"/></svg>
+    </a>
+  </div>
+  <p class="publish-footnote">You can unpublish anytime from your editor.</p>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="auth.js?v=3"></script>
+
+<script>
+(function () {
+  'use strict';
+
+  const linkEl    = document.getElementById('publishedDeskLink');
+  const openEl    = document.getElementById('openDesk');
+  const copyBtn   = document.getElementById('copyPublishedLink');
+  const feedback  = document.getElementById('copyFeedback');
+  const shareBtn  = document.getElementById('shareDesk');
+  let feedbackTimer;
+
+  (async function () {
+    // Load desk to build the real URL
+    const user = await AUTH.currentUser();
+    if (!user) { location.replace('/login.html'); return; }
+
+    const row = await AUTH.currentDesk();
+    if (!row || !row.username) { location.replace('/edit.html'); return; }
+
+    const url = location.origin + '/desk.html?u=' + encodeURIComponent(row.username);
+
+    linkEl.textContent = url.replace(/^https?:\/\//, '');
+    linkEl.href = url;
+    openEl.href = url;
+  })();
+
+  copyBtn.addEventListener('click', async function () {
+    try { await navigator.clipboard.writeText(linkEl.href); }
+    catch (e) {
+      const range = document.createRange();
+      range.selectNodeContents(linkEl);
+      const selection = window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      feedback.textContent = 'Select and copy the link';
+      return;
+    }
+    copyBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg><span>Copied</span>';
+    feedback.textContent = 'Copied';
+    clearTimeout(feedbackTimer);
+    feedbackTimer = setTimeout(function () {
+      copyBtn.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg><span>Copy link</span>';
+      feedback.textContent = '';
+    }, 1500);
+  });
+
+  shareBtn.addEventListener('click', async function () {
+    const url = linkEl.href;
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'My Desk on STMDeskly',
+          text: 'Take a look at my Desk.',
+          url: url
+        });
+      } catch (e) {}
+    } else {
+      try {
+        await navigator.clipboard.writeText(url);
+        feedback.textContent = 'Link copied — ready to share';
+        setTimeout(function () { feedback.textContent = ''; }, 1800);
+      } catch (e) {
+        feedback.textContent = 'Copy the link above to share it.';
+      }
+    }
+  });
+})();
+</script>
+</body>
+</html>
