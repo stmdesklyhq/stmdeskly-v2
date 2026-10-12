@@ -22,3 +22,7 @@
 .preview-overlay[hidden] {
   display: none !important;
 }
+/* Hide publish strip until JS paints the correct state */
+.publish-strip[hidden] {
+  display: none !important;
+}
