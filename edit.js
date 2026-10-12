@@ -23,6 +23,12 @@
   const photoInput      = $('photoInput');
   const deskLinkEl      = $('deskLink');
   const aboutCount      = $('aboutCount');
+  const publishStrip    = $('publishStrip');
+  const publishStripLabel = $('publishStripLabel');
+  const publishStripTitle = $('publishStripTitle');
+  const publishStripSub = $('publishStripSub');
+  const publishAction   = $('publishAction');
+  const publishActionText = $('publishActionText');
 
   const MAX_PHOTOS    = 12;
   const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -31,6 +37,7 @@
   let dirty = false;
   let initialSnapshot = '';
   let saving = false;
+  let publishing = false;
 
   function setStatus(kind, text) {
     if (!saveStatus) return;
@@ -183,6 +190,64 @@
     }, 2500);
   }
 
+  /* ---------- Publish strip ---------- */
+  function paintPublishStrip() {
+    if (!publishStrip) return;
+    publishStrip.hidden = false;
+
+    if (desk.published) {
+      publishStrip.className = 'publish-strip published';
+      publishStripLabel.textContent = 'LIVE';
+      publishStripTitle.textContent = 'Anyone with this link can see your Desk.';
+      publishStripSub.textContent = 'Unpublishing hides it from visitors. Your edits are kept.';
+      publishActionText.textContent = 'Unpublish';
+      publishAction.classList.remove('publish-action');
+      publishAction.classList.add('unpublish-action');
+      publishAction.disabled = false;
+    } else {
+      publishStrip.className = 'publish-strip unpublished';
+      publishStripLabel.textContent = 'NOT PUBLISHED';
+      publishStripTitle.textContent = 'Only you can see this Desk.';
+      publishStripSub.textContent = 'You can keep editing after you publish.';
+      publishActionText.textContent = 'Publish my Desk';
+      publishAction.classList.remove('unpublish-action');
+      publishAction.classList.add('publish-action');
+      publishAction.disabled = false;
+    }
+  }
+
+  async function publishDesk() {
+    if (publishing) return;
+
+    publishing = true;
+    publishAction.disabled = true;
+
+    const wasPublished = !!desk.published;
+    publishActionText.textContent = wasPublished ? 'Unpublishing…' : 'Publishing…';
+
+    const res = await AUTH.updateDesk({ published: !wasPublished });
+
+    if (!res.ok) {
+      publishing = false;
+      publishAction.disabled = false;
+      publishActionText.textContent = wasPublished ? 'Unpublish' : 'Publish my Desk';
+      alert('Could not update publication. Try again.');
+      return;
+    }
+
+    desk.published = !wasPublished;
+    publishing = false;
+
+    if (desk.published) {
+      // Just published → go to the success page
+      location.href = '/publish.html';
+      return;
+    }
+
+    // Just unpublished → stay here, update strip
+    paintPublishStrip();
+  }
+
   /* ---------- Preview ---------- */
   function openPreview() {
     if (!previewOverlay || !previewFrame) {
@@ -212,6 +277,7 @@
     previewFrame.src = 'about:blank';
   }
 
+  /* ---------- Boot ---------- */
   (async function boot() {
     const user = await AUTH.currentUser();
     if (!user) { location.replace('/login.html'); return; }
@@ -221,6 +287,8 @@
     if (res.error || !res.data) { location.replace('/'); return; }
     desk = res.data;
     if (!Array.isArray(desk.photos)) desk.photos = [];
+    if (typeof desk.published !== 'boolean') desk.published = false;
+
     const fill = function (id, value) {
       const el = $(id);
       if (el) el.value = value || '';
@@ -238,13 +306,17 @@
     fill('phone', desk.phone);
     fill('website', desk.website);
     if ($('show_in_explore')) $('show_in_explore').checked = !!desk.show_in_explore;
+
     paintAvatar();
     paintPhotos();
+    paintPublishStrip();
+
     const url = location.origin + '/desk.html?u=' + encodeURIComponent(desk.username);
     if (deskLinkEl) {
       deskLinkEl.textContent = url.replace(/^https?:\/\//, '');
       if (deskLinkEl.tagName === 'A') deskLinkEl.href = url;
     }
+
     function updateAboutCount() {
       if (!aboutCount) return;
       const el = $('about');
@@ -256,13 +328,16 @@
       aboutEl.addEventListener('input', updateAboutCount);
       updateAboutCount();
     }
+
     initialSnapshot = snapshot();
+
     if (form) {
       form.addEventListener('input', markDirty);
       form.addEventListener('change', markDirty);
     }
   })();
 
+  /* ---------- Events ---------- */
   if (form) {
     form.addEventListener('submit', function (e) {
       e.preventDefault();
@@ -281,6 +356,9 @@
     previewOverlay.addEventListener('click', function (e) {
       if (e.target === previewOverlay) closePreview();
     });
+  }
+  if (publishAction) {
+    publishAction.addEventListener('click', publishDesk);
   }
   if (copyBtn && deskLinkEl) {
     copyBtn.addEventListener('click', async function () {
