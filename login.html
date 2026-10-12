@@ -154,7 +154,7 @@
           const desk = await AUTH.currentDesk();
 
           if (desk) {
-            window.location.replace('/');
+            window.location.replace('/dashboard.html');
           } else {
             // Signed in but no Desk yet (e.g. email confirmed but signup
             // never completed). Send them to finish setup.
@@ -231,7 +231,7 @@
 
           // Send them where they belong.
           const desk = await AUTH.currentDesk();
-          window.location.replace(desk ? '/' : '/signup.html');
+          window.location.replace(desk ? '/dashboard.html' : '/signup.html');
 
         } catch (error) {
           console.error('Login failed:', error);
