@@ -197,7 +197,7 @@
 
           <code id="deskLink">stmdeskly.com/u/yourname</code>
 
-          <a href="/" class="btn">Go home</a>
+          <a href="/dashboard.html" class="btn">Go to dashboard</a>
         </div>
       </div>
 
@@ -278,7 +278,7 @@
 
           const desk = await AUTH.currentDesk();
           if (desk) {
-            window.location.replace('/');
+            window.location.replace('/dashboard.html');
             return;
           }
 
@@ -551,7 +551,7 @@
           successView.hidden = false;
 
         } catch (error) {
-          console.error('[signup] signupEmail failed:', error);
+          console.error('[signup] signupFailed:', error);
           showError('Something went wrong: ' + (error && error.message ? error.message : 'unknown error'));
         } finally {
           submitBtn.disabled = false;
