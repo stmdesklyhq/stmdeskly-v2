@@ -207,6 +207,29 @@
     await sb.auth.signOut();
   }
 
+  /* ---------- Password reset ---------- */
+  async function sendPasswordReset(email) {
+    try {
+      const res = await sb.auth.resetPasswordForEmail(email, {
+        redirectTo: location.origin + '/reset.html',
+      });
+      if (res.error) return { ok: false, error: res.error };
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, error: err };
+    }
+  }
+
+  async function updatePassword(newPassword) {
+    try {
+      const res = await sb.auth.updateUser({ password: newPassword });
+      if (res.error) return { ok: false, error: res.error };
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, error: err };
+    }
+  }
+
   /* =========================================================
      EDITOR — desk updates and media
      ========================================================= */
@@ -376,6 +399,8 @@
     logout: logout,
     rlCheck: rlCheck,
     rlRecord: rlRecord,
+    sendPasswordReset: sendPasswordReset,
+    updatePassword: updatePassword,
 
     // Editor
     updateDesk: updateDesk,
