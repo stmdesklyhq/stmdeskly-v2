@@ -1,14 +1,11 @@
 /* =========================================================
    STMDESKLY v2 — Editor
-   Loads the desk, wires the form, handles uploads + save + preview.
-   Depends on: config.js, auth.js, desk-render.js
    ========================================================= */
 (function () {
   'use strict';
 
   const $ = function (id) { return document.getElementById(id); };
 
-  /* ---------- Elements ---------- */
   const form            = $('editForm');
   const saveStatus      = $('saveStatus');
   const saveBtn         = $('saveBtn');
@@ -30,13 +27,11 @@
   const MAX_PHOTOS    = 12;
   const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
-  /* ---------- State ---------- */
   let desk = null;
   let dirty = false;
   let initialSnapshot = '';
   let saving = false;
 
-  /* ---------- Utilities ---------- */
   function setStatus(kind, text) {
     if (!saveStatus) return;
     saveStatus.className = kind || '';
@@ -86,7 +81,6 @@
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   }
 
-  /* ---------- Avatar ---------- */
   function paintAvatar() {
     if (!avatarPreview) return;
     if (desk.avatar_url) {
@@ -98,7 +92,6 @@
     }
   }
 
-  /* ---------- Photos ---------- */
   function paintPhotos() {
     if (!photoGrid) return;
     const photos = desk.photos || [];
@@ -140,16 +133,13 @@
       alert('Only image files are allowed.');
       return;
     }
-
     const tile = addPhotoTileUploading();
     const res = await AUTH.uploadPhoto(file);
-
     if (!res.ok) {
       tile.remove();
       alert('Could not upload that photo. Try again.');
       return;
     }
-
     desk.photos = desk.photos || [];
     desk.photos.push(res.url);
     tile.remove();
@@ -157,49 +147,37 @@
     markDirty();
   }
 
-  /* ---------- Save ---------- */
   async function save() {
     if (saving) return;
-
     const values = collectFields();
     if (!values.name) {
       setStatus('error', 'Your name is required.');
       return;
     }
-
     saving = true;
     setStatus('saving', 'Saving…');
     if (saveBtn) saveBtn.disabled = true;
-
     const oldPhotos = (desk.photos || []).slice();
-
     values.avatar_url = desk.avatar_url || null;
     values.photos = desk.photos || [];
-
     const res = await AUTH.updateDesk(values);
-
     if (!res.ok) {
       saving = false;
       if (saveBtn) saveBtn.disabled = false;
       setStatus('error', 'Couldn\u2019t save. Try again.');
       return;
     }
-
     const newSet = {};
     (desk.photos || []).forEach(function (u) { newSet[u] = true; });
     const removed = oldPhotos.filter(function (u) { return !newSet[u]; });
     removed.forEach(function (u) { AUTH.removePhoto(u); });
-
     Object.assign(desk, values);
     desk.photos = values.photos;
-
     initialSnapshot = snapshot();
     dirty = false;
-
     saving = false;
     if (saveBtn) saveBtn.disabled = false;
     setStatus('saved', 'All changes saved');
-
     setTimeout(function () {
       if (!dirty) setStatus('', '');
     }, 2500);
@@ -211,11 +189,9 @@
       alert('Preview is not available yet.');
       return;
     }
-
     const draft = Object.assign({}, desk, collectFields());
     draft.photos = desk.photos || [];
     draft.avatar_url = desk.avatar_url || '';
-
     let encoded;
     try {
       const json = JSON.stringify(draft);
@@ -224,31 +200,27 @@
       alert('Could not prepare preview.');
       return;
     }
-
     previewFrame.src = '/preview.html?d=' + encodeURIComponent(encoded) + '&t=' + Date.now();
     previewOverlay.hidden = false;
+    previewOverlay.style.display = 'flex';
   }
 
   function closePreview() {
     if (!previewOverlay || !previewFrame) return;
     previewOverlay.hidden = true;
+    previewOverlay.style.display = 'none';
     previewFrame.src = 'about:blank';
   }
 
-  /* ---------- Boot ---------- */
   (async function boot() {
     const user = await AUTH.currentUser();
     if (!user) { location.replace('/login.html'); return; }
-
     const row = await AUTH.currentDesk();
     if (!row) { location.replace('/signup.html'); return; }
-
     const res = await AUTH.sb.from('desks').select('*').eq('id', row.id).maybeSingle();
     if (res.error || !res.data) { location.replace('/'); return; }
-
     desk = res.data;
     if (!Array.isArray(desk.photos)) desk.photos = [];
-
     const fill = function (id, value) {
       const el = $(id);
       if (el) el.value = value || '';
@@ -266,16 +238,13 @@
     fill('phone', desk.phone);
     fill('website', desk.website);
     if ($('show_in_explore')) $('show_in_explore').checked = !!desk.show_in_explore;
-
     paintAvatar();
     paintPhotos();
-
     const url = location.origin + '/desk.html?u=' + encodeURIComponent(desk.username);
     if (deskLinkEl) {
       deskLinkEl.textContent = url.replace(/^https?:\/\//, '');
       if (deskLinkEl.tagName === 'A') deskLinkEl.href = url;
     }
-
     function updateAboutCount() {
       if (!aboutCount) return;
       const el = $('about');
@@ -287,39 +256,32 @@
       aboutEl.addEventListener('input', updateAboutCount);
       updateAboutCount();
     }
-
     initialSnapshot = snapshot();
-
     if (form) {
       form.addEventListener('input', markDirty);
       form.addEventListener('change', markDirty);
     }
   })();
 
-  /* ---------- Events ---------- */
   if (form) {
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       save();
     });
   }
-
   if (saveBtn) {
     saveBtn.addEventListener('click', function (e) {
       e.preventDefault();
       save();
     });
   }
-
   if (previewBtn)   previewBtn.addEventListener('click', openPreview);
   if (previewClose) previewClose.addEventListener('click', closePreview);
-
   if (previewOverlay) {
     previewOverlay.addEventListener('click', function (e) {
       if (e.target === previewOverlay) closePreview();
     });
   }
-
   if (copyBtn && deskLinkEl) {
     copyBtn.addEventListener('click', async function () {
       const link = deskLinkEl.href || deskLinkEl.textContent;
@@ -332,29 +294,24 @@
       }
     });
   }
-
   if (avatarUploadBtn && avatarInput) {
     avatarUploadBtn.addEventListener('click', function () {
       avatarInput.click();
     });
   }
-
   if (avatarInput) {
     avatarInput.addEventListener('change', async function (e) {
       const file = e.target.files && e.target.files[0];
       e.target.value = '';
       if (!file) return;
       if (file.size > MAX_FILE_SIZE) { alert('Max 5 MB.'); return; }
-
       const res = await AUTH.uploadAvatar(file);
       if (!res.ok) { alert('Could not upload that photo.'); return; }
-
       desk.avatar_url = res.url;
       paintAvatar();
       markDirty();
     });
   }
-
   if (avatarRemoveBtn) {
     avatarRemoveBtn.addEventListener('click', function () {
       desk.avatar_url = null;
@@ -362,7 +319,6 @@
       markDirty();
     });
   }
-
   if (addPhotoBtn && photoInput) {
     addPhotoBtn.addEventListener('click', function () {
       if ((desk.photos || []).length >= MAX_PHOTOS) {
@@ -372,7 +328,6 @@
       photoInput.click();
     });
   }
-
   if (photoInput) {
     photoInput.addEventListener('change', async function (e) {
       const files = Array.from(e.target.files || []);
@@ -386,7 +341,6 @@
       }
     });
   }
-
   window.addEventListener('beforeunload', function (e) {
     if (!dirty) return;
     e.preventDefault();
