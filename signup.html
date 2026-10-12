@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -12,11 +12,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
   <link rel="stylesheet" href="style.css?v=8">
   <link rel="stylesheet" href="auth.css?v=3">
-
-  <!-- Cloudflare Turnstile -->
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 
 <body class="page-auth page-auth-signup">
@@ -153,13 +152,19 @@
             </label>
           </div>
 
-          <!-- Cloudflare Turnstile -->
+          <!-- Turnstile widget -->
           <div class="cf-turnstile"
-               data-sitekey="YOUR_SITE_KEY_HERE"
+               data-sitekey="0x4AAAAAAFVDiwAnKoWmrKoj"
                data-theme="light"
-               data-size="flexible"></div>
+               data-size="flexible"
+               style="margin-bottom: 16px;"></div>
 
-          <!-- Error box above the button -->
+          <!-- Honeypot — hidden from humans, bots fill it -->
+          <div style="position:absolute;left:-9999px;top:-9999px;" aria-hidden="true">
+            <label for="website_url">Website</label>
+            <input type="text" id="website_url" name="website_url" tabindex="-1" autocomplete="off">
+          </div>
+
           <div class="auth-error" id="formError" role="alert" hidden></div>
 
           <button type="submit" class="auth-submit" id="submitBtn">
@@ -206,7 +211,7 @@
 
           <code id="deskLink">stmdeskly.com/u/yourname</code>
 
-          <a href="/dashboard.html" class="btn">Go to dashboard</a>
+          <a href="/" class="btn">Go home</a>
         </div>
       </div>
 
@@ -242,7 +247,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
-  <script src="auth.js"></script>
+  <script src="auth.js?v=4"></script>
 
   <script>
     (function () {
@@ -279,19 +284,40 @@
         if (field) field.style.display = 'none';
       }
 
-      // Get the current Turnstile token, if the widget is on the page.
-      function getTurnstileToken() {
-        if (!window.turnstile) return null;
-        try {
-          return window.turnstile.getResponse();
-        } catch (e) {
-          return null;
+      // Bot protection — shared by both flows.
+      // Returns true if allowed, false if blocked.
+      async function passesBotCheck() {
+        const honeypot = document.getElementById('website_url');
+        if (honeypot && honeypot.value) {
+          showError('Something went wrong. Please try again.');
+          return false;
         }
-      }
 
-      function resetTurnstile() {
-        if (!window.turnstile) return;
-        try { window.turnstile.reset(); } catch (e) {}
+        const tokenEl = document.querySelector('[name="cf-turnstile-response"]');
+        if (!tokenEl || !tokenEl.value) {
+          showError('Please complete the verification.');
+          return false;
+        }
+
+        try {
+          const res = await fetch(
+            'https://qrwdujvgrpvhhpfapodv.supabase.co/functions/v1/cloudflare-turnstile',
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ token: tokenEl.value }),
+            }
+          );
+          const data = await res.json();
+          if (!data.success) {
+            showError('Verification failed. Please try again.');
+            return false;
+          }
+          return true;
+        } catch (err) {
+          showError('Verification failed. Please try again.');
+          return false;
+        }
       }
 
       // Check the current session.
@@ -316,10 +342,6 @@
           hideField('password');
           hideField('confirm');
           hideField('terms');
-
-          // Hide Turnstile too — it's only needed for new signups.
-          const tsWidget = signupForm.querySelector('.cf-turnstile');
-          if (tsWidget) tsWidget.style.display = 'none';
 
           $('googleBtn').style.display = 'none';
           $('emailDivider').style.display = 'none';
@@ -427,15 +449,7 @@
             return;
           }
 
-          let usernameResult;
-          try {
-            usernameResult = await AUTH.checkUsername(username);
-          } catch (err) {
-            console.error('[signup] checkUsername failed:', err);
-            showError('Could not check that link. Please try again.');
-            return;
-          }
-
+          const usernameResult = await AUTH.checkUsername(username);
           if (!usernameResult.ok) {
             if (usernameResult.reason === 'taken') {
               showError('That link is taken. Choose another.');
@@ -447,9 +461,18 @@
             return;
           }
 
-          AUTH.rlRecord('signup', 15 * 60 * 1000);
           submitBtn.disabled = true;
-          setSubmitText('Creating your Desk...');
+          setSubmitText('Verifying…');
+
+          const allowed = await passesBotCheck();
+          if (!allowed) {
+            submitBtn.disabled = false;
+            setSubmitText('Finish setup');
+            return;
+          }
+
+          AUTH.rlRecord('signup', 15 * 60 * 1000);
+          setSubmitText('Creating your Desk…');
 
           try {
             const result = await AUTH.createDesk({
@@ -474,7 +497,6 @@
             formView.hidden = true;
             successView.hidden = false;
           } catch (error) {
-            console.error('[signup] createDesk failed:', error);
             showError('Could not create your Desk: ' + (error && error.message ? error.message : 'unknown error'));
           } finally {
             submitBtn.disabled = false;
@@ -508,28 +530,12 @@
           showError('Please accept the terms.');
           return;
         }
-
-        // Check the Turnstile widget has been solved.
-        const turnstileToken = getTurnstileToken();
-        if (!turnstileToken) {
-          showError('Please complete the verification check above.');
-          return;
-        }
-
         if (!AUTH.rlCheck('signup', 3, 15 * 60 * 1000)) {
           showError('Too many attempts. Try again in a few minutes.');
           return;
         }
 
-        let usernameResult;
-        try {
-          usernameResult = await AUTH.checkUsername(username);
-        } catch (err) {
-          console.error('[signup] checkUsername failed:', err);
-          showError('Could not check that link. Please try again.');
-          return;
-        }
-
+        const usernameResult = await AUTH.checkUsername(username);
         if (!usernameResult.ok) {
           if (usernameResult.reason === 'taken') {
             showError('That link is taken. Choose another.');
@@ -542,17 +548,25 @@
         }
 
         submitBtn.disabled = true;
-        setSubmitText('Checking password...');
+        setSubmitText('Verifying…');
+
+        const allowed = await passesBotCheck();
+        if (!allowed) {
+          submitBtn.disabled = false;
+          setSubmitText('Create my Desk');
+          return;
+        }
+
+        setSubmitText('Checking password…');
 
         try {
           const breached = await AUTH.pwBreached(password);
           if (breached) {
             showError('That password has appeared in a data breach. Choose a different one.');
-            resetTurnstile();
             return;
           }
 
-          setSubmitText('Creating your Desk...');
+          setSubmitText('Creating your Desk…');
           AUTH.rlRecord('signup', 15 * 60 * 1000);
 
           const result = await AUTH.signupEmail({
@@ -561,7 +575,6 @@
             name: name,
             username: username,
             whatsapp: whatsapp,
-            captchaToken: turnstileToken,
           });
 
           if (!result.ok) {
@@ -574,7 +587,6 @@
             } else {
               showError(message);
             }
-            resetTurnstile();
             return;
           }
 
@@ -590,9 +602,7 @@
           successView.hidden = false;
 
         } catch (error) {
-          console.error('[signup] signupFailed:', error);
           showError('Something went wrong: ' + (error && error.message ? error.message : 'unknown error'));
-          resetTurnstile();
         } finally {
           submitBtn.disabled = false;
           setSubmitText('Create my Desk');
