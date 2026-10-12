@@ -26,3 +26,212 @@
 .publish-strip[hidden] {
   display: none !important;
 }
+/* =========================================
+   STMDESKLY — PUBLICATION STATUS CARD
+   ========================================= */
+
+.publish-status-card {
+  --status-color: #2F6D70;
+  --status-background: #EAF3EE;
+  --status-border: #C9DDD2;
+
+  margin: 18px 16px 28px;
+  padding: 20px;
+  border: 1px solid var(--status-border);
+  border-radius: 18px;
+  background: var(--paper, #FFFEFB);
+  color: var(--navy, #172B3A);
+}
+
+.publish-status-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.publish-status-indicator {
+  display: grid;
+  place-items: center;
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: var(--status-background);
+  color: var(--status-color);
+}
+
+.publish-status-indicator svg {
+  width: 22px;
+  height: 22px;
+}
+
+.publish-status-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.publish-status-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 7px;
+  color: var(--status-color);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.publish-status-label::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.publish-status-copy h2 {
+  margin: 0 0 7px;
+  font-size: clamp(17px, 4.5vw, 21px);
+  font-weight: 800;
+  line-height: 1.35;
+  letter-spacing: -0.035em;
+}
+
+.publish-status-copy p {
+  margin: 0;
+  color: var(--muted, #718087);
+  font-size: 12px;
+  line-height: 1.75;
+}
+
+.publish-status-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border, #E5E4DD);
+}
+
+.publish-status-note {
+  margin: 0;
+  color: var(--muted, #718087);
+  font-size: 11px;
+  line-height: 1.7;
+}
+
+.publish-status-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 18px;
+  border: 1px solid var(--border, #E5E4DD);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--navy, #172B3A);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 180ms ease,
+    color 180ms ease,
+    border-color 180ms ease;
+}
+
+.publish-status-button svg {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+}
+
+.publish-status-button:hover {
+  border-color: var(--status-color);
+  color: var(--status-color);
+}
+
+.publish-status-button:focus-visible {
+  outline: 3px solid rgba(47, 109, 112, 0.25);
+  outline-offset: 3px;
+}
+
+.publish-status-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* LIVE STATE */
+
+.publish-status-card.is-published {
+  --status-color: #2F6D70;
+  --status-background: #EAF3EE;
+  --status-border: #C9DDD2;
+}
+
+/* UNPUBLISHED STATE */
+
+.publish-status-card.is-unpublished {
+  --status-color: #94651E;
+  --status-background: #FBF1DC;
+  --status-border: #E9D6AD;
+}
+
+.publish-status-card.is-unpublished .publish-status-indicator svg {
+  display: none;
+}
+
+.publish-status-card.is-unpublished .publish-status-indicator::after {
+  content: "!";
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.publish-status-card.is-unpublished .publish-status-button {
+  border-color: var(--navy, #172B3A);
+  background: var(--navy, #172B3A);
+  color: #FFFFFF;
+}
+
+.publish-status-card.is-unpublished .publish-status-button:hover {
+  background: var(--status-color);
+  border-color: var(--status-color);
+}
+
+/* SAVING / PUBLISHING STATE */
+
+.publish-status-card.is-processing {
+  opacity: 0.8;
+}
+
+.publish-status-card.is-processing .publish-status-button {
+  cursor: wait;
+}
+
+/* DESKTOP */
+
+@media (min-width: 720px) {
+  .publish-status-card {
+    max-width: 620px;
+    margin: 18px auto 28px;
+    padding: 22px 24px;
+  }
+
+  .publish-status-bottom {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .publish-status-note {
+    max-width: 290px;
+  }
+
+  .publish-status-button {
+    width: auto;
+    min-width: 155px;
+  }
+                            }
