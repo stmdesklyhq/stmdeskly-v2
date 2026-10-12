@@ -14,6 +14,9 @@
 
   <link rel="stylesheet" href="style.css?v=8">
   <link rel="stylesheet" href="auth.css?v=3">
+
+  <!-- Cloudflare Turnstile -->
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 
 <body class="page-auth page-auth-signup">
@@ -150,6 +153,12 @@
             </label>
           </div>
 
+          <!-- Cloudflare Turnstile -->
+          <div class="cf-turnstile"
+               data-sitekey="YOUR_SITE_KEY_HERE"
+               data-theme="light"
+               data-size="flexible"></div>
+
           <!-- Error box above the button -->
           <div class="auth-error" id="formError" role="alert" hidden></div>
 
@@ -270,6 +279,21 @@
         if (field) field.style.display = 'none';
       }
 
+      // Get the current Turnstile token, if the widget is on the page.
+      function getTurnstileToken() {
+        if (!window.turnstile) return null;
+        try {
+          return window.turnstile.getResponse();
+        } catch (e) {
+          return null;
+        }
+      }
+
+      function resetTurnstile() {
+        if (!window.turnstile) return;
+        try { window.turnstile.reset(); } catch (e) {}
+      }
+
       // Check the current session.
       (async function () {
         try {
@@ -292,6 +316,10 @@
           hideField('password');
           hideField('confirm');
           hideField('terms');
+
+          // Hide Turnstile too — it's only needed for new signups.
+          const tsWidget = signupForm.querySelector('.cf-turnstile');
+          if (tsWidget) tsWidget.style.display = 'none';
 
           $('googleBtn').style.display = 'none';
           $('emailDivider').style.display = 'none';
@@ -480,6 +508,14 @@
           showError('Please accept the terms.');
           return;
         }
+
+        // Check the Turnstile widget has been solved.
+        const turnstileToken = getTurnstileToken();
+        if (!turnstileToken) {
+          showError('Please complete the verification check above.');
+          return;
+        }
+
         if (!AUTH.rlCheck('signup', 3, 15 * 60 * 1000)) {
           showError('Too many attempts. Try again in a few minutes.');
           return;
@@ -512,6 +548,7 @@
           const breached = await AUTH.pwBreached(password);
           if (breached) {
             showError('That password has appeared in a data breach. Choose a different one.');
+            resetTurnstile();
             return;
           }
 
@@ -524,6 +561,7 @@
             name: name,
             username: username,
             whatsapp: whatsapp,
+            captchaToken: turnstileToken,
           });
 
           if (!result.ok) {
@@ -536,6 +574,7 @@
             } else {
               showError(message);
             }
+            resetTurnstile();
             return;
           }
 
@@ -553,6 +592,7 @@
         } catch (error) {
           console.error('[signup] signupFailed:', error);
           showError('Something went wrong: ' + (error && error.message ? error.message : 'unknown error'));
+          resetTurnstile();
         } finally {
           submitBtn.disabled = false;
           setSubmitText('Create my Desk');
@@ -562,4 +602,4 @@
   </script>
 
 </body>
-</html>
+  </html>
