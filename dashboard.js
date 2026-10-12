@@ -60,9 +60,17 @@
   }
 
   function paintLink() {
-    if (!desk || !desk.username) return;
+    if (!desk) return;
 
-    deskUrl = location.origin + '/u/' + encodeURIComponent(desk.username);
+    if (!desk.username) {
+      console.warn('[dashboard] desk row has no username:', desk);
+      if (deskUrlEl) deskUrlEl.textContent = 'Set a link in the editor \u2192';
+      if (openDeskButton) openDeskButton.removeAttribute('href');
+      if (seeDeskButton)  seeDeskButton.removeAttribute('href');
+      return;
+    }
+
+    deskUrl = location.origin + '/desk.html?u=' + encodeURIComponent(desk.username);
 
     if (deskUrlEl)      deskUrlEl.textContent = deskUrl.replace(/^https?:\/\//, '');
     if (openDeskButton) openDeskButton.href = deskUrl;
