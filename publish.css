@@ -7,3 +7,159 @@
 .publish-actions{display:grid;gap:10px;margin-top:18px}.share-button,.open-desk-button{min-height:50px;display:flex;align-items:center;justify-content:center;gap:9px;border-radius:999px;font-size:12px;font-weight:700}.share-button{border:1px solid var(--teal);background:var(--teal);color:white}.open-desk-button{border:1px solid #B8C9C1;background:transparent;color:var(--navy)}.share-button svg,.open-desk-button svg{width:17px;height:17px}.publish-footnote{margin:24px 0 0;color:var(--muted);font-size:10px;line-height:1.8}
 @media(min-width:520px){.publish-topbar{padding-inline:24px}.publish-success{padding-top:90px}.publish-actions{grid-template-columns:1fr 1fr}.published-link-card{padding:18px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+/* =========================================
+   STMDeskly — Publish Status Strip
+   ========================================= */
+
+.publish-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  width: calc(100% - 32px);
+  max-width: 620px;
+  margin: 14px auto 28px;
+  padding: 20px;
+  border: 1px solid #D8C9A6;
+  border-radius: 16px;
+  background: #FFFEFB;
+  color: #172B3A;
+  box-sizing: border-box;
+}
+
+.publish-strip[hidden] {
+  display: none !important;
+}
+
+.publish-strip-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.publish-strip-main > small {
+  display: block;
+  margin-bottom: 8px;
+  color: #946B27;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1.4;
+}
+
+.publish-strip-main > strong {
+  display: block;
+  color: #172B3A;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.publish-strip-main > p {
+  margin: 7px 0 0;
+  color: #718087;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.7;
+}
+
+.publish-action {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 44px;
+  padding: 12px 17px;
+  border: 1px solid #2F6D70;
+  border-radius: 999px;
+  background: #2F6D70;
+  color: #FFFFFF;
+  font-family: "Poppins", sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: background 180ms ease, border-color 180ms ease,
+              transform 180ms ease;
+}
+
+.publish-action svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.publish-action:hover {
+  background: #24585B;
+  border-color: #24585B;
+}
+
+.publish-action:focus-visible {
+  outline: 3px solid rgba(47, 109, 112, 0.25);
+  outline-offset: 3px;
+}
+
+.publish-action:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* Published / LIVE state */
+.publish-strip.is-published {
+  border-color: #B9D8CA;
+  background: #F0F7F2;
+}
+
+.publish-strip.is-published .publish-strip-main > small {
+  color: #2F6D70;
+}
+
+.publish-strip.is-published .publish-action {
+  background: #FFFEFB;
+  color: #2F6D70;
+  border-color: #B9D8CA;
+}
+
+.publish-strip.is-published .publish-action:hover {
+  background: #DCEBE3;
+  border-color: #2F6D70;
+}
+
+/* Unpublished state */
+.publish-strip.is-unpublished {
+  border-color: #D8C9A6;
+  background: #FFFBF2;
+}
+
+/* Mobile layout */
+@media (max-width: 520px) {
+  .publish-strip {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+    padding: 18px;
+    margin-top: 12px;
+    margin-bottom: 24px;
+  }
+
+  .publish-strip-main > strong {
+    font-size: 14px;
+  }
+
+  .publish-action {
+    width: 100%;
+    min-height: 46px;
+    font-size: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .publish-action {
+    transition: none;
+  }
+  }
