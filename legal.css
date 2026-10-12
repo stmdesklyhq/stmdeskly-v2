@@ -243,3 +243,34 @@
     animation-duration: 0.01ms !important;
   }
 }
+/* CTA button for "How it works" page */
+.btn-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+
+  min-height: 50px;
+  padding: 14px 26px;
+
+  border-radius: 999px;
+  background: var(--navy, #172B3A);
+  color: #FFFFFF;
+
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  text-decoration: none;
+
+  transition: background 180ms ease, transform 180ms ease;
+}
+
+.btn-cta:hover {
+  background: var(--teal, #2F6D70);
+  transform: translateY(-1px);
+}
+
+.btn-cta svg {
+  width: 16px;
+  height: 16px;
+}
