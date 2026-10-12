@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#F7F6F1">
+<title>Set a new password — STMDeskly</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=8">
+<link rel="stylesheet" href="forgot.css?v=1">
+</head>
+<body class="page-auth">
+
+<header class="auth-topbar">
+  <a href="/" class="auth-brand">
+    <img src="assets/images/deskly-logo-v2.png" alt="">
+    <span>STMDeskly</span>
+  </a>
+</header>
+
+<main class="auth-wrap">
+  <div class="auth-card">
+
+    <div id="loadingView">
+      <div class="auth-form-heading">
+        <span class="auth-form-kicker">ONE MOMENT</span>
+        <h2 class="auth-title">Checking your link…</h2>
+      </div>
+    </div>
+
+    <div id="formView" hidden>
+      <div class="auth-form-heading">
+        <span class="auth-form-kicker">NEW PASSWORD</span>
+        <h2 class="auth-title">Choose a new password</h2>
+        <p class="auth-sub">Something you'll remember. At least 8 characters.</p>
+      </div>
+
+      <div class="auth-error" id="formError" role="alert" hidden></div>
+
+      <form id="resetForm" novalidate>
+        <div class="auth-field">
+          <label class="auth-label" for="password">New password</label>
+          <div class="auth-pw-wrap">
+            <input class="auth-input" type="password" id="password" name="password"
+              placeholder="At least 8 characters" autocomplete="new-password" required>
+            <button type="button" class="auth-pw-toggle" id="pwToggle" aria-label="Show password" aria-pressed="false">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+          <div class="auth-meter" id="pwMeter">
+            <div class="auth-meter-bar"></div>
+            <div class="auth-meter-bar"></div>
+            <div class="auth-meter-bar"></div>
+            <div class="auth-meter-bar"></div>
+          </div>
+          <span class="auth-meter-label" id="pwLabel"></span>
+        </div>
+
+        <div class="auth-field">
+          <label class="auth-label" for="confirm">Confirm password</label>
+          <input class="auth-input" type="password" id="confirm" name="confirm"
+            placeholder="Type it again" autocomplete="new-password" required>
+        </div>
+
+        <button type="submit" class="auth-submit" id="submitBtn">
+          <span id="submitText">Save new password</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M5 12h14M13 6l6 6-6 6"/>
+          </svg>
+        </button>
+      </form>
+    </div>
+
+    <div id="errorView" hidden>
+      <div class="auth-success auth-success--error">
+        <div class="auth-state-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M12 8v5M12 16v.01"/>
+          </svg>
+        </div>
+        <h2>This link has expired.</h2>
+        <p>Reset links only work once and expire after a short time.</p>
+        <a href="/forgot.html" class="btn">Get a new link</a>
+      </div>
+    </div>
+
+    <div id="successView" hidden>
+      <div class="auth-success">
+        <div class="auth-state-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12l4 4L19 6"/>
+          </svg>
+        </div>
+        <h2>Password updated.</h2>
+        <p>You're signed in. Taking you to your dashboard…</p>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<footer class="auth-page-footer">
+  <span>STMDeskly</span>
+  <span>Make your space on the internet.</span>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="auth.js?v=4"></script>
+
+<script>
+(function () {
+  'use strict';
+  const $ = function (id) { return document.getElementById(id); };
+
+  const loadingView = $('loadingView');
+  const formView    = $('formView');
+  const errorView   = $('errorView');
+  const successView = $('successView');
+  const formError   = $('formError');
+  const form        = $('resetForm');
+  const submitBtn   = $('submitBtn');
+  const submitText  = $('submitText');
+
+  function showError(msg) {
+    formError.textContent = msg;
+    formError.hidden = false;
+    formError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  function clearError() {
+    formError.textContent = '';
+    formError.hidden = true;
+  }
+
+  /* ---------- Session detection ---------- */
+  // When Supabase parses the recovery token in the URL, it creates a session.
+  // We wait for it, then show the form. If nothing arrives in 6s, show error.
+  let settled = false;
+
+  AUTH.sb.auth.onAuthStateChange(function (event, session) {
+    if (settled) return;
+    if (event === 'PASSWORD_RECOVERY' || (event === 'SIGNED_IN' && session)) {
+      settled = true;
+      loadingView.hidden = true;
+      formView.hidden = false;
+    }
+  });
+
+  (async function () {
+    // Give it a moment, then check
+    await new Promise(function (r) { setTimeout(r, 1500); });
+    if (settled) return;
+
+    const userRes = await AUTH.sb.auth.getUser();
+    if (userRes.data && userRes.data.user) {
+      settled = true;
+      loadingView.hidden = true;
+      formView.hidden = false;
+      return;
+    }
+
+    // Wait a bit more
+    await new Promise(function (r) { setTimeout(r, 2500); });
+    if (settled) return;
+
+    loadingView.hidden = true;
+    errorView.hidden = false;
+  })();
+
+  /* ---------- Password visibility ---------- */
+  $('pwToggle').addEventListener('click', function () {
+    const pw = $('password');
+    const reveal = pw.type === 'password';
+    pw.type = reveal ? 'text' : 'password';
+    this.setAttribute('aria-label', reveal ? 'Hide password' : 'Show password');
+    this.setAttribute('aria-pressed', String(reveal));
+  });
+
+  /* ---------- Password strength ---------- */
+  const meterBars = document.querySelectorAll('#pwMeter .auth-meter-bar');
+  $('password').addEventListener('input', function (e) {
+    const s = AUTH.pwStrength(e.target.value);
+    meterBars.forEach(function (bar, i) {
+      bar.classList.remove('on-1', 'on-2', 'on-3', 'on-4');
+      if (i < s.score) bar.classList.add('on-' + s.score);
+    });
+    $('pwLabel').textContent = e.target.value ? s.label : '';
+  });
+
+  /* ---------- Submit ---------- */
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    clearError();
+
+    const password = $('password').value;
+    const confirm  = $('confirm').value;
+
+    const s = AUTH.pwStrength(password);
+    if (!s.ok) {
+      showError('Password must be at least 8 characters and stronger.');
+      return;
+    }
+    if (password !== confirm) {
+      showError('Passwords do not match.');
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitText.textContent = 'Saving…';
+
+    const res = await AUTH.updatePassword(password);
+
+    submitBtn.disabled = false;
+    submitText.textContent = 'Save new password';
+
+    if (!res.ok) {
+      const msg = (res.error && res.error.message) || '';
+      if (/expired|invalid/i.test(msg)) {
+        loadingView.hidden = true;
+        formView.hidden = true;
+        errorView.hidden = false;
+        return;
+      }
+      showError(msg || 'Could not update password. Try again.');
+      return;
+    }
+
+    formView.hidden = true;
+    successView.hidden = false;
+
+    setTimeout(function () {
+      location.replace('/dashboard.html');
+    }, 1600);
+  });
+})();
+</script>
+</body>
+                                                           </html>
