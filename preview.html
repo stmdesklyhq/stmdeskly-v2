@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Desk preview</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="/style.css?v=8">
+<link rel="stylesheet" href="/desk.css?v=1">
+</head>
+<body class="page-desk">
+
+<main class="desk-shell" id="shell">
+  <header class="desk-brand">
+    <div class="desk-brand-inner">
+      <div class="desk-mark" id="mark">·</div>
+      <h1 class="desk-name" id="name"></h1>
+      <p class="desk-role" id="role" hidden></p>
+      <p class="desk-tagline" id="tagline" hidden></p>
+    </div>
+  </header>
+
+  <div class="desk-content" id="content"></div>
+
+  <footer class="desk-footer">
+    <a href="/">
+      <span class="desk-footer-dot"></span>
+      Made with <strong>STMDeskly</strong>
+    </a>
+  </footer>
+</main>
+
+<script>
+(function () {
+  var raw = sessionStorage.getItem('stm_draft');
+  if (!raw) {
+    document.getElementById('shell').innerHTML =
+      '<p style="padding:40px;text-align:center;color:#718087">No preview data.</p>';
+    return;
+  }
+
+  var desk;
+  try { desk = JSON.parse(raw); } catch (e) { desk = null; }
+  if (!desk) return;
+
+  // Accent colour
+  var accent = /^#[0-9a-f]{6}$/i.test(desk.accent || '') ? desk.accent : '#01764C';
+  var hex = accent.replace('#','');
+  var r = parseInt(hex.slice(0,2),16);
+  var g = parseInt(hex.slice(2,4),16);
+  var b = parseInt(hex.slice(4,6),16);
+  document.body.style.setProperty('--desk-accent', accent);
+  document.body.style.setProperty('--desk-accent-soft', 'rgba('+r+','+g+','+b+',0.10)');
+
+  // Mark
+  function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+  function initials(n){ var p=String(n||'').trim().split(/\s+/).filter(Boolean); if(!p.length) return '·'; if(p.length===1) return p[0].slice(0,2).toUpperCase(); return (p[0][0]+p[p.length-1][0]).toUpperCase(); }
+
+  var markEl = document.getElementById('mark');
+  if (desk.avatar_url) {
+    markEl.innerHTML = '<img src="'+esc(desk.avatar_url)+'" alt="">';
+  } else {
+    markEl.textContent = initials(desk.name);
+  }
+
+  document.getElementById('name').textContent = desk.name || '';
+  if (desk.role) { document.getElementById('role').textContent = desk.role; document.getElementById('role').hidden = false; }
+  if (desk.tagline) { document.getElementById('tagline').textContent = desk.tagline; document.getElementById('tagline').hidden = false; }
+
+  // Sections
+  function section(label, html){ return '<section class="desk-section"><span class="desk-section-eyebrow">'+esc(label)+'</span>'+html+'</section>'; }
+
+  var parts = [];
+
+  // Offer
+  if (desk.services) {
+    var items = String(desk.services).split(/\n+/).map(function(s){return s.trim();}).filter(Boolean);
+    if (items.length) {
+      var list = items.map(function(s){ return '<div class="desk-offer-item"><span class="desk-offer-dot"></span><span>'+esc(s)+'</span></div>'; }).join('');
+      parts.push(section('What we offer','<div class="desk-offer-list">'+list+'</div>'));
+    }
+  }
+
+  // About
+  if (desk.about) {
+    parts.push(section('About','<div class="desk-about">'+esc(desk.about)+'</div>'));
+  }
+
+  // Work
+  var photos = Array.isArray(desk.photos) ? desk.photos.filter(Boolean) : [];
+  if (photos.length) {
+    var grid = photos.map(function(u){ return '<div class="desk-work-photo"><img src="'+esc(u)+'" alt=""></div>'; }).join('');
+    parts.push(section('Work','<div class="desk-work-grid">'+grid+'</div>'));
+  }
+
+  // Details
+  var rows = [];
+  if (desk.location) rows.push(['Location', desk.location]);
+  if (desk.opening_hours) rows.push(['Hours', desk.opening_hours]);
+  if (desk.service_times) rows.push(['Times', desk.service_times]);
+  if (rows.length) {
+    var dh = rows.map(function(r){ return '<div class="desk-detail"><span class="desk-detail-label">'+esc(r[0])+'</span><span class="desk-detail-value">'+esc(r[1])+'</span></div>'; }).join('');
+    parts.push(section('Details','<div class="desk-details">'+dh+'</div>'));
+  }
+
+  // Contact
+  if (desk.whatsapp || desk.email || desk.phone || desk.website) {
+    function wa(n){ n=String(n||'').replace(/[^\d+]/g,''); if(n.startsWith('+'))n=n.slice(1); if(n.startsWith('0'))n='234'+n.slice(1); if(!n.startsWith('234')&&n.length===10)n='234'+n; return n; }
+    var secondary = [];
+    if (desk.email) secondary.push('<a class="desk-contact-chip" href="mailto:'+esc(desk.email)+'">Email</a>');
+    if (desk.phone) secondary.push('<a class="desk-contact-chip" href="tel:'+esc(desk.phone)+'">Call</a>');
+    if (desk.website) secondary.push('<a class="desk-contact-chip" href="'+esc(desk.website)+'">Website</a>');
+    var primary = desk.whatsapp ? '<a class="desk-contact-primary" href="https://wa.me/'+wa(desk.whatsapp)+'">Message on WhatsApp</a>' : '';
+    parts.push(section('Contact','<div class="desk-contact-actions">'+primary+(secondary.length?'<div class="desk-contact-secondary">'+secondary.join('')+'</div>':'')+'</div>'));
+  }
+
+  document.getElementById('content').innerHTML = parts.join('');
+})();
+</script>
+</body>
+</html>
