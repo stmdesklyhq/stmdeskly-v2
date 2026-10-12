@@ -1,11 +1,12 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#F7F6F1"><title>Edit my Desk — STMDeskly</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="edit.css?v=4">
+<link rel="stylesheet" href="edit.css?v=5">
+<link rel="stylesheet" href="publish.css?v=1">
 </head>
 <body class="page-edit">
 <header class="topbar">
@@ -14,6 +15,20 @@
 <button class="preview" type="button" id="previewBtn"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg><span>Preview</span></button>
 </header>
 <section class="link-banner"><div class="link-mark"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1"/></svg></div><div class="link-copy"><small>Your Desk link</small><a id="deskLink" href="https://desklybystm.pages.dev/desk.html">desklybystm.pages.dev/desk.html</a></div><button class="copy" type="button" id="copyBtn" aria-label="Copy Desk link"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button></section>
+
+<!-- Publish status strip — switches state via JS -->
+<section class="publish-strip" id="publishStrip" hidden>
+  <div class="publish-strip-main">
+    <small id="publishStripLabel">NOT PUBLISHED</small>
+    <strong id="publishStripTitle">Only you can see this Desk.</strong>
+    <p id="publishStripSub">You can keep editing after you publish.</p>
+  </div>
+  <button type="button" class="publish-action" id="publishAction">
+    <span id="publishActionText">Publish my Desk</span>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
+  </button>
+</section>
+
 <main class="main">
 <div class="intro"><small>YOUR SPACE, YOUR STORY</small><h2>Make your Desk <em>yours.</em></h2><p>Keep your details current so people know who you are and how to reach you.</p></div>
 <form id="editForm">
@@ -54,7 +69,7 @@
 </section></main>
 <footer class="savebar"><span class="dirty" id="saveStatus">Unsaved changes</span><button class="save" type="submit" form="editForm" id="saveBtn">Save changes <svg viewBox="0 0 24 24"><path d="m5 12 5 5L20 7"/></svg></button></footer>
 
-<!-- Preview overlay — inline style forces it hidden until JS opens it -->
+<!-- Preview overlay -->
 <div class="preview-overlay" id="previewOverlay" hidden style="display:none !important">
   <div class="preview-panel">
     <div class="preview-head">
@@ -77,6 +92,6 @@
 <script src="config.js"></script>
 <script src="auth.js?v=3"></script>
 <script src="desk-render.js?v=1"></script>
-<script src="edit.js?v=4"></script>
+<script src="edit.js?v=5"></script>
 </body>
   </html>
