@@ -185,13 +185,11 @@
       return;
     }
 
-    // Clean up removed photos from storage
     const newSet = {};
     (desk.photos || []).forEach(function (u) { newSet[u] = true; });
     const removed = oldPhotos.filter(function (u) { return !newSet[u]; });
     removed.forEach(function (u) { AUTH.removePhoto(u); });
 
-    // Update local state
     Object.assign(desk, values);
     desk.photos = values.photos;
 
@@ -218,14 +216,16 @@
     draft.photos = desk.photos || [];
     draft.avatar_url = desk.avatar_url || '';
 
+    let encoded;
     try {
-      sessionStorage.setItem('stm_draft', JSON.stringify(draft));
+      const json = JSON.stringify(draft);
+      encoded = btoa(unescape(encodeURIComponent(json)));
     } catch (err) {
       alert('Could not prepare preview.');
       return;
     }
 
-    previewFrame.src = '/preview.html?v=' + Date.now();
+    previewFrame.src = '/preview.html?d=' + encodeURIComponent(encoded) + '&t=' + Date.now();
     previewOverlay.hidden = false;
   }
 
@@ -233,7 +233,6 @@
     if (!previewOverlay || !previewFrame) return;
     previewOverlay.hidden = true;
     previewFrame.src = 'about:blank';
-    try { sessionStorage.removeItem('stm_draft'); } catch (err) {}
   }
 
   /* ---------- Boot ---------- */
