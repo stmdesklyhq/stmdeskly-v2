@@ -209,7 +209,7 @@
 
   /* ---------- Preview ---------- */
   function openPreview() {
-    if (!window.DESK_RENDER || !previewOverlay || !previewFrame) {
+    if (!previewOverlay || !previewFrame) {
       alert('Preview is not available yet.');
       return;
     }
@@ -219,19 +219,21 @@
     draft.avatar_url = desk.avatar_url || '';
 
     try {
-      const html = window.DESK_RENDER.renderFullHtml(draft);
-      previewFrame.srcdoc = html;
-      previewOverlay.hidden = false;
+      sessionStorage.setItem('stm_draft', JSON.stringify(draft));
     } catch (err) {
-      console.error('[preview] render failed:', err);
-      alert('Could not build preview.');
+      alert('Could not prepare preview.');
+      return;
     }
+
+    previewFrame.src = '/preview.html?v=' + Date.now();
+    previewOverlay.hidden = false;
   }
 
   function closePreview() {
     if (!previewOverlay || !previewFrame) return;
     previewOverlay.hidden = true;
-    previewFrame.srcdoc = '';
+    previewFrame.src = 'about:blank';
+    try { sessionStorage.removeItem('stm_draft'); } catch (err) {}
   }
 
   /* ---------- Boot ---------- */
@@ -248,7 +250,6 @@
     desk = res.data;
     if (!Array.isArray(desk.photos)) desk.photos = [];
 
-    // Fill fields — guarded so a missing input doesn't crash boot
     const fill = function (id, value) {
       const el = $(id);
       if (el) el.value = value || '';
@@ -270,14 +271,12 @@
     paintAvatar();
     paintPhotos();
 
-    // Desk link
     const url = location.origin + '/desk.html?u=' + encodeURIComponent(desk.username);
     if (deskLinkEl) {
       deskLinkEl.textContent = url.replace(/^https?:\/\//, '');
       if (deskLinkEl.tagName === 'A') deskLinkEl.href = url;
     }
 
-    // About counter
     function updateAboutCount() {
       if (!aboutCount) return;
       const el = $('about');
@@ -290,10 +289,8 @@
       updateAboutCount();
     }
 
-    // Initial snapshot AFTER fields are filled
     initialSnapshot = snapshot();
 
-    // Dirty tracking
     if (form) {
       form.addEventListener('input', markDirty);
       form.addEventListener('change', markDirty);
