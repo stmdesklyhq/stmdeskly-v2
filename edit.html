@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#F7F6F1"><title>Edit my Desk — STMDeskly</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="edit.css?v=2">
+</head>
+<body class="page-edit">
+<header class="topbar">
+<a class="back" href="/" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M19 12H5m7 7-7-7 7-7"/></svg></a>
+<h1>Edit my Desk</h1>
+<button class="preview" type="button" id="previewBtn"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg><span>Preview</span></button>
+</header>
+<section class="link-banner"><div class="link-mark"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1"/></svg></div><div class="link-copy"><small>Your Desk link</small><a id="deskLink" href="https://desklybystm.pages.dev/desk.html">desklybystm.pages.dev/desk.html</a></div><button class="copy" type="button" id="copyBtn" aria-label="Copy Desk link"><svg viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button></section>
+<main class="main">
+<div class="intro"><small>YOUR SPACE, YOUR STORY</small><h2>Make your Desk <em>yours.</em></h2><p>Keep your details current so people know who you are and how to reach you.</p></div>
+<form id="editForm">
+<section class="group"><header><b>01</b><div><h2>Profile</h2><p>Who you are and what you do.</p></div></header>
+<div class="avatar-card"><div class="avatar" id="avatarPreview">CO</div><div><strong>Your profile photo</strong><p>A clear photo helps people recognise you.</p><button class="primary-soft" type="button" id="avatarUploadBtn">Upload photo</button> <button class="ghost" type="button" id="avatarRemoveBtn" hidden>Remove</button></div></div>
+<input type="file" id="avatarInput" accept="image/*" hidden>
+<input type="file" id="photoInput" accept="image/*" multiple hidden>
+<label for="name">Your name</label><input id="name" name="name" required>
+<label for="role">What you do</label><input id="role" name="role">
+<label for="tagline">Tagline</label><input id="tagline" name="tagline" maxlength="90"><small class="hint">One short line about you. Up to 90 characters.</small></section>
+<section class="group"><header><b>02</b><div><h2>About</h2><p>What you offer and what you're about.</p></div></header>
+<label for="services">What you offer</label><textarea id="services" name="services" rows="4"></textarea><small class="hint">Keep each service on its own line.</small>
+<label for="about">About you <span class="count" id="aboutCount">0 / 700</span></label><textarea id="about" name="about" rows="5" maxlength="700"></textarea></section>
+<section class="group"><header><b>03</b><div><h2>My work</h2><p>A few examples of what you do.</p></div></header>
+<div class="photos" id="photoGrid"></div>
+<button class="add-photo" type="button" id="addPhotoBtn"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Add a photo</button><small class="hint">Up to 12 photos. JPG or PNG, max 5 MB each.</small></section>
+<section class="group"><header><b>04</b><div><h2>Details</h2><p>Where and when people can find you.</p></div></header>
+<label for="location">Location</label><input id="location" name="location">
+<label for="opening_hours">Opening hours</label><textarea id="opening_hours" name="opening_hours" rows="2"></textarea>
+<label for="service_times">Service times <span class="optional">(optional)</span></label><textarea id="service_times" name="service_times" rows="2"></textarea></section>
+<section class="group"><header><b>05</b><div><h2>Contact</h2><p>Make it easy for people to reach you.</p></div></header>
+<label for="whatsapp">WhatsApp</label><input id="whatsapp" name="whatsapp" type="tel"><small class="hint">The main contact button on your Desk.</small>
+<label for="email">Email</label><input id="email" name="email" type="email">
+<label for="phone">Phone</label><input id="phone" name="phone" type="tel">
+<label for="website">Website <span class="optional">(optional)</span></label><input id="website" name="website" type="url"></section>
+<section class="group"><header><b>06</b><div><h2>Visibility</h2><p>Choose whether people can discover you.</p></div></header>
+<label class="switch"><input type="checkbox" name="show_in_explore" id="show_in_explore" checked><span class="track"><i></i></span><span><strong>Show my Desk in Explore</strong><small>People browsing STMDeskly can find your Desk. Your direct link works either way.</small></span></label></section>
+</form>
+<section class="states" id="statesRef"><small>DESIGN REFERENCE</small><h2>Editor states</h2><p>Static examples for review only; not connected to the form.</p>
+<div class="state"><span>Clean</span><small>No status message</small><button class="save mini" type="button">Save changes</button></div>
+<div class="state"><span>Dirty</span><small class="dirty">Unsaved changes</small><button class="save mini" type="button">Save changes</button></div>
+<div class="state"><span>Saving</span><small class="saving">Saving…</small><button class="save mini" disabled type="button">Saving…</button></div>
+<div class="state"><span>Saved</span><small class="saved">All changes saved</small><button class="save mini" type="button">Save changes</button></div>
+<div class="state"><span>Error</span><small class="error">Couldn't save. Try again.</small><button class="save mini" type="button">Save changes</button></div>
+<div class="state"><span>Avatar initials</span><div class="avatar mini-avatar">CO</div></div>
+<div class="state"><span>Avatar photo</span><div class="avatar mini-avatar"><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="Example avatar"></div></div>
+<div class="state"><span>Uploading photo</span><div class="photo uploading tiny"><div><i></i>Uploading…</div></div></div>
+</section></main>
+<footer class="savebar"><span class="dirty" id="saveStatus">Unsaved changes</span><button class="save" type="submit" form="editForm" id="saveBtn">Save changes <svg viewBox="0 0 24 24"><path d="m5 12 5 5L20 7"/></svg></button></footer>
+
+<!-- Preview overlay -->
+<div class="preview-overlay" id="previewOverlay" hidden>
+  <div class="preview-panel">
+    <div class="preview-head">
+      <span>Preview</span>
+      <button type="button" id="previewClose" aria-label="Close preview">×</button>
+    </div>
+    <iframe id="previewFrame" title="Desk preview" sandbox="allow-same-origin"></iframe>
+  </div>
+</div>
+
+<!-- Hide the design-reference states section -->
+<script>
+  (function () {
+    var s = document.getElementById('statesRef');
+    if (s) s.style.display = 'none';
+  })();
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="auth.js?v=3"></script>
+<script src="desk-render.js?v=1"></script>
+<script src="edit.js?v=2"></script>
+</body>
+</html>

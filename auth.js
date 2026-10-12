@@ -1,0 +1,386 @@
+// STMDESKLY v2 — Auth module
+(function () {
+  'use strict';
+
+  const cfg = window.SUPABASE_CONFIG;
+  if (!cfg || !cfg.url || !cfg.anonKey || cfg.anonKey === 'PASTE_YOUR_ANON_KEY_HERE') {
+    console.error('Set SUPABASE_CONFIG in config.js first.');
+    return;
+  }
+
+  const { createClient } = window.supabase;
+  const sb = createClient(cfg.url, cfg.anonKey, {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+    },
+  });
+
+  /* ---------- Rate limit (client-side soft limit) ---------- */
+  const RL_KEY = 'stm_rl';
+  function rlGet() {
+    try { return JSON.parse(localStorage.getItem(RL_KEY) || '{}'); }
+    catch (e) { return {}; }
+  }
+  function rlSet(obj) {
+    try { localStorage.setItem(RL_KEY, JSON.stringify(obj)); } catch (e) {}
+  }
+  function rlCheck(key, max, windowMs) {
+    const now = Date.now();
+    const all = rlGet();
+    const arr = (all[key] || []).filter(function (t) { return now - t < windowMs; });
+    all[key] = arr;
+    rlSet(all);
+    return arr.length < max;
+  }
+  function rlRecord(key, windowMs) {
+    const now = Date.now();
+    const all = rlGet();
+    const arr = (all[key] || []).filter(function (t) { return now - t < windowMs; });
+    arr.push(now);
+    all[key] = arr;
+    rlSet(all);
+  }
+
+  /* ---------- Password strength ---------- */
+  function pwStrength(pw) {
+    if (!pw) return { score: 0, label: '', ok: false };
+    let score = 0;
+    if (pw.length >= 8) score++;
+    if (pw.length >= 12) score++;
+    if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) score++;
+    if (/\d/.test(pw)) score++;
+    if (/[^A-Za-z0-9]/.test(pw)) score++;
+    if (score > 4) score = 4;
+    const labels = ['Very weak', 'Weak', 'Okay', 'Good', 'Strong'];
+    return {
+      score: score,
+      label: labels[score],
+      ok: pw.length >= 8 && score >= 2,
+    };
+  }
+
+  /* ---------- Breach check (HIBP k-anonymity) ---------- */
+  async function sha1Hex(str) {
+    if (!window.crypto || !window.crypto.subtle) {
+      throw new Error('crypto.subtle is not available in this browser.');
+    }
+    const buf = new TextEncoder().encode(str);
+    const hash = await crypto.subtle.digest('SHA-1', buf);
+    return Array.from(new Uint8Array(hash))
+      .map(function (b) { return b.toString(16).padStart(2, '0'); })
+      .join('')
+      .toUpperCase();
+  }
+
+  async function pwBreached(pw) {
+    try {
+      const hash = await sha1Hex(pw);
+      const prefix = hash.slice(0, 5);
+      const suffix = hash.slice(5);
+      const res = await fetch('https://api.pwnedpasswords.com/range/' + prefix);
+      if (!res.ok) return false;
+      const text = await res.text();
+      return text.split('\n').some(function (line) {
+        return line.split(':')[0] === suffix;
+      });
+    } catch (e) {
+      // Network failure or missing crypto — don't block signup.
+      return false;
+    }
+  }
+
+  /* ---------- Username availability ---------- */
+  async function checkUsername(username) {
+    const clean = String(username || '').trim().toLowerCase();
+    if (!clean) return { ok: false, reason: 'empty' };
+    if (!/^[a-z0-9](?:[a-z0-9-]{1,28}[a-z0-9])?$/.test(clean)) {
+      return { ok: false, reason: 'format' };
+    }
+    const res = await sb.from('desks').select('id').eq('username', clean).maybeSingle();
+    if (res.error && res.error.code !== 'PGRST116') {
+      return { ok: false, reason: 'error' };
+    }
+    if (res.data) return { ok: false, reason: 'taken' };
+    return { ok: true, username: clean };
+  }
+
+  /* ---------- Signup with email ---------- */
+  async function signupEmail(input) {
+    const res = await sb.auth.signUp({
+      email: input.email,
+      password: input.password,
+      options: {
+        emailRedirectTo: location.origin + '/signup.html',
+        data: {
+          name: input.name,
+          username: input.username,
+          role: input.role || null,
+          whatsapp: input.whatsapp || null,
+        },
+      },
+    });
+    if (res.error) return { ok: false, error: res.error };
+
+    const user = res.data.user;
+    const session = res.data.session;
+
+    // Email confirmation required — the desk row will be created later.
+    if (!session) {
+      return { ok: true, needsConfirm: true, user: user };
+    }
+
+    const deskRes = await sb.from('desks').insert({
+      user_id: user.id,
+      username: input.username,
+      name: input.name,
+      role: input.role || null,
+      whatsapp: input.whatsapp || null,
+      email: user.email,
+    });
+
+    if (deskRes.error) return { ok: false, error: deskRes.error, user: user };
+    return { ok: true, user: user, session: session };
+  }
+
+  /* ---------- Login ---------- */
+  async function loginEmail(input) {
+    const res = await sb.auth.signInWithPassword({
+      email: input.email,
+      password: input.password,
+    });
+    if (res.error) return { ok: false, error: res.error };
+    return { ok: true, user: res.data.user, session: res.data.session };
+  }
+
+  /* ---------- Google OAuth ---------- */
+  async function signInGoogle(redirectTo) {
+    const res = await sb.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: redirectTo || (location.origin + '/signup.html'),
+      },
+    });
+    if (res.error) return { ok: false, error: res.error };
+    return { ok: true };
+  }
+
+  /* ---------- Create desk (for users with no desk yet) ---------- */
+  async function createDesk(input) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    const deskRes = await sb.from('desks').insert({
+      user_id: user.id,
+      username: input.username,
+      name: input.name,
+      role: input.role || null,
+      whatsapp: input.whatsapp || null,
+      email: user.email,
+    });
+    if (deskRes.error) return { ok: false, error: deskRes.error };
+    return { ok: true };
+  }
+
+  /* ---------- Current user / desk ---------- */
+  async function currentUser() {
+    const res = await sb.auth.getUser();
+    return res.data.user || null;
+  }
+
+  async function currentDesk() {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return null;
+    const res = await sb.from('desks')
+      .select('id, username, name')
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (res.error) return null;
+    return res.data;
+  }
+
+  /* ---------- Logout ---------- */
+  async function logout() {
+    await sb.auth.signOut();
+  }
+
+  /* =========================================================
+     EDITOR — desk updates and media
+     ========================================================= */
+
+  /* ---------- Editor: update desk ---------- */
+  async function updateDesk(fields) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    const res = await sb
+      .from('desks')
+      .update(fields)
+      .eq('user_id', user.id)
+      .select('id')
+      .single();
+
+    if (res.error) return { ok: false, error: res.error };
+    return { ok: true, data: res.data };
+  }
+
+  /* ---------- Editor: image compression ---------- */
+  async function compressImage(file, maxSize) {
+    maxSize = maxSize || 1200;
+    return new Promise(function (resolve, reject) {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+
+      img.onload = function () {
+        URL.revokeObjectURL(url);
+
+        let width = img.width;
+        let height = img.height;
+
+        if (width > maxSize || height > maxSize) {
+          if (width >= height) {
+            height = Math.round(height * (maxSize / width));
+            width = maxSize;
+          } else {
+            width = Math.round(width * (maxSize / height));
+            height = maxSize;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        canvas.toBlob(
+          function (blob) {
+            if (blob) resolve(blob);
+            else reject(new Error('Could not process image'));
+          },
+          'image/jpeg',
+          0.85
+        );
+      };
+
+      img.onerror = function () {
+        URL.revokeObjectURL(url);
+        reject(new Error('Could not read image'));
+      };
+
+      img.src = url;
+    });
+  }
+
+  /* ---------- Editor: upload avatar ---------- */
+  async function uploadAvatar(file) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    try {
+      const blob = await compressImage(file, 600);
+      const path = user.id + '/avatar.jpg';
+
+      const up = await sb.storage
+        .from('desk-photos')
+        .upload(path, blob, {
+          contentType: 'image/jpeg',
+          upsert: true,
+        });
+
+      if (up.error) return { ok: false, error: up.error };
+
+      const pub = sb.storage.from('desk-photos').getPublicUrl(path);
+      const publicUrl = pub.data.publicUrl + '?t=' + Date.now();
+
+      return { ok: true, url: publicUrl };
+    } catch (err) {
+      return { ok: false, error: err };
+    }
+  }
+
+  /* ---------- Editor: upload photo ---------- */
+  async function uploadPhoto(file) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    try {
+      const blob = await compressImage(file, 1400);
+
+      const id =
+        (window.crypto && crypto.randomUUID)
+          ? crypto.randomUUID()
+          : String(Date.now()) + Math.random().toString(36).slice(2, 9);
+
+      const path = user.id + '/photos/' + id + '.jpg';
+
+      const up = await sb.storage
+        .from('desk-photos')
+        .upload(path, blob, {
+          contentType: 'image/jpeg',
+          upsert: false,
+        });
+
+      if (up.error) return { ok: false, error: up.error };
+
+      const pub = sb.storage.from('desk-photos').getPublicUrl(path);
+      return { ok: true, url: pub.data.publicUrl };
+    } catch (err) {
+      return { ok: false, error: err };
+    }
+  }
+
+  /* ---------- Editor: remove photo from storage ---------- */
+  async function removePhoto(url) {
+    try {
+      const marker = '/desk-photos/';
+      const idx = String(url).indexOf(marker);
+      if (idx === -1) return { ok: true };
+
+      let path = url.slice(idx + marker.length);
+      const q = path.indexOf('?');
+      if (q !== -1) path = path.slice(0, q);
+
+      const res = await sb.storage.from('desk-photos').remove([path]);
+      if (res.error) return { ok: false, error: res.error };
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, error: err };
+    }
+  }
+
+  /* =========================================================
+     PUBLIC API
+     ========================================================= */
+
+  window.AUTH = {
+    sb: sb,
+
+    // Auth
+    pwStrength: pwStrength,
+    pwBreached: pwBreached,
+    checkUsername: checkUsername,
+    signupEmail: signupEmail,
+    loginEmail: loginEmail,
+    signInGoogle: signInGoogle,
+    createDesk: createDesk,
+    currentUser: currentUser,
+    currentDesk: currentDesk,
+    logout: logout,
+    rlCheck: rlCheck,
+    rlRecord: rlRecord,
+
+    // Editor
+    updateDesk: updateDesk,
+    uploadAvatar: uploadAvatar,
+    uploadPhoto: uploadPhoto,
+    removePhoto: removePhoto,
+  };
+})();
