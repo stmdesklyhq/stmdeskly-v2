@@ -11,3 +11,36 @@
 @media(min-width:520px){.main{padding:28px 28px 32px}.topbar{padding:0 27px}.category{min-height:119px;padding:15px}.category[aria-pressed=true]{padding:14.8px}.category b{font-size:12px}.category small{font-size:10px}.content,.photos{margin-top:30px}textarea{min-height:170px}.states{padding:28px}.state-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}}
 @media(max-width:350px){.main{padding-right:12px;padding-left:12px}.category{padding:10px}.category[aria-pressed=true]{padding:9.8px}.category small{font-size:8px}.savebar{padding-right:12px;padding-left:12px}.save-post{min-width:100px}.states{padding-right:12px;padding-left:12px}.state{padding:8px}.state>small{font-size:7px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+/* Real photo tiles (from JS) */
+.photo.photo-tile {
+  position: relative;
+  padding: 0;
+  overflow: hidden;
+  border: 1.7px solid var(--border);
+  background: #E5E8E2;
+}
+.photo.photo-tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.photo.photo-tile button[data-remove] {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  background: rgba(16, 35, 47, 0.78);
+  color: #fff;
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+}
+.photo.photo-tile .upload {
+  position: absolute;
+  inset: 0;
+}
