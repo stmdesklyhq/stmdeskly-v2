@@ -327,7 +327,6 @@
     paintPhotos();
     paintPublishStrip();
 
-    // Load appearance controls from the desk row
     if (window.APPEARANCE && window.APPEARANCE.load) {
       window.APPEARANCE.load(desk);
     }
