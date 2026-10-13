@@ -545,6 +545,150 @@
   }
 
   /* =========================================================
+     CHAT — threads and messages
+     ========================================================= */
+
+  function sortPair(a, b) {
+    return a < b ? [a, b] : [b, a];
+  }
+
+  async function startThread(otherUserId) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+    if (user.id === otherUserId) return { ok: false, error: { message: 'Cannot start a chat with yourself' } };
+
+    const pair = sortPair(user.id, otherUserId);
+    const a = pair[0];
+    const b = pair[1];
+
+    const existing = await sb
+      .from('chat_threads')
+      .select('id, status, initiated_by, user_a, user_b')
+      .eq('user_a', a)
+      .eq('user_b', b)
+      .maybeSingle();
+
+    if (existing.error && existing.error.code !== 'PGRST116') {
+      return { ok: false, error: existing.error };
+    }
+
+    if (existing.data) return { ok: true, thread: existing.data };
+
+    const ins = await sb.from('chat_threads').insert({
+      user_a: a,
+      user_b: b,
+      initiated_by: user.id,
+      status: 'pending',
+    }).select('id, status, initiated_by, user_a, user_b').single();
+
+    if (ins.error) return { ok: false, error: ins.error };
+    return { ok: true, thread: ins.data, created: true };
+  }
+
+  async function loadThread(threadId) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    const tRes = await sb
+      .from('chat_threads')
+      .select('id, user_a, user_b, status, initiated_by, last_message_at')
+      .eq('id', threadId)
+      .single();
+
+    if (tRes.error || !tRes.data) return { ok: false, error: tRes.error };
+
+    const thread = tRes.data;
+    const otherId = thread.user_a === user.id ? thread.user_b : thread.user_a;
+
+    const pRes = await sb
+      .from('desks')
+      .select('user_id, name, username, avatar_url, role')
+      .eq('user_id', otherId)
+      .maybeSingle();
+
+    const other = pRes.data || { user_id: otherId, name: 'Someone' };
+
+    return { ok: true, thread: thread, other: other, me: user };
+  }
+
+  async function loadMessages(threadId, limit) {
+    limit = limit || 50;
+    const res = await sb
+      .from('chat_messages')
+      .select('id, sender_id, body, photo_url, read_at, created_at')
+      .eq('thread_id', threadId)
+      .order('created_at', { ascending: true })
+      .limit(limit);
+
+    if (res.error) return { ok: false, error: res.error };
+    return { ok: true, data: res.data || [] };
+  }
+
+  async function sendMessage(threadId, body) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    const res = await sb
+      .from('chat_messages')
+      .insert({ thread_id: threadId, sender_id: user.id, body: body })
+      .select('id, sender_id, body, photo_url, read_at, created_at')
+      .single();
+
+    if (res.error) return { ok: false, error: res.error };
+    return { ok: true, message: res.data };
+  }
+
+  async function acceptThread(threadId) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    const res = await sb
+      .from('chat_threads')
+      .update({ status: 'accepted' })
+      .eq('id', threadId)
+      .select('id, status')
+      .single();
+
+    if (res.error) return { ok: false, error: res.error };
+    return { ok: true, thread: res.data };
+  }
+
+  async function declineThread(threadId) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    const res = await sb
+      .from('chat_threads')
+      .update({ status: 'declined' })
+      .eq('id', threadId)
+      .select('id, status')
+      .single();
+
+    if (res.error) return { ok: false, error: res.error };
+    return { ok: true, thread: res.data };
+  }
+
+  async function markMessagesRead(threadId) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false };
+
+    await sb
+      .from('chat_messages')
+      .update({ read_at: new Date().toISOString() })
+      .eq('thread_id', threadId)
+      .is('read_at', null)
+      .neq('sender_id', user.id);
+
+    return { ok: true };
+  }
+
+  /* =========================================================
      PUBLIC API
      ========================================================= */
 
@@ -586,5 +730,14 @@
     createReply: createReply,
     getReplyCounts: getReplyCounts,
     deleteReply: deleteReply,
+
+    // Chat
+    startThread: startThread,
+    loadThread: loadThread,
+    loadMessages: loadMessages,
+    sendMessage: sendMessage,
+    acceptThread: acceptThread,
+    declineThread: declineThread,
+    markMessagesRead: markMessagesRead,
   };
 })();
