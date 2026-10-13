@@ -118,6 +118,7 @@
       : '';
 
     const isMine = currentUser && post.user_id === currentUser.id;
+    const profileUrl = post.author_username ? '/profile.html?u=' + esc(post.author_username) : '#';
 
     const menuButton = isMine
       ? '<button class="icon-button post-menu" data-action="menu" aria-label="Post options"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>'
@@ -125,9 +126,9 @@
 
     return '<article class="post-card" data-id="' + esc(post.id) + '" data-owner="' + esc(post.user_id) + '">' +
       '<header class="post-header">' +
-        '<span class="avatar post-avatar">' + esc(initials(post.author_name || '·')) + '</span>' +
+        '<a class="avatar post-avatar" href="' + profileUrl + '">' + esc(initials(post.author_name || '·')) + '</a>' +
         '<div class="post-author">' +
-          '<strong>' + esc(post.author_name || 'Someone') + '</strong>' +
+          '<a class="post-author-link" href="' + profileUrl + '"><strong>' + esc(post.author_name || 'Someone') + '</strong></a>' +
           '<div class="post-meta">' +
             '<span class="post-category">' + esc(categoryLabel) + '</span>' +
             '<span>' + esc(timeAgo(post.created_at)) + '</span>' +
@@ -189,15 +190,19 @@
     if (userIds.length) {
       const authorsRes = await sb
         .from('desks')
-        .select('user_id, name')
+        .select('user_id, name, username')
         .in('user_id', userIds);
       if (!authorsRes.error && authorsRes.data) {
-        authorsRes.data.forEach(function (d) { authorMap[d.user_id] = d.name; });
+        authorsRes.data.forEach(function (d) {
+          authorMap[d.user_id] = { name: d.name, username: d.username };
+        });
       }
     }
 
     const html = posts.map(function (p) {
-      p.author_name = authorMap[p.user_id] || 'Someone';
+      const author = authorMap[p.user_id] || { name: 'Someone', username: '' };
+      p.author_name = author.name;
+      p.author_username = author.username;
       return renderPost(p);
     }).join('');
 
@@ -255,11 +260,9 @@
     if (!commentOverlay) return;
     activePostId = postId;
 
-    // Post preview — clone the card from the feed and strip actions
     const original = feedEl.querySelector('[data-id="' + postId + '"]');
     if (original && sheetPost) {
       const clone = original.cloneNode(true);
-      // Remove any interactive extras that don't belong in the sheet
       const menu = clone.querySelector('.post-menu');
       if (menu) menu.remove();
       const actions = clone.querySelector('.post-actions');
@@ -353,7 +356,6 @@
       return;
     }
 
-    // Append locally
     const r = res.data;
     const meName = (currentUser && currentUser.user_metadata && currentUser.user_metadata.name) || '';
     r.author_name = meName || 'You';
@@ -362,9 +364,8 @@
       sheetReplies.innerHTML = '';
     }
 
-    // New replies render with a remove button since they're always the author's own
     sheetReplies.insertAdjacentHTML('beforeend',
-      '<div class="reply" data-reply-id="' + esc(r.id) + '">' +
+      '<div class="reply">' +
         '<span class="reply-avatar">' + esc(initials(r.author_name)) + '</span>' +
         '<div class="reply-body">' +
           '<div class="reply-head">' +
@@ -373,18 +374,15 @@
           '</div>' +
           '<p class="reply-text">' + esc(r.body) + '</p>' +
         '</div>' +
-        '<button type="button" class="reply-remove" data-reply-id="' + esc(r.id) + '" aria-label="Remove reply">×</button>' +
       '</div>'
     );
 
-    // Scroll to bottom
     const sheetBody = $('sheetBody');
     if (sheetBody) sheetBody.scrollTop = sheetBody.scrollHeight;
 
     sheetInput.value = '';
     updateSendState();
 
-    // Update feed count
     const countEl = feedEl.querySelector('[data-reply-count-for="' + activePostId + '"]');
     if (countEl) {
       const cur = Number(countEl.textContent) || 0;
@@ -460,15 +458,6 @@
     });
   }
 
-  if (sheetClose) sheetClose.addEventListener('click', closeCommentSheet);
-  if (commentOverlay) {
-    commentOverlay.addEventListener('click', function (e) {
-      if (e.target === commentOverlay) closeCommentSheet();
-    });
-  }
-  if (sheetInput) sheetInput.addEventListener('input', updateSendState);
-  if (sheetComposer) sheetComposer.addEventListener('submit', submitReply);
-
   if (sheetReplies) {
     sheetReplies.addEventListener('click', async function (e) {
       const btn = e.target.closest('.reply-remove');
@@ -497,7 +486,6 @@
 
       if (row) row.remove();
 
-      // Update the feed count
       const countEl = feedEl.querySelector('[data-reply-count-for="' + activePostId + '"]');
       if (countEl) {
         const cur = Number(countEl.textContent) || 0;
@@ -505,6 +493,15 @@
       }
     });
   }
+
+  if (sheetClose) sheetClose.addEventListener('click', closeCommentSheet);
+  if (commentOverlay) {
+    commentOverlay.addEventListener('click', function (e) {
+      if (e.target === commentOverlay) closeCommentSheet();
+    });
+  }
+  if (sheetInput) sheetInput.addEventListener('input', updateSendState);
+  if (sheetComposer) sheetComposer.addEventListener('submit', submitReply);
 
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && commentOverlay && !commentOverlay.hidden) {
