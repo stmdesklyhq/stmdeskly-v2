@@ -1,6 +1,5 @@
 /* =========================================================
    STMDESKLY v2 — Shared bottom navigation
-   Injects the nav into every signed-in page.
    ========================================================= */
 (function () {
   'use strict';
