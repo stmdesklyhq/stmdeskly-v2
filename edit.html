@@ -5,9 +5,9 @@
 <meta name="theme-color" content="#F7F6F1"><title>Edit my Desk — STMDeskly</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="edit.css?v=5">
+<link rel="stylesheet" href="edit.css?v=6">
 <link rel="stylesheet" href="publish.css?v=1">
-<link rel="stylesheet" href="appearance.css">
+<link rel="stylesheet" href="appearance.css?v=1">
 </head>
 <body class="page-edit">
 
@@ -35,7 +35,6 @@
   </button>
 </section>
 
-<!-- Publish status strip — switches state via JS -->
 <section class="publish-strip" id="publishStrip" hidden>
   <div class="publish-strip-main">
     <small id="publishStripLabel">NOT PUBLISHED</small>
@@ -133,6 +132,7 @@
   <label for="website">Website <span class="optional">(optional)</span></label>
   <input id="website" name="website" type="url">
 </section>
+
 <!-- SECTION 06: APPEARANCE -->
 <section class="group appearance-group" id="appearance">
 
@@ -144,7 +144,6 @@
     </div>
   </header>
 
-  <!-- LIVE PREVIEW -->
   <div class="appearance-preview-wrap">
 
     <div
@@ -158,445 +157,144 @@
       data-layout="spacious"
       data-photo-layout="grid"
     >
-
       <div class="appearance-preview-pattern" aria-hidden="true"></div>
 
       <div class="appearance-preview-content">
-
         <div class="appearance-preview-avatar" aria-hidden="true">
           <span>CO</span>
         </div>
-
         <div class="appearance-preview-copy">
           <span class="appearance-preview-label">A LITTLE ABOUT ME</span>
           <h3 id="appearancePreviewName">Chidi Okonkwo</h3>
           <p id="appearancePreviewRole">Photographer</p>
           <span class="appearance-preview-line"></span>
         </div>
-
       </div>
 
       <span class="appearance-preview-caption">DESK PREVIEW</span>
-
     </div>
 
-    <p class="appearance-preview-note">
-      A glimpse of how your Desk could look.
-    </p>
-
+    <p class="appearance-preview-note">A glimpse of how your Desk could look.</p>
   </div>
 
-  <!-- ACCENT COLOUR -->
   <div class="appearance-control">
-
     <div class="appearance-control-heading">
       <h3>Accent colour</h3>
       <span class="appearance-selection" id="accentSelection">Forest</span>
     </div>
 
     <div class="appearance-colours" role="group" aria-label="Accent colour">
-
-      <button type="button" class="appearance-colour is-selected"
-        data-group="accent" data-value="forest"
-        aria-label="Forest green" aria-pressed="true">
-        <span class="colour-dot" style="--swatch:#2F6D50"></span>
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="m5 12 4 4L19 6"/>
-        </svg>
-      </button>
-
-      <button type="button" class="appearance-colour"
-        data-group="accent" data-value="emerald"
-        aria-label="Emerald" aria-pressed="false">
-        <span class="colour-dot" style="--swatch:#087F5B"></span>
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="m5 12 4 4L19 6"/>
-        </svg>
-      </button>
-
-      <button type="button" class="appearance-colour"
-        data-group="accent" data-value="blue"
-        aria-label="Deep blue" aria-pressed="false">
-        <span class="colour-dot" style="--swatch:#2458A6"></span>
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="m5 12 4 4L19 6"/>
-        </svg>
-      </button>
-
-      <button type="button" class="appearance-colour"
-        data-group="accent" data-value="red"
-        aria-label="Warm red" aria-pressed="false">
-        <span class="colour-dot" style="--swatch:#B93D45"></span>
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="m5 12 4 4L19 6"/>
-        </svg>
-      </button>
-
-      <button type="button" class="appearance-colour"
-        data-group="accent" data-value="terracotta"
-        aria-label="Terracotta" aria-pressed="false">
-        <span class="colour-dot" style="--swatch:#B85C38"></span>
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="m5 12 4 4L19 6"/>
-        </svg>
-      </button>
-
-      <button type="button" class="appearance-colour"
-        data-group="accent" data-value="plum"
-        aria-label="Plum" aria-pressed="false">
-        <span class="colour-dot" style="--swatch:#79518D"></span>
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="m5 12 4 4L19 6"/>
-        </svg>
-      </button>
-
-      <button type="button" class="appearance-colour"
-        data-group="accent" data-value="amber"
-        aria-label="Amber" aria-pressed="false">
-        <span class="colour-dot" style="--swatch:#A66A13"></span>
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="m5 12 4 4L19 6"/>
-        </svg>
-      </button>
-
-      <button type="button" class="appearance-colour"
-        data-group="accent" data-value="charcoal"
-        aria-label="Charcoal" aria-pressed="false">
-        <span class="colour-dot" style="--swatch:#34424A"></span>
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="m5 12 4 4L19 6"/>
-        </svg>
-      </button>
-
+      <button type="button" class="appearance-colour is-selected" data-group="accent" data-value="forest" aria-label="Forest green" aria-pressed="true"><span class="colour-dot" style="--swatch:#2F6D50"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
+      <button type="button" class="appearance-colour" data-group="accent" data-value="emerald" aria-label="Emerald" aria-pressed="false"><span class="colour-dot" style="--swatch:#087F5B"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
+      <button type="button" class="appearance-colour" data-group="accent" data-value="blue" aria-label="Deep blue" aria-pressed="false"><span class="colour-dot" style="--swatch:#2458A6"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
+      <button type="button" class="appearance-colour" data-group="accent" data-value="red" aria-label="Warm red" aria-pressed="false"><span class="colour-dot" style="--swatch:#B93D45"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
+      <button type="button" class="appearance-colour" data-group="accent" data-value="terracotta" aria-label="Terracotta" aria-pressed="false"><span class="colour-dot" style="--swatch:#B85C38"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
+      <button type="button" class="appearance-colour" data-group="accent" data-value="plum" aria-label="Plum" aria-pressed="false"><span class="colour-dot" style="--swatch:#79518D"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
+      <button type="button" class="appearance-colour" data-group="accent" data-value="amber" aria-label="Amber" aria-pressed="false"><span class="colour-dot" style="--swatch:#A66A13"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
+      <button type="button" class="appearance-colour" data-group="accent" data-value="charcoal" aria-label="Charcoal" aria-pressed="false"><span class="colour-dot" style="--swatch:#34424A"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
     </div>
 
     <p class="appearance-hint">Used on buttons and highlights.</p>
-
   </div>
 
-  <!-- PAGE BACKGROUND -->
   <div class="appearance-control">
-
     <div class="appearance-control-heading">
       <h3>Page background</h3>
       <span class="appearance-selection" id="backgroundSelection">Cream</span>
     </div>
 
     <div class="appearance-backgrounds" role="group" aria-label="Page background">
-
-      <button type="button" class="appearance-background is-selected"
-        data-group="background" data-value="cream"
-        aria-pressed="true">
-        <span class="background-swatch" style="--swatch:#F7F6F1"></span>
-        <span>Cream</span>
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="m5 12 4 4L19 6"/>
-        </svg>
-      </button>
-
-      <button type="button" class="appearance-background"
-        data-group="background" data-value="white"
-        aria-pressed="false">
-        <span class="background-swatch" style="--swatch:#FFFFFF"></span>
-        <span>White</span>
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="m5 12 4 4L19 6"/>
-        </svg>
-      </button>
-
-      <button type="button" class="appearance-background"
-        data-group="background" data-value="warm-grey"
-        aria-pressed="false">
-        <span class="background-swatch" style="--swatch:#EEEAE3"></span>
-        <span>Warm grey</span>
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="m5 12 4 4L19 6"/>
-        </svg>
-      </button>
-
-      <button type="button" class="appearance-background"
-        data-group="background" data-value="cool-grey"
-        aria-pressed="false">
-        <span class="background-swatch" style="--swatch:#E9EDF0"></span>
-        <span>Cool grey</span>
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="m5 12 4 4L19 6"/>
-        </svg>
-      </button>
-
+      <button type="button" class="appearance-background is-selected" data-group="background" data-value="cream" aria-pressed="true"><span class="background-swatch" style="--swatch:#F7F6F1"></span><span>Cream</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
+      <button type="button" class="appearance-background" data-group="background" data-value="white" aria-pressed="false"><span class="background-swatch" style="--swatch:#FFFFFF"></span><span>White</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
+      <button type="button" class="appearance-background" data-group="background" data-value="warm-grey" aria-pressed="false"><span class="background-swatch" style="--swatch:#EEEAE3"></span><span>Warm grey</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
+      <button type="button" class="appearance-background" data-group="background" data-value="cool-grey" aria-pressed="false"><span class="background-swatch" style="--swatch:#E9EDF0"></span><span>Cool grey</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
     </div>
 
     <p class="appearance-hint">The colour behind everything.</p>
-
   </div>
 
-  <!-- PATTERN -->
   <div class="appearance-control">
-
     <div class="appearance-control-heading">
       <h3>Pattern</h3>
       <span class="appearance-selection" id="patternSelection">None</span>
     </div>
 
     <div class="appearance-patterns" role="group" aria-label="Background pattern">
-
-      <button type="button" class="appearance-pattern is-selected"
-        data-group="pattern" data-value="none"
-        aria-pressed="true">
-        <span class="pattern-tile pattern-none"></span>
-        <span>None</span>
-      </button>
-
-      <button type="button" class="appearance-pattern"
-        data-group="pattern" data-value="dots"
-        aria-pressed="false">
-        <span class="pattern-tile pattern-dots"></span>
-        <span>Dots</span>
-      </button>
-
-      <button type="button" class="appearance-pattern"
-        data-group="pattern" data-value="grid"
-        aria-pressed="false">
-        <span class="pattern-tile pattern-grid"></span>
-        <span>Grid</span>
-      </button>
-
-      <button type="button" class="appearance-pattern"
-        data-group="pattern" data-value="diagonal"
-        aria-pressed="false">
-        <span class="pattern-tile pattern-diagonal"></span>
-        <span>Diagonal</span>
-      </button>
-
-      <button type="button" class="appearance-pattern"
-        data-group="pattern" data-value="waves"
-        aria-pressed="false">
-        <span class="pattern-tile pattern-waves"></span>
-        <span>Waves</span>
-      </button>
-
-      <button type="button" class="appearance-pattern"
-        data-group="pattern" data-value="plus"
-        aria-pressed="false">
-        <span class="pattern-tile pattern-plus"></span>
-        <span>Plus</span>
-      </button>
-
-      <button type="button" class="appearance-pattern"
-        data-group="pattern" data-value="rings"
-        aria-pressed="false">
-        <span class="pattern-tile pattern-rings"></span>
-        <span>Rings</span>
-      </button>
-
-      <button type="button" class="appearance-pattern"
-        data-group="pattern" data-value="crosshatch"
-        aria-pressed="false">
-        <span class="pattern-tile pattern-crosshatch"></span>
-        <span>Crosshatch</span>
-      </button>
-
+      <button type="button" class="appearance-pattern is-selected" data-group="pattern" data-value="none" aria-pressed="true"><span class="pattern-tile pattern-none"></span><span>None</span></button>
+      <button type="button" class="appearance-pattern" data-group="pattern" data-value="dots" aria-pressed="false"><span class="pattern-tile pattern-dots"></span><span>Dots</span></button>
+      <button type="button" class="appearance-pattern" data-group="pattern" data-value="grid" aria-pressed="false"><span class="pattern-tile pattern-grid"></span><span>Grid</span></button>
+      <button type="button" class="appearance-pattern" data-group="pattern" data-value="diagonal" aria-pressed="false"><span class="pattern-tile pattern-diagonal"></span><span>Diagonal</span></button>
+      <button type="button" class="appearance-pattern" data-group="pattern" data-value="waves" aria-pressed="false"><span class="pattern-tile pattern-waves"></span><span>Waves</span></button>
+      <button type="button" class="appearance-pattern" data-group="pattern" data-value="plus" aria-pressed="false"><span class="pattern-tile pattern-plus"></span><span>Plus</span></button>
+      <button type="button" class="appearance-pattern" data-group="pattern" data-value="rings" aria-pressed="false"><span class="pattern-tile pattern-rings"></span><span>Rings</span></button>
+      <button type="button" class="appearance-pattern" data-group="pattern" data-value="crosshatch" aria-pressed="false"><span class="pattern-tile pattern-crosshatch"></span><span>Crosshatch</span></button>
     </div>
 
     <p class="appearance-hint">Optional texture behind your Desk.</p>
-
   </div>
 
-  <!-- FONT PAIR -->
   <div class="appearance-control">
-
     <div class="appearance-control-heading">
       <h3>Font pair</h3>
       <span class="appearance-selection" id="fontSelection">Modern</span>
     </div>
 
     <div class="appearance-fonts" role="group" aria-label="Font pair">
-
-      <button type="button" class="appearance-font is-selected"
-        data-group="font" data-value="modern"
-        aria-pressed="true">
-        <span class="font-sample font-modern" data-preview-name>Chidi Okonkwo</span>
-        <span class="font-option-copy">
-          <strong>Modern</strong>
-          <small>Clean and balanced</small>
-        </span>
-        <span class="font-check" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg>
-        </span>
-      </button>
-
-      <button type="button" class="appearance-font"
-        data-group="font" data-value="classic"
-        aria-pressed="false">
-        <span class="font-sample font-classic" data-preview-name>Chidi Okonkwo</span>
-        <span class="font-option-copy">
-          <strong>Classic</strong>
-          <small>Timeless and composed</small>
-        </span>
-        <span class="font-check" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg>
-        </span>
-      </button>
-
-      <button type="button" class="appearance-font"
-        data-group="font" data-value="editorial"
-        aria-pressed="false">
-        <span class="font-sample font-editorial" data-preview-name>Chidi Okonkwo</span>
-        <span class="font-option-copy">
-          <strong>Editorial</strong>
-          <small>Expressive and distinctive</small>
-        </span>
-        <span class="font-check" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg>
-        </span>
-      </button>
-
-      <button type="button" class="appearance-font"
-        data-group="font" data-value="friendly"
-        aria-pressed="false">
-        <span class="font-sample font-friendly" data-preview-name>Chidi Okonkwo</span>
-        <span class="font-option-copy">
-          <strong>Friendly</strong>
-          <small>Soft and approachable</small>
-        </span>
-        <span class="font-check" aria-hidden="true">
-          <svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg>
-        </span>
-      </button>
-
+      <button type="button" class="appearance-font is-selected" data-group="font" data-value="modern" aria-pressed="true"><span class="font-sample font-modern" data-preview-name>Chidi Okonkwo</span><span class="font-option-copy"><strong>Modern</strong><small>Clean and balanced</small></span><span class="font-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></span></button>
+      <button type="button" class="appearance-font" data-group="font" data-value="classic" aria-pressed="false"><span class="font-sample font-classic" data-preview-name>Chidi Okonkwo</span><span class="font-option-copy"><strong>Classic</strong><small>Timeless and composed</small></span><span class="font-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></span></button>
+      <button type="button" class="appearance-font" data-group="font" data-value="editorial" aria-pressed="false"><span class="font-sample font-editorial" data-preview-name>Chidi Okonkwo</span><span class="font-option-copy"><strong>Editorial</strong><small>Expressive and distinctive</small></span><span class="font-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></span></button>
+      <button type="button" class="appearance-font" data-group="font" data-value="friendly" aria-pressed="false"><span class="font-sample font-friendly" data-preview-name>Chidi Okonkwo</span><span class="font-option-copy"><strong>Friendly</strong><small>Soft and approachable</small></span><span class="font-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></span></button>
     </div>
 
     <p class="appearance-hint">The type used across your Desk.</p>
-
   </div>
 
-  <!-- CORNERS -->
   <div class="appearance-control">
-
     <div class="appearance-control-heading">
       <h3>Corners</h3>
       <span class="appearance-selection" id="cornersSelection">Rounded</span>
     </div>
 
     <div class="appearance-two-options" role="group" aria-label="Corner style">
-
-      <button type="button" class="appearance-visual-option is-selected"
-        data-group="corners" data-value="rounded"
-        aria-pressed="true">
-        <span class="corner-demo corner-rounded">
-          <span></span><span></span><span></span>
-        </span>
-        <strong>Rounded</strong>
-        <small>Soft edges</small>
-      </button>
-
-      <button type="button" class="appearance-visual-option"
-        data-group="corners" data-value="sharp"
-        aria-pressed="false">
-        <span class="corner-demo corner-sharp">
-          <span></span><span></span><span></span>
-        </span>
-        <strong>Sharp</strong>
-        <small>Clean edges</small>
-      </button>
-
+      <button type="button" class="appearance-visual-option is-selected" data-group="corners" data-value="rounded" aria-pressed="true"><span class="corner-demo corner-rounded"><span></span><span></span><span></span></span><strong>Rounded</strong><small>Soft edges</small></button>
+      <button type="button" class="appearance-visual-option" data-group="corners" data-value="sharp" aria-pressed="false"><span class="corner-demo corner-sharp"><span></span><span></span><span></span></span><strong>Sharp</strong><small>Clean edges</small></button>
     </div>
 
     <p class="appearance-hint">How soft or sharp your Desk feels.</p>
-
   </div>
 
-  <!-- LAYOUT DENSITY -->
   <div class="appearance-control">
-
     <div class="appearance-control-heading">
       <h3>Layout</h3>
       <span class="appearance-selection" id="layoutSelection">Spacious</span>
     </div>
 
     <div class="appearance-two-options" role="group" aria-label="Layout spacing">
-
-      <button type="button" class="appearance-visual-option is-selected"
-        data-group="layout" data-value="spacious"
-        aria-pressed="true">
-        <span class="layout-demo layout-spacious">
-          <i></i><i></i><i></i><i></i>
-        </span>
-        <strong>Spacious</strong>
-        <small>More breathing room</small>
-      </button>
-
-      <button type="button" class="appearance-visual-option"
-        data-group="layout" data-value="compact"
-        aria-pressed="false">
-        <span class="layout-demo layout-compact">
-          <i></i><i></i><i></i><i></i>
-        </span>
-        <strong>Compact</strong>
-        <small>Closer together</small>
-      </button>
-
+      <button type="button" class="appearance-visual-option is-selected" data-group="layout" data-value="spacious" aria-pressed="true"><span class="layout-demo layout-spacious"><i></i><i></i><i></i><i></i></span><strong>Spacious</strong><small>More breathing room</small></button>
+      <button type="button" class="appearance-visual-option" data-group="layout" data-value="compact" aria-pressed="false"><span class="layout-demo layout-compact"><i></i><i></i><i></i><i></i></span><strong>Compact</strong><small>Closer together</small></button>
     </div>
 
     <p class="appearance-hint">How much breathing room your content has.</p>
-
   </div>
 
-  <!-- PHOTO LAYOUT -->
   <div class="appearance-control">
-
     <div class="appearance-control-heading">
       <h3>Photo layout</h3>
       <span class="appearance-selection" id="photoLayoutSelection">Grid</span>
     </div>
 
     <div class="appearance-photo-layouts" role="group" aria-label="Photo layout">
-
-      <button type="button" class="appearance-photo-option is-selected"
-        data-group="photo-layout" data-value="grid"
-        aria-pressed="true">
-        <span class="photo-layout-demo photo-grid">
-          <i></i><i></i><i></i>
-        </span>
-        <strong>Grid</strong>
-      </button>
-
-      <button type="button" class="appearance-photo-option"
-        data-group="photo-layout" data-value="big-first"
-        aria-pressed="false">
-        <span class="photo-layout-demo photo-big-first">
-          <i></i><i></i><i></i>
-        </span>
-        <strong>Big first</strong>
-      </button>
-
-      <button type="button" class="appearance-photo-option"
-        data-group="photo-layout" data-value="slide"
-        aria-pressed="false">
-        <span class="photo-layout-demo photo-slide">
-          <i></i><i></i><i></i><i></i>
-        </span>
-        <strong>Slide</strong>
-      </button>
-
-      <button type="button" class="appearance-photo-option"
-        data-group="photo-layout" data-value="mosaic"
-        aria-pressed="false">
-        <span class="photo-layout-demo photo-mosaic">
-          <i></i><i></i><i></i><i></i>
-        </span>
-        <strong>Mosaic</strong>
-      </button>
-
+      <button type="button" class="appearance-photo-option is-selected" data-group="photo-layout" data-value="grid" aria-pressed="true"><span class="photo-layout-demo photo-grid"><i></i><i></i><i></i></span><strong>Grid</strong></button>
+      <button type="button" class="appearance-photo-option" data-group="photo-layout" data-value="big-first" aria-pressed="false"><span class="photo-layout-demo photo-big-first"><i></i><i></i><i></i></span><strong>Big first</strong></button>
+      <button type="button" class="appearance-photo-option" data-group="photo-layout" data-value="slide" aria-pressed="false"><span class="photo-layout-demo photo-slide"><i></i><i></i><i></i><i></i></span><strong>Slide</strong></button>
+      <button type="button" class="appearance-photo-option" data-group="photo-layout" data-value="mosaic" aria-pressed="false"><span class="photo-layout-demo photo-mosaic"><i></i><i></i><i></i><i></i></span><strong>Mosaic</strong></button>
     </div>
 
     <p class="appearance-hint">How your photos arrange themselves.</p>
-
   </div>
 
 </section>
 
-<!-- SECTION 07: VISIBILITY -->
 <section class="group">
   <header><b>07</b><div><h2>Visibility</h2><p>Choose whether people can discover you.</p></div></header>
 
@@ -612,20 +310,6 @@
 
 </form>
 
-<section class="states" id="statesRef">
-  <small>DESIGN REFERENCE</small>
-  <h2>Editor states</h2>
-  <p>Static examples for review only; not connected to the form.</p>
-  <div class="state"><span>Clean</span><small>No status message</small><button class="save mini" type="button">Save changes</button></div>
-  <div class="state"><span>Dirty</span><small class="dirty">Unsaved changes</small><button class="save mini" type="button">Save changes</button></div>
-  <div class="state"><span>Saving</span><small class="saving">Saving…</small><button class="save mini" disabled type="button">Saving…</button></div>
-  <div class="state"><span>Saved</span><small class="saved">All changes saved</small><button class="save mini" type="button">Save changes</button></div>
-  <div class="state"><span>Error</span><small class="error">Couldn't save. Try again.</small><button class="save mini" type="button">Save changes</button></div>
-  <div class="state"><span>Avatar initials</span><div class="avatar mini-avatar">CO</div></div>
-  <div class="state"><span>Avatar photo</span><div class="avatar mini-avatar"><img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80" alt="Example avatar"></div></div>
-  <div class="state"><span>Uploading photo</span><div class="photo uploading tiny"><div><i></i>Uploading…</div></div></div>
-</section>
-
 </main>
 
 <footer class="savebar">
@@ -633,7 +317,6 @@
   <button class="save" type="submit" form="editForm" id="saveBtn">Save changes <svg viewBox="0 0 24 24"><path d="m5 12 5 5L20 7"/></svg></button>
 </footer>
 
-<!-- Preview overlay -->
 <div class="preview-overlay" id="previewOverlay" hidden style="display:none !important">
   <div class="preview-panel">
     <div class="preview-head">
@@ -644,19 +327,11 @@
   </div>
 </div>
 
-<!-- Hide the design-reference states section -->
-<script>
-  (function () {
-    var s = document.getElementById('statesRef');
-    if (s) s.style.display = 'none';
-  })();
-</script>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
-<script src="auth.js?v=7"></script>
+<script src="auth.js?v=8"></script>
 <script src="desk-render.js?v=1"></script>
-<script src="edit.js?v=6"></script>
-<script src="appearance.js?v=1"></script>
+<script src="appearance.js?v=2"></script>
+<script src="edit.js?v=8"></script>
 </body>
-    </html>
+</html>
