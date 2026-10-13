@@ -1,5 +1,5 @@
 /* =========================================================
-   STMDESKLY v2 — Editor
+   STMDESKLY v2 — Editor (hash-routed sections)
    ========================================================= */
 (function () {
   'use strict';
@@ -30,6 +30,17 @@
   const publishStripSub = $('publishStripSub');
   const publishAction   = $('publishAction');
   const publishActionText = $('publishActionText');
+  const viewList        = $('viewList');
+
+  const PANEL_IDS = {
+    profile:    'panel-profile',
+    about:      'panel-about',
+    work:       'panel-work',
+    details:    'panel-details',
+    contact:    'panel-contact',
+    appearance: 'panel-appearance',
+    visibility: 'panel-visibility'
+  };
 
   const MAX_PHOTOS    = 12;
   const MAX_FILE_SIZE = 5 * 1024 * 1024;
@@ -91,7 +102,6 @@
       phone:           $('phone')           ? $('phone').value.trim() : '',
       website:         $('website')         ? $('website').value.trim() : '',
       show_in_explore: $('show_in_explore') ? $('show_in_explore').checked : true,
-
       accent:          appearance.accent,
       background:      appearance.background,
       pattern:         appearance.pattern,
@@ -155,14 +165,8 @@
   }
 
   async function handlePhotoFile(file) {
-    if (file.size > MAX_FILE_SIZE) {
-      alert('That image is too large. Max is 5 MB.');
-      return;
-    }
-    if (!file.type.startsWith('image/')) {
-      alert('Only image files are allowed.');
-      return;
-    }
+    if (file.size > MAX_FILE_SIZE) { alert('Max 5 MB.'); return; }
+    if (!file.type.startsWith('image/')) { alert('Only images.'); return; }
     const tile = addPhotoTileUploading();
     const res = await AUTH.uploadPhoto(file);
     if (!res.ok) {
@@ -181,10 +185,7 @@
   async function save() {
     if (saving) return;
     const values = collectFields();
-    if (!values.name) {
-      setStatus('error', 'Your name is required.');
-      return;
-    }
+    if (!values.name) { setStatus('error', 'Your name is required.'); return; }
     saving = true;
     setStatus('saving', 'Saving…');
     if (saveBtn) saveBtn.disabled = true;
@@ -195,8 +196,7 @@
     if (!res.ok) {
       saving = false;
       if (saveBtn) saveBtn.disabled = false;
-      const msg = (res.error && res.error.message) || 'unknown';
-      setStatus('error', 'Couldn\u2019t save: ' + msg);
+      setStatus('error', 'Couldn\u2019t save. Try again.');
       return;
     }
     const newSet = {};
@@ -210,16 +210,13 @@
     saving = false;
     if (saveBtn) saveBtn.disabled = false;
     setStatus('saved', 'All changes saved');
-    setTimeout(function () {
-      if (!dirty) setStatus('', '');
-    }, 2500);
+    setTimeout(function () { if (!dirty) setStatus('', ''); }, 2500);
   }
 
-  /* ---------- Publish strip ---------- */
+  /* ---------- Publish ---------- */
   function paintPublishStrip() {
     if (!publishStrip) return;
     publishStrip.hidden = false;
-
     if (desk.published) {
       publishStrip.className = 'publish-strip published';
       publishStripLabel.textContent = 'LIVE';
@@ -228,7 +225,6 @@
       publishActionText.textContent = 'Unpublish';
       publishAction.classList.remove('publish-action');
       publishAction.classList.add('unpublish-action');
-      publishAction.disabled = false;
     } else {
       publishStrip.className = 'publish-strip unpublished';
       publishStripLabel.textContent = 'NOT PUBLISHED';
@@ -237,8 +233,8 @@
       publishActionText.textContent = 'Publish my Desk';
       publishAction.classList.remove('unpublish-action');
       publishAction.classList.add('publish-action');
-      publishAction.disabled = false;
     }
+    publishAction.disabled = false;
   }
 
   async function publishDesk() {
@@ -257,19 +253,13 @@
     }
     desk.published = !wasPublished;
     publishing = false;
-    if (desk.published) {
-      location.href = '/publish.html';
-      return;
-    }
+    if (desk.published) { location.href = '/publish.html'; return; }
     paintPublishStrip();
   }
 
   /* ---------- Preview ---------- */
   function openPreview() {
-    if (!previewOverlay || !previewFrame) {
-      alert('Preview is not available yet.');
-      return;
-    }
+    if (!previewOverlay || !previewFrame) return;
     const draft = Object.assign({}, desk, collectFields());
     draft.photos = desk.photos || [];
     draft.avatar_url = desk.avatar_url || '';
@@ -277,10 +267,7 @@
     try {
       const json = JSON.stringify(draft);
       encoded = btoa(unescape(encodeURIComponent(json)));
-    } catch (err) {
-      alert('Could not prepare preview.');
-      return;
-    }
+    } catch (err) { alert('Could not prepare preview.'); return; }
     previewFrame.src = '/preview.html?d=' + encodeURIComponent(encoded) + '&t=' + Date.now();
     previewOverlay.hidden = false;
     previewOverlay.style.display = 'flex';
@@ -292,6 +279,35 @@
     previewOverlay.style.display = 'none';
     previewFrame.src = 'about:blank';
   }
+
+  /* ---------- Routing ---------- */
+
+  function showList() {
+    if (viewList) viewList.style.display = '';
+    Object.keys(PANEL_IDS).forEach(function (key) {
+      const el = $(PANEL_IDS[key]);
+      if (el) el.hidden = true;
+    });
+    window.scrollTo(0, 0);
+  }
+
+  function showPanel(slug) {
+    if (!PANEL_IDS[slug]) return showList();
+    if (viewList) viewList.style.display = 'none';
+    Object.keys(PANEL_IDS).forEach(function (key) {
+      const el = $(PANEL_IDS[key]);
+      if (el) el.hidden = key !== slug;
+    });
+    window.scrollTo(0, 0);
+  }
+
+  function route() {
+    const slug = (location.hash || '').replace('#', '').trim();
+    if (!slug || !PANEL_IDS[slug]) showList();
+    else showPanel(slug);
+  }
+
+  window.addEventListener('hashchange', route);
 
   /* ---------- Boot ---------- */
   (async function boot() {
@@ -350,32 +366,39 @@
     }
 
     initialSnapshot = snapshot();
-
     if (form) {
       form.addEventListener('input', markDirty);
       form.addEventListener('change', markDirty);
     }
+
+    route();
   })();
 
   /* ---------- Events ---------- */
   if (backBtn) {
     backBtn.addEventListener('click', function () {
+      if (location.hash) {
+        history.pushState('', document.title, location.pathname);
+        route();
+        return;
+      }
       if (window.history.length > 1) history.back();
       else location.href = '/dashboard.html';
     });
   }
 
-  if (form) {
-    form.addEventListener('submit', function (e) {
-      e.preventDefault();
-      save();
+  document.querySelectorAll('[data-close]').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      history.pushState('', document.title, location.pathname);
+      route();
     });
+  });
+
+  if (form) {
+    form.addEventListener('submit', function (e) { e.preventDefault(); save(); });
   }
   if (saveBtn) {
-    saveBtn.addEventListener('click', function (e) {
-      e.preventDefault();
-      save();
-    });
+    saveBtn.addEventListener('click', function (e) { e.preventDefault(); save(); });
   }
   if (previewBtn)   previewBtn.addEventListener('click', openPreview);
   if (previewClose) previewClose.addEventListener('click', closePreview);
@@ -384,9 +407,7 @@
       if (e.target === previewOverlay) closePreview();
     });
   }
-  if (publishAction) {
-    publishAction.addEventListener('click', publishDesk);
-  }
+  if (publishAction) publishAction.addEventListener('click', publishDesk);
   if (copyBtn && deskLinkEl) {
     copyBtn.addEventListener('click', async function () {
       const link = deskLinkEl.href || deskLinkEl.textContent;
@@ -394,15 +415,11 @@
         await navigator.clipboard.writeText(link);
         copyBtn.classList.add('copied');
         setTimeout(function () { copyBtn.classList.remove('copied'); }, 1400);
-      } catch (err) {
-        prompt('Copy this link:', link);
-      }
+      } catch (err) { prompt('Copy this link:', link); }
     });
   }
   if (avatarUploadBtn && avatarInput) {
-    avatarUploadBtn.addEventListener('click', function () {
-      avatarInput.click();
-    });
+    avatarUploadBtn.addEventListener('click', function () { avatarInput.click(); });
   }
   if (avatarInput) {
     avatarInput.addEventListener('change', async function (e) {
@@ -426,10 +443,7 @@
   }
   if (addPhotoBtn && photoInput) {
     addPhotoBtn.addEventListener('click', function () {
-      if ((desk.photos || []).length >= MAX_PHOTOS) {
-        alert('You\u2019ve reached the limit of ' + MAX_PHOTOS + ' photos.');
-        return;
-      }
+      if ((desk.photos || []).length >= MAX_PHOTOS) { alert('Max ' + MAX_PHOTOS + ' photos.'); return; }
       photoInput.click();
     });
   }
@@ -438,10 +452,7 @@
       const files = Array.from(e.target.files || []);
       e.target.value = '';
       for (const f of files) {
-        if ((desk.photos || []).length >= MAX_PHOTOS) {
-          alert('You\u2019ve reached the limit of ' + MAX_PHOTOS + ' photos.');
-          break;
-        }
+        if ((desk.photos || []).length >= MAX_PHOTOS) { alert('Max ' + MAX_PHOTOS + ' photos.'); break; }
         await handlePhotoFile(f);
       }
     });
