@@ -516,3 +516,85 @@
 .panel-body .switch {
   margin-bottom: 18px;
  }
+/* ---------- List view ---------- */
+
+.page-edit .section-list {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  margin-bottom: 40px !important;
+}
+
+.page-edit .section-row {
+  display: grid !important;
+  grid-template-columns: 44px 1fr 22px !important;
+  align-items: center !important;
+  gap: 14px !important;
+  padding: 18px !important;
+  border: 1px solid var(--border, #E5E4DD) !important;
+  border-left: 3px solid var(--mint, #DCEBE3) !important;
+  border-radius: 15px !important;
+  background: var(--paper, #FFFEFB) !important;
+  color: var(--navy, #172B3A) !important;
+  text-decoration: none !important;
+  text-transform: none !important;
+  letter-spacing: normal !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.page-edit .section-row:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px rgba(23, 43, 58, 0.06);
+  border-left-color: var(--teal, #2F6D70) !important;
+}
+
+.page-edit .section-num {
+  display: grid !important;
+  place-items: center !important;
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 12px !important;
+  background: var(--navy, #172B3A) !important;
+  color: var(--paper, #FFFEFB) !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.02em !important;
+}
+
+.page-edit .section-copy {
+  min-width: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 3px !important;
+}
+
+.page-edit .section-copy strong {
+  display: block !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em !important;
+  color: var(--navy, #172B3A) !important;
+  line-height: 1.3 !important;
+}
+
+.page-edit .section-copy small {
+  display: block !important;
+  font-size: 11px !important;
+  color: var(--muted, #718087) !important;
+  line-height: 1.5 !important;
+}
+
+.page-edit .section-chevron {
+  display: block !important;
+  width: 18px !important;
+  height: 18px !important;
+  fill: none !important;
+  stroke: var(--muted, #718087) !important;
+  stroke-width: 2 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+ }
