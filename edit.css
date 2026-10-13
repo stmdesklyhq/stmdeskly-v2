@@ -234,4 +234,9 @@
     width: auto;
     min-width: 155px;
   }
-                            }
+ .page-edit input[type="file"][hidden] {
+  display: none !important;
+}
+.page-edit input[type="file"] {
+  display: none !important;
+   }
