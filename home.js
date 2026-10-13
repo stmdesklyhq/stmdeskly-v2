@@ -125,7 +125,7 @@
       price +
       photoGrid +
       '<footer class="post-actions">' +
-        '<button class="post-action" data-action="like" aria-label="Like"><svg viewBox="0 0 24 24"><path d="M20.8 4.8a5.5 5.5 0 0 0-7.8 0L12 5.9l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.3 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/></svg></button>' +
+        '<button class="post-action" data-action="like" aria-label="Like"><svg viewBox="0 0 24 24"><path d="M20.8 4.8a5.5 5.5 0 0 0-7.8 0L12 5.9l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.3 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/></svg><span class="reaction-count" data-count-for="' + esc(post.id) + '"></span></button>' +
         '<button class="post-action" data-action="comment" aria-label="Comment"><svg viewBox="0 0 24 24"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5 8 8 0 0 1-3.5-.8L4 20l1.3-4.2a7.5 7.5 0 1 1 14.7-4.3Z"/></svg></button>' +
         '<button class="post-action" data-action="share" aria-label="Share"><svg viewBox="0 0 24 24"><path d="M12 16V4m-5 5 5-5 5 5M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg></button>' +
       '</footer>' +
@@ -138,7 +138,6 @@
     loadingEl.hidden = false;
     emptyEl.hidden = true;
 
-    // Remove existing post cards but keep loading/empty
     feedEl.querySelectorAll('.post-card').forEach(function (n) { n.remove(); });
 
     let query = sb
@@ -170,7 +169,6 @@
       return;
     }
 
-    // Fetch author names in one query
     const userIds = [...new Set(posts.map(function (p) { return p.user_id; }).filter(Boolean))];
     let authorMap = {};
     if (userIds.length) {
@@ -189,6 +187,21 @@
     }).join('');
 
     feedEl.insertAdjacentHTML('afterbegin', html);
+
+    // Load reactions for these posts
+    const ids = posts.map(function (p) { return p.id; });
+    const rx = await AUTH.getPostReactions(ids);
+    if (rx.ok) {
+      Object.keys(rx.data).forEach(function (postId) {
+        const info = rx.data[postId];
+        const el = feedEl.querySelector('[data-count-for="' + postId + '"]');
+        if (el && info.count > 0) el.textContent = info.count;
+        if (info.mine && Object.keys(info.mine).length) {
+          const card = feedEl.querySelector('[data-id="' + postId + '"]');
+          if (card) card.classList.add('is-liked');
+        }
+      });
+    }
   }
 
   function wireCategoryNav() {
@@ -209,6 +222,48 @@
       });
 
       loadFeed();
+    });
+  }
+
+  /* ---------- Reactions & share ---------- */
+  if (feedEl) {
+    feedEl.addEventListener('click', async function (e) {
+      const btn = e.target.closest('.post-action');
+      if (!btn) return;
+
+      const card = btn.closest('.post-card');
+      if (!card) return;
+      const postId = card.dataset.id;
+      const action = btn.dataset.action;
+
+      if (action === 'like') {
+        const liked = card.classList.toggle('is-liked');
+        const countEl = btn.querySelector('.reaction-count');
+        const cur = Number(countEl.textContent) || 0;
+        countEl.textContent = liked ? (cur + 1) || '' : Math.max(0, cur - 1) || '';
+
+        const res = await AUTH.toggleReaction(postId, 'heart');
+        if (!res.ok) {
+          card.classList.toggle('is-liked');
+          countEl.textContent = cur || '';
+          console.warn('toggleReaction:', res.error);
+        }
+      }
+
+      if (action === 'share') {
+        const url = location.origin + '/home.html#post-' + postId;
+        try {
+          if (navigator.share) {
+            await navigator.share({ title: 'STMDeskly post', url: url });
+          } else {
+            await navigator.clipboard.writeText(url);
+            btn.classList.add('copied');
+            setTimeout(function () { btn.classList.remove('copied'); }, 1400);
+          }
+        } catch (err) {
+          // User cancelled
+        }
+      }
     });
   }
 
