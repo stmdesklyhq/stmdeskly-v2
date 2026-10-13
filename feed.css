@@ -156,3 +156,11 @@
   width: 22px;
   height: 22px;
   }
+/* Give the top of the post card more breathing room */
+.post-card {
+  padding-top: 22px;
+}
+
+.post-header {
+  padding-top: 4px;
+}
