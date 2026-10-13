@@ -1,28 +1,24 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <meta name="theme-color" content="#F7F6F1">
   <meta name="description" content="Discover this person's work, services, and contact information.">
-
   <title>My Desk | STMDeskly</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
-    rel="stylesheet"
-  >
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&family=Lora:wght@400;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&family=Lora:wght@400;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="style.css?v=9">
-  <link rel="stylesheet" href="desk.css?v=3">
+  <link rel="stylesheet" href="desk.css?v=20">
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
-  <script src="desk-render.js?v=1" defer></script>
-  <script src="desk.js?v=5" defer></script>
+  <script src="desk-render.js?v=4" defer></script>
+  <script src="desk.js?v=7" defer></script>
 </head>
 
 <body class="public-desk-page">
@@ -30,141 +26,89 @@
   <!-- Loading -->
   <div class="desk-loading" id="loading">
     <div class="desk-loading-mark" aria-hidden="true"></div>
-    <p>Opening this Desk...</p>
+    <p>Opening this Desk…</p>
   </div>
 
-  <!-- Missing Desk -->
+  <!-- Missing -->
   <main class="desk-missing" id="missing" hidden>
     <div class="desk-missing-mark" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none">
-        <path
-          d="M12 8V12M12 16H12.01M21 12A9 9 0 1 1 3 12A9 9 0 0 1 21 12Z"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="9"/>
+        <path d="M12 8v5M12 16v.01"/>
       </svg>
     </div>
-
-    <p class="desk-overline">PERSONAL DESK</p>
-
+    <p class="desk-overline">Personal Desk</p>
     <h1>This Desk isn't available</h1>
-
-    <p class="desk-missing-description">
-      The link may be incorrect, or this Desk may no longer be public.
-    </p>
-
+    <p class="desk-missing-description">The link may be incorrect, or this Desk may no longer be public.</p>
     <a class="desk-missing-link" href="/">
       Back to STMDeskly
-      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path
-          d="M5 12H19M12 5L19 12L12 19"
-          stroke="currentColor"
-          stroke-width="1.8"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        />
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 12H19M12 5L19 12L12 19"/>
       </svg>
     </a>
   </main>
 
-  <!-- Public Desk -->
+  <!-- Desk -->
   <main class="public-desk" id="desk" hidden>
 
-    <!-- Small, quiet top bar -->
-    <header class="desk-topbar">
+    <!-- Topbar — hides when a cover exists -->
+    <header class="desk-topbar" id="deskTopbar">
       <a class="desk-topbar-brand" href="/" aria-label="STMDeskly home">
         <span class="desk-brand-symbol" aria-hidden="true">
           <svg viewBox="0 0 32 32" fill="none">
             <rect x="2" y="2" width="28" height="28" rx="9" fill="currentColor"/>
-            <path
-              d="M10 11.5H22M10 16H19M10 20.5H16"
-              stroke="#FFFEFB"
-              stroke-width="2.2"
-              stroke-linecap="round"
-            />
+            <path d="M10 11.5H22M10 16H19M10 20.5H16" stroke="#FFFEFB" stroke-width="2.2" stroke-linecap="round"/>
           </svg>
         </span>
-
         <span>STMDeskly</span>
       </a>
-
-      <span class="desk-topbar-label">PERSONAL DESK</span>
     </header>
 
-    <!-- Personal introduction -->
-    <section class="desk-intro" aria-labelledby="name">
+    <!-- Hero — cover + avatar + name -->
+    <section class="desk-hero" aria-labelledby="name">
 
-      <div class="desk-intro-main">
+      <div class="desk-hero-cover" id="heroCover" aria-hidden="true"></div>
 
-        <div class="desk-avatar-frame" id="avatarFrame">
-          <div class="desk-avatar" id="mark" aria-label="Profile photo"></div>
-        </div>
+      <div class="desk-hero-card">
 
-        <div class="desk-intro-copy">
+        <div class="desk-hero-avatar" id="mark" aria-label="Profile photo"></div>
+
+        <div class="desk-hero-identity">
           <h1 id="name">My Desk</h1>
-
           <p class="desk-role" id="role"></p>
-
-          <p class="desk-tagline" id="tagline"></p>
-
         </div>
 
       </div>
 
-      <!-- Quick contact actions can be populated by desk.js -->
-      <div class="desk-intro-actions" id="introActions"></div>
+      <p class="desk-tagline" id="tagline"></p>
+
+      <div class="desk-hero-actions" id="heroActions"></div>
 
     </section>
 
-    <!-- Main content populated by desk.js -->
+    <!-- Content -->
     <div class="desk-content" id="content"></div>
 
-    <!-- Quiet footer -->
+    <!-- Footer -->
     <footer class="desk-footer">
       <span class="desk-footer-rule" aria-hidden="true"></span>
-
       <div class="desk-footer-inner">
-        <span class="desk-footer-caption">
-          This is my little place on the internet.
-        </span>
-
-        <a href="/" class="desk-powered-by">
-          Made with <span>STMDeskly</span>
-        </a>
+        <span class="desk-footer-caption">This is my little place on the internet.</span>
+        <a href="/" class="desk-powered-by">Made with <span>STMDeskly</span></a>
       </div>
     </footer>
 
   </main>
 
-  <!-- Image viewer -->
-  <div
-    class="desk-lightbox"
-    id="lightbox"
-    role="dialog"
-    aria-modal="true"
-    aria-label="View image"
-    hidden
-  >
-    <button
-      class="desk-lightbox-close"
-      id="lightboxClose"
-      type="button"
-      aria-label="Close image viewer"
-    >
+  <!-- Lightbox -->
+  <div class="desk-lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="View image" hidden>
+    <button class="desk-lightbox-close" id="lightboxClose" type="button" aria-label="Close image viewer">
       <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path
-          d="M6 6L18 18M18 6L6 18"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-        />
+        <path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
       </svg>
     </button>
-
     <img id="lightboxImage" src="" alt="">
   </div>
 
 </body>
-  </html>
+</html>
