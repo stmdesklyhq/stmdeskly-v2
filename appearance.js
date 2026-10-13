@@ -1,9 +1,14 @@
-(() => {
+/* =========================================================
+   STMDESKLY v2 — Appearance controls
+   Taps update a live preview and dispatch a change event.
+   edit.js reads the values on save.
+   ========================================================= */
+(function () {
   'use strict';
 
-  const $ = (id) => document.getElementById(id);
-  const preview = $('appearancePreview');
+  const $ = function (id) { return document.getElementById(id); };
 
+  const preview = $('appearancePreview');
   if (!preview) return;
 
   const settings = {
@@ -16,7 +21,7 @@
     photo_layout: 'grid'
   };
 
-  const accents = {
+  const ACCENT_HEX = {
     forest: '#2F6D50',
     emerald: '#087F5B',
     blue: '#2458A6',
@@ -27,21 +32,21 @@
     charcoal: '#34424A'
   };
 
-  const backgrounds = {
+  const BACKGROUND_HEX = {
     cream: '#F7F6F1',
     white: '#FFFFFF',
-    'warm-grey': '#F0EEEA',
-    'cool-grey': '#EEF1F3'
+    'warm-grey': '#EEEAE3',
+    'cool-grey': '#E9EDF0'
   };
 
-  const fonts = {
+  const FONT_STACK = {
     modern: '"Poppins", sans-serif',
-    classic: 'Georgia, serif',
-    editorial: '"Playfair Display", Georgia, serif',
+    classic: 'Georgia, "Times New Roman", serif',
+    editorial: '"Times New Roman", Georgia, serif',
     friendly: '"Trebuchet MS", sans-serif'
   };
 
-  const labels = {
+  const LABEL_IDS = {
     accent: 'accentSelection',
     background: 'backgroundSelection',
     pattern: 'patternSelection',
@@ -51,7 +56,8 @@
     photo_layout: 'photoLayoutSelection'
   };
 
-  const groups = {
+  // Maps setting key → data-group value used in HTML
+  const GROUPS = {
     accent: 'accent',
     background: 'background',
     pattern: 'pattern',
@@ -61,32 +67,39 @@
     photo_layout: 'photo-layout'
   };
 
-  function selectControl(key, value) {
-    const group = groups[key];
+  function niceLabel(button, fallback) {
+    if (!button) return fallback;
+    const aria = button.getAttribute('aria-label');
+    if (aria) return aria;
+    // Use the strong/span label inside the button if present
+    const strong = button.querySelector('strong');
+    if (strong) return strong.textContent.trim();
+    const span = button.querySelector('span:not(.colour-dot):not(.background-swatch):not(.pattern-tile)');
+    if (span && span.textContent.trim()) return span.textContent.trim();
+    return fallback;
+  }
 
-    document.querySelectorAll('[data-group="' + group + '"]')
-      .forEach((button) => {
-        const selected = button.dataset.value === value;
+  function paintSelection(key, value) {
+    const group = GROUPS[key];
+    if (!group) return;
 
-        button.classList.toggle('is-selected', selected);
-        button.setAttribute('aria-pressed', String(selected));
+    document.querySelectorAll('[data-group="' + group + '"][data-value]')
+      .forEach(function (btn) {
+        const on = btn.dataset.value === value;
+        btn.classList.toggle('is-selected', on);
+        btn.setAttribute('aria-pressed', String(on));
       });
 
-    const label = $(labels[key]);
-
-    if (label) {
-      const selectedButton = document.querySelector(
+    const labelEl = $(LABEL_IDS[key]);
+    if (labelEl) {
+      const selected = document.querySelector(
         '[data-group="' + group + '"][data-value="' + value + '"]'
       );
-
-      label.textContent = selectedButton
-        ? selectedButton.getAttribute('aria-label') ||
-          selectedButton.textContent.trim()
-        : value;
+      labelEl.textContent = niceLabel(selected, value);
     }
   }
 
-  function applyPreview() {
+  function paintPreview() {
     preview.dataset.accent = settings.accent;
     preview.dataset.background = settings.background;
     preview.dataset.pattern = settings.pattern;
@@ -95,145 +108,113 @@
     preview.dataset.layout = settings.layout_style;
     preview.dataset.photoLayout = settings.photo_layout;
 
-    preview.style.setProperty(
-      '--appearance-accent',
-      accents[settings.accent] || accents.forest
-    );
+    // Update the name and role in the preview to match the form
+    const nameEl = $('appearancePreviewName');
+    const roleEl = $('appearancePreviewRole');
+    const nameInput = $('name');
+    const roleInput = $('role');
 
-    preview.style.setProperty(
-      '--appearance-background',
-      backgrounds[settings.background] || backgrounds.cream
-    );
-
-    preview.style.setProperty(
-      '--appearance-font',
-      fonts[settings.font_pair] || fonts.modern
-    );
-
-    const name = $('appearancePreviewName');
-
-    if (name) {
-      name.style.fontFamily =
-        fonts[settings.font_pair] || fonts.modern;
-
-      name.style.color =
-        accents[settings.accent] || accents.forest;
+    if (nameEl) {
+      nameEl.textContent = (nameInput && nameInput.value.trim()) || 'Your name';
     }
+    if (roleEl) {
+      roleEl.textContent = (roleInput && roleInput.value.trim()) || 'What you do';
+    }
+  }
 
-    document.querySelectorAll('[data-preview-name]')
-      .forEach((sample) => {
-        sample.style.fontFamily =
-          fonts[sample.closest('[data-group="font"]')?.dataset.value] ||
-          fonts.modern;
-      });
-
-    Object.entries(settings).forEach(([key, value]) => {
-      selectControl(key, value);
+  function applyAll() {
+    Object.keys(settings).forEach(function (key) {
+      paintSelection(key, settings[key]);
     });
+    paintPreview();
   }
 
-  function loadSettings(desk) {
-    if (!desk) return;
-
-    let accent = desk.accent || '#2F6D50';
-
-    if (accent.startsWith('#')) {
-      const match = Object.entries(accents).find(
-        ([, hex]) => hex.toLowerCase() === accent.toLowerCase()
-      );
-
-      accent = match ? match[0] : 'forest';
-    }
-
-    settings.accent = accents[accent] ? accent : 'forest';
-    settings.background = backgrounds[desk.background]
-      ? desk.background : 'cream';
-
-    settings.pattern = desk.pattern || 'none';
-    settings.font_pair = fonts[desk.font_pair]
-      ? desk.font_pair : 'modern';
-
-    settings.corner_style =
-      desk.corner_style === 'sharp' ? 'sharp' : 'rounded';
-
-    settings.layout_style =
-      desk.layout_style === 'compact' ? 'compact' : 'spacious';
-
-    settings.photo_layout = [
-      'grid', 'big-first', 'slide', 'mosaic'
-    ].includes(desk.photo_layout)
-      ? desk.photo_layout
-      : 'grid';
-
-    applyPreview();
-  }
-
-  document.addEventListener('click', (event) => {
-    const button = event.target.closest('[data-group][data-value]');
-
-    if (!button || !preview.contains(button.closest('.appearance-controls'))) {
-      return;
-    }
-
-    const group = button.dataset.group;
-    const value = button.dataset.value;
-
-    const key = Object.keys(groups).find(
-      (settingKey) => groups[settingKey] === group
-    );
-
-    if (!key) return;
-
-    settings[key] = value;
-    applyPreview();
-
-    // Let the existing editor know a change occurred.
-    const form = $('editForm') || document.querySelector('form');
-
+  function notifyChange() {
+    const form = $('editForm');
     if (form) {
       form.dispatchEvent(new Event('input', { bubbles: true }));
       form.dispatchEvent(new Event('change', { bubbles: true }));
     }
-
     window.dispatchEvent(new CustomEvent('appearance:changed', {
-      detail: { ...settings }
+      detail: getSettings()
     }));
+  }
+
+  function getSettings() {
+    return {
+      accent: settings.accent,
+      background: settings.background,
+      pattern: settings.pattern,
+      font_pair: settings.font_pair,
+      corner_style: settings.corner_style,
+      layout_style: settings.layout_style,
+      photo_layout: settings.photo_layout
+    };
+  }
+
+  function loadFromDesk(desk) {
+    if (!desk) return;
+
+    // Accent may be stored as hex or as key. Normalise.
+    let accentKey = 'forest';
+    const rawAccent = desk.accent || '';
+    if (rawAccent && rawAccent.startsWith('#')) {
+      const found = Object.keys(ACCENT_HEX).find(function (k) {
+        return ACCENT_HEX[k].toLowerCase() === rawAccent.toLowerCase();
+      });
+      accentKey = found || 'forest';
+    } else if (ACCENT_HEX[rawAccent]) {
+      accentKey = rawAccent;
+    }
+    settings.accent = accentKey;
+
+    settings.background = BACKGROUND_HEX[desk.background] ? desk.background : 'cream';
+    settings.pattern = desk.pattern || 'none';
+    settings.font_pair = FONT_STACK[desk.font_pair] ? desk.font_pair : 'modern';
+    settings.corner_style = desk.corner_style === 'sharp' ? 'sharp' : 'rounded';
+    settings.layout_style = desk.layout_style === 'compact' ? 'compact' : 'spacious';
+    settings.photo_layout = ['grid', 'big-first', 'slide', 'mosaic'].indexOf(desk.photo_layout) !== -1
+      ? desk.photo_layout
+      : 'grid';
+
+    applyAll();
+  }
+
+  /* ---------- Tap handling ---------- */
+  document.addEventListener('click', function (event) {
+    const btn = event.target.closest('[data-group][data-value]');
+    if (!btn) return;
+
+    // Only respond to buttons inside the appearance section
+    if (!btn.closest('#appearance')) return;
+
+    const group = btn.dataset.group;
+    const value = btn.dataset.value;
+
+    const key = Object.keys(GROUPS).find(function (k) {
+      return GROUPS[k] === group;
+    });
+    if (!key) return;
+
+    settings[key] = value;
+    paintSelection(key, value);
+    paintPreview();
+    notifyChange();
   });
 
-  // Other editor code can read the current settings.
-  window.STMDesklyAppearance = {
-    getSettings() {
-      return {
-        ...settings,
-        accent: accents[settings.accent] || accents.forest
-      };
-    },
+  /* ---------- Live preview reacts to name/role typing ---------- */
+  const nameInput = $('name');
+  const roleInput = $('role');
+  if (nameInput) nameInput.addEventListener('input', paintPreview);
+  if (roleInput) roleInput.addEventListener('input', paintPreview);
 
-    loadSettings,
-    applyPreview
+  /* ---------- Public API ---------- */
+  window.APPEARANCE = {
+    get: getSettings,
+    load: loadFromDesk,
+    refresh: applyAll
   };
 
-  applyPreview();
-
-  // Load saved settings once the existing editor has authenticated
-  // and populated its desk data.
-  let attempts = 0;
-
-  const loader = setInterval(() => {
-    attempts++;
-
-    const desk =
-      window.AUTH?.currentDesk ||
-      window.currentDesk ||
-      window.desk;
-
-    if (desk) {
-      loadSettings(desk);
-      clearInterval(loader);
-    }
-
-    if (attempts >= 40) {
-      clearInterval(loader);
-    }
-  }, 250);
+  /* ---------- Initial paint ---------- */
+  applyAll();
 })();
