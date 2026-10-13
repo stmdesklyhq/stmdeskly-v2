@@ -14,6 +14,7 @@
       persistSession: true,
       autoRefreshToken: true,
       detectSessionInUrl: true,
+      storageKey: 'stmdeskly-auth',
     },
   });
 
@@ -308,10 +309,7 @@
 
       const up = await sb.storage
         .from('desk-photos')
-        .upload(path, blob, {
-          contentType: 'image/jpeg',
-          upsert: true,
-        });
+        .upload(path, blob, { contentType: 'image/jpeg', upsert: true });
 
       if (up.error) return { ok: false, error: up.error };
 
@@ -331,7 +329,6 @@
 
     try {
       const blob = await compressImage(file, 1400);
-
       const id =
         (window.crypto && crypto.randomUUID)
           ? crypto.randomUUID()
@@ -341,10 +338,7 @@
 
       const up = await sb.storage
         .from('desk-photos')
-        .upload(path, blob, {
-          contentType: 'image/jpeg',
-          upsert: false,
-        });
+        .upload(path, blob, { contentType: 'image/jpeg', upsert: false });
 
       if (up.error) return { ok: false, error: up.error };
 
@@ -424,70 +418,73 @@
     }
   }
 
-  async function toggleReaction(postId, emoji) {
-    const userRes = await sb.auth.getUser();
-    const user = userRes.data.user;
-    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+  /* =========================================================
+     REPLIES — threaded comments on posts
+     ========================================================= */
 
-    const existing = await sb
-      .from('post_reactions')
-      .select('id')
+  async function getPostReplies(postId) {
+    if (!postId) return { ok: true, data: [] };
+
+    const res = await sb
+      .from('post_replies')
+      .select('id, user_id, body, created_at')
       .eq('post_id', postId)
-      .eq('user_id', user.id)
-      .eq('emoji', emoji)
-      .maybeSingle();
+      .is('deleted_at', null)
+      .order('created_at', { ascending: true })
+      .limit(100);
 
-    if (existing.data) {
-      const del = await sb.from('post_reactions').delete().eq('id', existing.data.id);
-      if (del.error) return { ok: false, error: del.error };
-      return { ok: true, removed: true };
+    if (res.error) return { ok: false, error: res.error };
+
+    const replies = res.data || [];
+
+    // Attach author names in one query
+    const userIds = [...new Set(replies.map(function (r) { return r.user_id; }).filter(Boolean))];
+    let nameMap = {};
+    if (userIds.length) {
+      const aRes = await sb
+        .from('desks')
+        .select('user_id, name')
+        .in('user_id', userIds);
+      if (!aRes.error && aRes.data) {
+        aRes.data.forEach(function (d) { nameMap[d.user_id] = d.name; });
+      }
     }
 
-    const ins = await sb.from('post_reactions').insert({
-      post_id: postId,
-      user_id: user.id,
-      emoji: emoji,
-    });
-    if (ins.error) return { ok: false, error: ins.error };
-    return { ok: true, added: true };
-  }
-
-  async function getPostReactions(postIds) {
-    if (!Array.isArray(postIds) || !postIds.length) return { ok: true, data: {} };
-
-    const res = await sb
-      .from('post_reactions')
-      .select('post_id, emoji, user_id')
-      .in('post_id', postIds);
-
-    if (res.error) return { ok: false, error: res.error };
-
-    const userRes = await sb.auth.getUser();
-    const me = userRes.data.user ? userRes.data.user.id : null;
-
-    const map = {};
-    (res.data || []).forEach(function (r) {
-      if (!map[r.post_id]) map[r.post_id] = { count: 0, mine: {} };
-      map[r.post_id].count += 1;
-      if (me && r.user_id === me) map[r.post_id].mine[r.emoji] = true;
+    replies.forEach(function (r) {
+      r.author_name = nameMap[r.user_id] || 'Someone';
     });
 
-    return { ok: true, data: map };
+    return { ok: true, data: replies };
   }
 
-  async function deletePost(postId) {
+  async function createReply(postId, body) {
     const userRes = await sb.auth.getUser();
     const user = userRes.data.user;
     if (!user) return { ok: false, error: { message: 'Not signed in' } };
 
     const res = await sb
-      .from('posts')
-      .update({ deleted_at: new Date().toISOString() })
-      .eq('id', postId)
-      .eq('user_id', user.id);
+      .from('post_replies')
+      .insert({ post_id: postId, user_id: user.id, body: body })
+      .select('id, user_id, body, created_at')
+      .single();
 
     if (res.error) return { ok: false, error: res.error };
-    return { ok: true };
+    return { ok: true, data: res.data };
+  }
+
+  async function getReplyCounts(postIds) {
+    if (!Array.isArray(postIds) || !postIds.length) return { ok: true, data: {} };
+    const res = await sb
+      .from('post_replies')
+      .select('post_id')
+      .in('post_id', postIds)
+      .is('deleted_at', null);
+    if (res.error) return { ok: false, error: res.error };
+    const map = {};
+    (res.data || []).forEach(function (r) {
+      map[r.post_id] = (map[r.post_id] || 0) + 1;
+    });
+    return { ok: true, data: map };
   }
 
   /* =========================================================
@@ -522,8 +519,10 @@
     // Feed
     createPost: createPost,
     uploadPostPhoto: uploadPostPhoto,
-    toggleReaction: toggleReaction,
-    getPostReactions: getPostReactions,
-    deletePost: deletePost,
+
+    // Replies
+    getPostReplies: getPostReplies,
+    createReply: createReply,
+    getReplyCounts: getReplyCounts,
   };
 })();
