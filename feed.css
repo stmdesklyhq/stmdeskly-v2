@@ -380,3 +380,29 @@
   margin-left: 2px;
   min-width: 8px;
 }
+
+/* Reply delete button */
+.reply {
+  position: relative;
+}
+.reply-remove {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #A0ACAF;
+  font-size: 17px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 180ms ease, background 180ms ease;
+}
+.reply-remove:hover {
+  color: #B3261E;
+  background: rgba(179, 38, 30, 0.08);
+}
