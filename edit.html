@@ -7,310 +7,390 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="edit.css?v=8">
 <link rel="stylesheet" href="publish.css?v=1">
-<link rel="stylesheet" href="appearance.css?v=3">
+<link rel="stylesheet" href="appearance.css?v=1">
 </head>
 <body class="page-edit">
 
-<header class="topbar">
-  <button class="back" type="button" id="backBtn" aria-label="Back">
-    <svg viewBox="0 0 24 24"><path d="M19 12H5m7 7-7-7 7-7"/></svg>
-  </button>
-  <h1>Edit my Desk</h1>
-  <button class="preview" type="button" id="previewBtn">
-    <svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
-    <span>Preview</span>
-  </button>
-</header>
+<!-- ================= LIST VIEW ================= -->
+<div class="edit-view" id="viewList">
 
-<section class="link-banner">
-  <div class="link-mark">
-    <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1"/></svg>
-  </div>
-  <div class="link-copy">
-    <small>Your Desk link</small>
-    <a id="deskLink" href="https://desklybystm.pages.dev/u/success">desklybystm.pages.dev/u/success</a>
-  </div>
-  <button class="copy" type="button" id="copyBtn" aria-label="Copy Desk link">
-    <svg viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
-  </button>
-</section>
-
-<section class="publish-strip" id="publishStrip" hidden>
-  <div class="publish-strip-main">
-    <small id="publishStripLabel">NOT PUBLISHED</small>
-    <strong id="publishStripTitle">Only you can see this Desk.</strong>
-    <p id="publishStripSub">You can keep editing after you publish.</p>
-  </div>
-  <button type="button" class="publish-action" id="publishAction">
-    <span id="publishActionText">Publish my Desk</span>
-    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
-  </button>
-</section>
-
-<main class="main">
-<div class="intro">
-  <small>YOUR SPACE, YOUR STORY</small>
-  <h2>Make your Desk <em>yours.</em></h2>
-  <p>Keep your details current so people know who you are and how to reach you.</p>
-</div>
-
-<form id="editForm">
-
-<section class="group">
-  <header><b>01</b><div><h2>Profile</h2><p>Who you are and what you do.</p></div></header>
-
-  <div class="avatar-card">
-    <div class="avatar" id="avatarPreview">CO</div>
-    <div>
-      <strong>Your profile photo</strong>
-      <p>A clear photo helps people recognise you.</p>
-      <button class="primary-soft" type="button" id="avatarUploadBtn">Upload photo</button>
-      <button class="ghost" type="button" id="avatarRemoveBtn" hidden>Remove</button>
-    </div>
-  </div>
-  <input type="file" id="avatarInput" accept="image/*" hidden>
-  <input type="file" id="photoInput" accept="image/*" multiple hidden>
-
-  <label for="name">Your name</label>
-  <input id="name" name="name" required>
-
-  <label for="role">What you do</label>
-  <input id="role" name="role">
-
-  <label for="tagline">Tagline</label>
-  <input id="tagline" name="tagline" maxlength="90">
-  <small class="hint">One short line about you. Up to 90 characters.</small>
-</section>
-
-<section class="group">
-  <header><b>02</b><div><h2>About</h2><p>What you offer and what you're about.</p></div></header>
-
-  <label for="services">What you offer</label>
-  <textarea id="services" name="services" rows="4"></textarea>
-  <small class="hint">Keep each service on its own line.</small>
-
-  <label for="about">About you <span class="count" id="aboutCount">0 / 700</span></label>
-  <textarea id="about" name="about" rows="5" maxlength="700"></textarea>
-</section>
-
-<section class="group">
-  <header><b>03</b><div><h2>My work</h2><p>A few examples of what you do.</p></div></header>
-
-  <div class="photos" id="photoGrid"></div>
-  <button class="add-photo" type="button" id="addPhotoBtn">
-    <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Add a photo
-  </button>
-  <small class="hint">Up to 12 photos. JPG or PNG, max 5 MB each.</small>
-</section>
-
-<section class="group">
-  <header><b>04</b><div><h2>Details</h2><p>Where and when people can find you.</p></div></header>
-
-  <label for="location">Location</label>
-  <input id="location" name="location">
-
-  <label for="opening_hours">Opening hours</label>
-  <textarea id="opening_hours" name="opening_hours" rows="2"></textarea>
-
-  <label for="service_times">Service times <span class="optional">(optional)</span></label>
-  <textarea id="service_times" name="service_times" rows="2"></textarea>
-</section>
-
-<section class="group">
-  <header><b>05</b><div><h2>Contact</h2><p>Make it easy for people to reach you.</p></div></header>
-
-  <label for="whatsapp">WhatsApp</label>
-  <input id="whatsapp" name="whatsapp" type="tel">
-  <small class="hint">The main contact button on your Desk.</small>
-
-  <label for="email">Email</label>
-  <input id="email" name="email" type="email">
-
-  <label for="phone">Phone</label>
-  <input id="phone" name="phone" type="tel">
-
-  <label for="website">Website <span class="optional">(optional)</span></label>
-  <input id="website" name="website" type="url">
-</section>
-
-<!-- SECTION 06: APPEARANCE -->
-<section class="group appearance-group" id="appearance">
-
-  <header>
-    <b>06</b>
-    <div>
-      <h2>Appearance</h2>
-      <p>Choose the look of your Desk.</p>
-    </div>
+  <header class="topbar">
+    <button class="back" type="button" id="backBtn" aria-label="Back">
+      <svg viewBox="0 0 24 24"><path d="M19 12H5m7 7-7-7 7-7"/></svg>
+    </button>
+    <h1>Edit my Desk</h1>
+    <button class="preview" type="button" id="previewBtn">
+      <svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+      <span>Preview</span>
+    </button>
   </header>
 
-  <div class="appearance-preview-wrap">
+  <section class="link-banner">
+    <div class="link-mark">
+      <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1"/></svg>
+    </div>
+    <div class="link-copy">
+      <small>Your Desk link</small>
+      <a id="deskLink" href="https://desklybystm.pages.dev/u/success">desklybystm.pages.dev/u/success</a>
+    </div>
+    <button class="copy" type="button" id="copyBtn" aria-label="Copy Desk link">
+      <svg viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+    </button>
+  </section>
 
-    <div
-      class="appearance-preview"
-      id="appearancePreview"
-      data-accent="forest"
-      data-background="cream"
-      data-pattern="none"
-      data-font="modern"
-      data-corners="rounded"
-      data-layout="spacious"
-      data-photo-layout="grid"
-    >
-      <div class="appearance-preview-pattern" aria-hidden="true"></div>
+  <section class="publish-strip" id="publishStrip" hidden>
+    <div class="publish-strip-main">
+      <small id="publishStripLabel">NOT PUBLISHED</small>
+      <strong id="publishStripTitle">Only you can see this Desk.</strong>
+      <p id="publishStripSub">You can keep editing after you publish.</p>
+    </div>
+    <button type="button" class="publish-action" id="publishAction">
+      <span id="publishActionText">Publish my Desk</span>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
+    </button>
+  </section>
 
-      <div class="appearance-preview-content">
-        <div class="appearance-preview-avatar" aria-hidden="true">
-          <span>CO</span>
-        </div>
-        <div class="appearance-preview-copy">
-          <span class="appearance-preview-label">A LITTLE ABOUT ME</span>
-          <h3 id="appearancePreviewName">Chidi Okonkwo</h3>
-          <p id="appearancePreviewRole">Photographer</p>
-          <span class="appearance-preview-line"></span>
-        </div>
+  <main class="main">
+
+    <div class="intro">
+      <small>YOUR SPACE, YOUR STORY</small>
+      <h2>Make your Desk <em>yours.</em></h2>
+      <p>Edit each part of your Desk one at a time.</p>
+    </div>
+
+    <nav class="section-list" aria-label="Desk sections">
+
+      <a class="section-row" href="#profile">
+        <span class="section-num">01</span>
+        <span class="section-copy">
+          <strong>Profile</strong>
+          <small>Your name, photo and tagline</small>
+        </span>
+        <svg class="section-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
+      </a>
+
+      <a class="section-row" href="#about">
+        <span class="section-num">02</span>
+        <span class="section-copy">
+          <strong>About</strong>
+          <small>What you offer and who you are</small>
+        </span>
+        <svg class="section-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
+      </a>
+
+      <a class="section-row" href="#work">
+        <span class="section-num">03</span>
+        <span class="section-copy">
+          <strong>My work</strong>
+          <small>Photos of what you do</small>
+        </span>
+        <svg class="section-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
+      </a>
+
+      <a class="section-row" href="#details">
+        <span class="section-num">04</span>
+        <span class="section-copy">
+          <strong>Details</strong>
+          <small>Location and hours</small>
+        </span>
+        <svg class="section-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
+      </a>
+
+      <a class="section-row" href="#contact">
+        <span class="section-num">05</span>
+        <span class="section-copy">
+          <strong>Contact</strong>
+          <small>WhatsApp, email, phone</small>
+        </span>
+        <svg class="section-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
+      </a>
+
+      <a class="section-row" href="#appearance">
+        <span class="section-num">06</span>
+        <span class="section-copy">
+          <strong>Appearance</strong>
+          <small>Colours, fonts, layout</small>
+        </span>
+        <svg class="section-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
+      </a>
+
+      <a class="section-row" href="#visibility">
+        <span class="section-num">07</span>
+        <span class="section-copy">
+          <strong>Visibility</strong>
+          <small>Discoverability options</small>
+        </span>
+        <svg class="section-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
+      </a>
+
+    </nav>
+
+  </main>
+</div>
+
+<!-- ================= PANEL VIEWS ================= -->
+<form id="editForm">
+
+<!-- PROFILE -->
+<section class="edit-panel" id="panel-profile" hidden>
+  <header class="panel-topbar">
+    <button class="back" type="button" data-close aria-label="Back">
+      <svg viewBox="0 0 24 24"><path d="M19 12H5m7 7-7-7 7-7"/></svg>
+    </button>
+    <h1>Profile</h1>
+    <span class="panel-spacer"></span>
+  </header>
+
+  <div class="panel-body">
+    <div class="avatar-card">
+      <div class="avatar" id="avatarPreview">CO</div>
+      <div>
+        <strong>Your profile photo</strong>
+        <p>A clear photo helps people recognise you.</p>
+        <button class="primary-soft" type="button" id="avatarUploadBtn">Upload photo</button>
+        <button class="ghost" type="button" id="avatarRemoveBtn" hidden>Remove</button>
       </div>
-
-      <span class="appearance-preview-caption">DESK PREVIEW</span>
     </div>
+    <input type="file" id="avatarInput" accept="image/*" hidden>
 
-    <p class="appearance-preview-note">A glimpse of how your Desk could look.</p>
+    <label for="name">Your name</label>
+    <input id="name" name="name" required>
+
+    <label for="role">What you do</label>
+    <input id="role" name="role">
+
+    <label for="tagline">Tagline</label>
+    <input id="tagline" name="tagline" maxlength="90">
+    <small class="hint">One short line about you. Up to 90 characters.</small>
   </div>
-
-  <div class="appearance-control">
-    <div class="appearance-control-heading">
-      <h3>Accent colour</h3>
-      <span class="appearance-selection" id="accentSelection">Forest</span>
-    </div>
-
-    <div class="appearance-colours" role="group" aria-label="Accent colour">
-      <button type="button" class="appearance-colour is-selected" data-group="accent" data-value="forest" aria-label="Forest green" aria-pressed="true"><span class="colour-dot" style="--swatch:#2F6D50"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
-      <button type="button" class="appearance-colour" data-group="accent" data-value="emerald" aria-label="Emerald" aria-pressed="false"><span class="colour-dot" style="--swatch:#087F5B"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
-      <button type="button" class="appearance-colour" data-group="accent" data-value="blue" aria-label="Deep blue" aria-pressed="false"><span class="colour-dot" style="--swatch:#2458A6"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
-      <button type="button" class="appearance-colour" data-group="accent" data-value="red" aria-label="Warm red" aria-pressed="false"><span class="colour-dot" style="--swatch:#B93D45"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
-      <button type="button" class="appearance-colour" data-group="accent" data-value="terracotta" aria-label="Terracotta" aria-pressed="false"><span class="colour-dot" style="--swatch:#B85C38"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
-      <button type="button" class="appearance-colour" data-group="accent" data-value="plum" aria-label="Plum" aria-pressed="false"><span class="colour-dot" style="--swatch:#79518D"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
-      <button type="button" class="appearance-colour" data-group="accent" data-value="amber" aria-label="Amber" aria-pressed="false"><span class="colour-dot" style="--swatch:#A66A13"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
-      <button type="button" class="appearance-colour" data-group="accent" data-value="charcoal" aria-label="Charcoal" aria-pressed="false"><span class="colour-dot" style="--swatch:#34424A"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
-    </div>
-
-    <p class="appearance-hint">Used on buttons and highlights.</p>
-  </div>
-
-  <div class="appearance-control">
-    <div class="appearance-control-heading">
-      <h3>Page background</h3>
-      <span class="appearance-selection" id="backgroundSelection">Cream</span>
-    </div>
-
-    <div class="appearance-backgrounds" role="group" aria-label="Page background">
-      <button type="button" class="appearance-background is-selected" data-group="background" data-value="cream" aria-pressed="true"><span class="background-swatch" style="--swatch:#F7F6F1"></span><span>Cream</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
-      <button type="button" class="appearance-background" data-group="background" data-value="white" aria-pressed="false"><span class="background-swatch" style="--swatch:#FFFFFF"></span><span>White</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
-      <button type="button" class="appearance-background" data-group="background" data-value="warm-grey" aria-pressed="false"><span class="background-swatch" style="--swatch:#EEEAE3"></span><span>Warm grey</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
-      <button type="button" class="appearance-background" data-group="background" data-value="cool-grey" aria-pressed="false"><span class="background-swatch" style="--swatch:#E9EDF0"></span><span>Cool grey</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
-    </div>
-
-    <p class="appearance-hint">The colour behind everything.</p>
-  </div>
-
-  <div class="appearance-control">
-    <div class="appearance-control-heading">
-      <h3>Pattern</h3>
-      <span class="appearance-selection" id="patternSelection">None</span>
-    </div>
-
-    <div class="appearance-patterns" role="group" aria-label="Background pattern">
-      <button type="button" class="appearance-pattern is-selected" data-group="pattern" data-value="none" aria-pressed="true"><span class="pattern-tile pattern-none"></span><span>None</span></button>
-      <button type="button" class="appearance-pattern" data-group="pattern" data-value="dots" aria-pressed="false"><span class="pattern-tile pattern-dots"></span><span>Dots</span></button>
-      <button type="button" class="appearance-pattern" data-group="pattern" data-value="grid" aria-pressed="false"><span class="pattern-tile pattern-grid"></span><span>Grid</span></button>
-      <button type="button" class="appearance-pattern" data-group="pattern" data-value="diagonal" aria-pressed="false"><span class="pattern-tile pattern-diagonal"></span><span>Diagonal</span></button>
-      <button type="button" class="appearance-pattern" data-group="pattern" data-value="waves" aria-pressed="false"><span class="pattern-tile pattern-waves"></span><span>Waves</span></button>
-      <button type="button" class="appearance-pattern" data-group="pattern" data-value="plus" aria-pressed="false"><span class="pattern-tile pattern-plus"></span><span>Plus</span></button>
-      <button type="button" class="appearance-pattern" data-group="pattern" data-value="rings" aria-pressed="false"><span class="pattern-tile pattern-rings"></span><span>Rings</span></button>
-      <button type="button" class="appearance-pattern" data-group="pattern" data-value="crosshatch" aria-pressed="false"><span class="pattern-tile pattern-crosshatch"></span><span>Crosshatch</span></button>
-    </div>
-
-    <p class="appearance-hint">Optional texture behind your Desk.</p>
-  </div>
-
-  <div class="appearance-control">
-    <div class="appearance-control-heading">
-      <h3>Font pair</h3>
-      <span class="appearance-selection" id="fontSelection">Modern</span>
-    </div>
-
-    <div class="appearance-fonts" role="group" aria-label="Font pair">
-      <button type="button" class="appearance-font is-selected" data-group="font" data-value="modern" aria-pressed="true"><span class="font-sample font-modern" data-preview-name>Chidi Okonkwo</span><span class="font-option-copy"><strong>Modern</strong><small>Clean and balanced</small></span><span class="font-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></span></button>
-      <button type="button" class="appearance-font" data-group="font" data-value="classic" aria-pressed="false"><span class="font-sample font-classic" data-preview-name>Chidi Okonkwo</span><span class="font-option-copy"><strong>Classic</strong><small>Timeless and composed</small></span><span class="font-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></span></button>
-      <button type="button" class="appearance-font" data-group="font" data-value="editorial" aria-pressed="false"><span class="font-sample font-editorial" data-preview-name>Chidi Okonkwo</span><span class="font-option-copy"><strong>Editorial</strong><small>Expressive and distinctive</small></span><span class="font-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></span></button>
-      <button type="button" class="appearance-font" data-group="font" data-value="friendly" aria-pressed="false"><span class="font-sample font-friendly" data-preview-name>Chidi Okonkwo</span><span class="font-option-copy"><strong>Friendly</strong><small>Soft and approachable</small></span><span class="font-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></span></button>
-    </div>
-
-    <p class="appearance-hint">The type used across your Desk.</p>
-  </div>
-
-  <div class="appearance-control">
-    <div class="appearance-control-heading">
-      <h3>Corners</h3>
-      <span class="appearance-selection" id="cornersSelection">Rounded</span>
-    </div>
-
-    <div class="appearance-two-options" role="group" aria-label="Corner style">
-      <button type="button" class="appearance-visual-option is-selected" data-group="corners" data-value="rounded" aria-pressed="true"><span class="corner-demo corner-rounded"><span></span><span></span><span></span></span><strong>Rounded</strong><small>Soft edges</small></button>
-      <button type="button" class="appearance-visual-option" data-group="corners" data-value="sharp" aria-pressed="false"><span class="corner-demo corner-sharp"><span></span><span></span><span></span></span><strong>Sharp</strong><small>Clean edges</small></button>
-    </div>
-
-    <p class="appearance-hint">How soft or sharp your Desk feels.</p>
-  </div>
-
-  <div class="appearance-control">
-    <div class="appearance-control-heading">
-      <h3>Layout</h3>
-      <span class="appearance-selection" id="layoutSelection">Spacious</span>
-    </div>
-
-    <div class="appearance-two-options" role="group" aria-label="Layout spacing">
-      <button type="button" class="appearance-visual-option is-selected" data-group="layout" data-value="spacious" aria-pressed="true"><span class="layout-demo layout-spacious"><i></i><i></i><i></i><i></i></span><strong>Spacious</strong><small>More breathing room</small></button>
-      <button type="button" class="appearance-visual-option" data-group="layout" data-value="compact" aria-pressed="false"><span class="layout-demo layout-compact"><i></i><i></i><i></i><i></i></span><strong>Compact</strong><small>Closer together</small></button>
-    </div>
-
-    <p class="appearance-hint">How much breathing room your content has.</p>
-  </div>
-
-  <div class="appearance-control">
-    <div class="appearance-control-heading">
-      <h3>Photo layout</h3>
-      <span class="appearance-selection" id="photoLayoutSelection">Grid</span>
-    </div>
-
-    <div class="appearance-photo-layouts" role="group" aria-label="Photo layout">
-      <button type="button" class="appearance-photo-option is-selected" data-group="photo-layout" data-value="grid" aria-pressed="true"><span class="photo-layout-demo photo-grid"><i></i><i></i><i></i></span><strong>Grid</strong></button>
-      <button type="button" class="appearance-photo-option" data-group="photo-layout" data-value="big-first" aria-pressed="false"><span class="photo-layout-demo photo-big-first"><i></i><i></i><i></i></span><strong>Big first</strong></button>
-      <button type="button" class="appearance-photo-option" data-group="photo-layout" data-value="slide" aria-pressed="false"><span class="photo-layout-demo photo-slide"><i></i><i></i><i></i><i></i></span><strong>Slide</strong></button>
-      <button type="button" class="appearance-photo-option" data-group="photo-layout" data-value="mosaic" aria-pressed="false"><span class="photo-layout-demo photo-mosaic"><i></i><i></i><i></i><i></i></span><strong>Mosaic</strong></button>
-    </div>
-
-    <p class="appearance-hint">How your photos arrange themselves.</p>
-  </div>
-
 </section>
 
-<section class="group">
-  <header><b>07</b><div><h2>Visibility</h2><p>Choose whether people can discover you.</p></div></header>
+<!-- ABOUT -->
+<section class="edit-panel" id="panel-about" hidden>
+  <header class="panel-topbar">
+    <button class="back" type="button" data-close aria-label="Back">
+      <svg viewBox="0 0 24 24"><path d="M19 12H5m7 7-7-7 7-7"/></svg>
+    </button>
+    <h1>About</h1>
+    <span class="panel-spacer"></span>
+  </header>
 
-  <label class="switch">
-    <input type="checkbox" name="show_in_explore" id="show_in_explore" checked>
-    <span class="track"><i></i></span>
-    <span>
-      <strong>Show my Desk in Explore</strong>
-      <small>People browsing STMDeskly can find your Desk. Your direct link works either way.</small>
-    </span>
-  </label>
+  <div class="panel-body">
+    <label for="services">What you offer</label>
+    <textarea id="services" name="services" rows="4"></textarea>
+    <small class="hint">Keep each service on its own line.</small>
+
+    <label for="about">About you <span class="count" id="aboutCount">0 / 700</span></label>
+    <textarea id="about" name="about" rows="5" maxlength="700"></textarea>
+  </div>
+</section>
+
+<!-- MY WORK -->
+<section class="edit-panel" id="panel-work" hidden>
+  <header class="panel-topbar">
+    <button class="back" type="button" data-close aria-label="Back">
+      <svg viewBox="0 0 24 24"><path d="M19 12H5m7 7-7-7 7-7"/></svg>
+    </button>
+    <h1>My work</h1>
+    <span class="panel-spacer"></span>
+  </header>
+
+  <div class="panel-body">
+    <div class="photos" id="photoGrid"></div>
+    <button class="add-photo" type="button" id="addPhotoBtn">
+      <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Add a photo
+    </button>
+    <small class="hint">Up to 12 photos. JPG or PNG, max 5 MB each.</small>
+    <input type="file" id="photoInput" accept="image/*" multiple hidden>
+  </div>
+</section>
+
+<!-- DETAILS -->
+<section class="edit-panel" id="panel-details" hidden>
+  <header class="panel-topbar">
+    <button class="back" type="button" data-close aria-label="Back">
+      <svg viewBox="0 0 24 24"><path d="M19 12H5m7 7-7-7 7-7"/></svg>
+    </button>
+    <h1>Details</h1>
+    <span class="panel-spacer"></span>
+  </header>
+
+  <div class="panel-body">
+    <label for="location">Location</label>
+    <input id="location" name="location">
+
+    <label for="opening_hours">Opening hours</label>
+    <textarea id="opening_hours" name="opening_hours" rows="2"></textarea>
+
+    <label for="service_times">Service times <span class="optional">(optional)</span></label>
+    <textarea id="service_times" name="service_times" rows="2"></textarea>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section class="edit-panel" id="panel-contact" hidden>
+  <header class="panel-topbar">
+    <button class="back" type="button" data-close aria-label="Back">
+      <svg viewBox="0 0 24 24"><path d="M19 12H5m7 7-7-7 7-7"/></svg>
+    </button>
+    <h1>Contact</h1>
+    <span class="panel-spacer"></span>
+  </header>
+
+  <div class="panel-body">
+    <label for="whatsapp">WhatsApp</label>
+    <input id="whatsapp" name="whatsapp" type="tel">
+    <small class="hint">The main contact button on your Desk.</small>
+
+    <label for="email">Email</label>
+    <input id="email" name="email" type="email">
+
+    <label for="phone">Phone</label>
+    <input id="phone" name="phone" type="tel">
+
+    <label for="website">Website <span class="optional">(optional)</span></label>
+    <input id="website" name="website" type="url">
+  </div>
+</section>
+
+<!-- APPEARANCE -->
+<section class="edit-panel" id="panel-appearance" hidden>
+  <header class="panel-topbar">
+    <button class="back" type="button" data-close aria-label="Back">
+      <svg viewBox="0 0 24 24"><path d="M19 12H5m7 7-7-7 7-7"/></svg>
+    </button>
+    <h1>Appearance</h1>
+    <span class="panel-spacer"></span>
+  </header>
+
+  <div class="panel-body appearance-group" id="appearance">
+
+    <div class="appearance-preview-wrap">
+      <div class="appearance-preview" id="appearancePreview"
+        data-accent="forest" data-background="cream" data-pattern="none"
+        data-font="modern" data-corners="rounded" data-layout="spacious" data-photo-layout="grid">
+        <div class="appearance-preview-pattern" aria-hidden="true"></div>
+        <div class="appearance-preview-content">
+          <div class="appearance-preview-avatar" aria-hidden="true"><span>CO</span></div>
+          <div class="appearance-preview-copy">
+            <span class="appearance-preview-label">A LITTLE ABOUT ME</span>
+            <h3 id="appearancePreviewName">Chidi Okonkwo</h3>
+            <p id="appearancePreviewRole">Photographer</p>
+            <span class="appearance-preview-line"></span>
+          </div>
+        </div>
+        <span class="appearance-preview-caption">DESK PREVIEW</span>
+      </div>
+      <p class="appearance-preview-note">A glimpse of how your Desk could look.</p>
+    </div>
+
+    <div class="appearance-control">
+      <div class="appearance-control-heading"><h3>Accent colour</h3><span class="appearance-selection" id="accentSelection">Forest</span></div>
+      <div class="appearance-colours" role="group" aria-label="Accent colour">
+        <button type="button" class="appearance-colour is-selected" data-group="accent" data-value="forest" aria-label="Forest green" aria-pressed="true"><span class="colour-dot" style="--swatch:#2F6D50"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
+        <button type="button" class="appearance-colour" data-group="accent" data-value="emerald" aria-label="Emerald" aria-pressed="false"><span class="colour-dot" style="--swatch:#087F5B"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
+        <button type="button" class="appearance-colour" data-group="accent" data-value="blue" aria-label="Deep blue" aria-pressed="false"><span class="colour-dot" style="--swatch:#2458A6"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
+        <button type="button" class="appearance-colour" data-group="accent" data-value="red" aria-label="Warm red" aria-pressed="false"><span class="colour-dot" style="--swatch:#B93D45"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
+        <button type="button" class="appearance-colour" data-group="accent" data-value="terracotta" aria-label="Terracotta" aria-pressed="false"><span class="colour-dot" style="--swatch:#B85C38"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
+        <button type="button" class="appearance-colour" data-group="accent" data-value="plum" aria-label="Plum" aria-pressed="false"><span class="colour-dot" style="--swatch:#79518D"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
+        <button type="button" class="appearance-colour" data-group="accent" data-value="amber" aria-label="Amber" aria-pressed="false"><span class="colour-dot" style="--swatch:#A66A13"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
+        <button type="button" class="appearance-colour" data-group="accent" data-value="charcoal" aria-label="Charcoal" aria-pressed="false"><span class="colour-dot" style="--swatch:#34424A"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
+      </div>
+      <p class="appearance-hint">Used on buttons and highlights.</p>
+    </div>
+
+    <div class="appearance-control">
+      <div class="appearance-control-heading"><h3>Page background</h3><span class="appearance-selection" id="backgroundSelection">Cream</span></div>
+      <div class="appearance-backgrounds" role="group" aria-label="Page background">
+        <button type="button" class="appearance-background is-selected" data-group="background" data-value="cream" aria-pressed="true"><span class="background-swatch" style="--swatch:#F7F6F1"></span><span>Cream</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
+        <button type="button" class="appearance-background" data-group="background" data-value="white" aria-pressed="false"><span class="background-swatch" style="--swatch:#FFFFFF"></span><span>White</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
+        <button type="button" class="appearance-background" data-group="background" data-value="warm-grey" aria-pressed="false"><span class="background-swatch" style="--swatch:#EEEAE3"></span><span>Warm grey</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
+        <button type="button" class="appearance-background" data-group="background" data-value="cool-grey" aria-pressed="false"><span class="background-swatch" style="--swatch:#E9EDF0"></span><span>Cool grey</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
+      </div>
+      <p class="appearance-hint">The colour behind everything.</p>
+    </div>
+
+    <div class="appearance-control">
+      <div class="appearance-control-heading"><h3>Pattern</h3><span class="appearance-selection" id="patternSelection">None</span></div>
+      <div class="appearance-patterns" role="group" aria-label="Background pattern">
+        <button type="button" class="appearance-pattern is-selected" data-group="pattern" data-value="none" aria-pressed="true"><span class="pattern-tile pattern-none"></span><span>None</span></button>
+        <button type="button" class="appearance-pattern" data-group="pattern" data-value="dots" aria-pressed="false"><span class="pattern-tile pattern-dots"></span><span>Dots</span></button>
+        <button type="button" class="appearance-pattern" data-group="pattern" data-value="grid" aria-pressed="false"><span class="pattern-tile pattern-grid"></span><span>Grid</span></button>
+        <button type="button" class="appearance-pattern" data-group="pattern" data-value="diagonal" aria-pressed="false"><span class="pattern-tile pattern-diagonal"></span><span>Diagonal</span></button>
+        <button type="button" class="appearance-pattern" data-group="pattern" data-value="waves" aria-pressed="false"><span class="pattern-tile pattern-waves"></span><span>Waves</span></button>
+        <button type="button" class="appearance-pattern" data-group="pattern" data-value="plus" aria-pressed="false"><span class="pattern-tile pattern-plus"></span><span>Plus</span></button>
+        <button type="button" class="appearance-pattern" data-group="pattern" data-value="rings" aria-pressed="false"><span class="pattern-tile pattern-rings"></span><span>Rings</span></button>
+        <button type="button" class="appearance-pattern" data-group="pattern" data-value="crosshatch" aria-pressed="false"><span class="pattern-tile pattern-crosshatch"></span><span>Crosshatch</span></button>
+      </div>
+      <p class="appearance-hint">Optional texture behind your Desk.</p>
+    </div>
+
+    <div class="appearance-control">
+      <div class="appearance-control-heading"><h3>Font pair</h3><span class="appearance-selection" id="fontSelection">Modern</span></div>
+      <div class="appearance-fonts" role="group" aria-label="Font pair">
+        <button type="button" class="appearance-font is-selected" data-group="font" data-value="modern" aria-pressed="true"><span class="font-sample font-modern" data-preview-name>Chidi Okonkwo</span><span class="font-option-copy"><strong>Modern</strong><small>Clean and balanced</small></span><span class="font-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></span></button>
+        <button type="button" class="appearance-font" data-group="font" data-value="classic" aria-pressed="false"><span class="font-sample font-classic" data-preview-name>Chidi Okonkwo</span><span class="font-option-copy"><strong>Classic</strong><small>Timeless and composed</small></span><span class="font-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></span></button>
+        <button type="button" class="appearance-font" data-group="font" data-value="editorial" aria-pressed="false"><span class="font-sample font-editorial" data-preview-name>Chidi Okonkwo</span><span class="font-option-copy"><strong>Editorial</strong><small>Expressive and distinctive</small></span><span class="font-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></span></button>
+        <button type="button" class="appearance-font" data-group="font" data-value="friendly" aria-pressed="false"><span class="font-sample font-friendly" data-preview-name>Chidi Okonkwo</span><span class="font-option-copy"><strong>Friendly</strong><small>Soft and approachable</small></span><span class="font-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></span></button>
+      </div>
+      <p class="appearance-hint">The type used across your Desk.</p>
+    </div>
+
+    <div class="appearance-control">
+      <div class="appearance-control-heading"><h3>Corners</h3><span class="appearance-selection" id="cornersSelection">Rounded</span></div>
+      <div class="appearance-two-options" role="group" aria-label="Corner style">
+        <button type="button" class="appearance-visual-option is-selected" data-group="corners" data-value="rounded" aria-pressed="true"><span class="corner-demo corner-rounded"><span></span><span></span><span></span></span><strong>Rounded</strong><small>Soft edges</small></button>
+        <button type="button" class="appearance-visual-option" data-group="corners" data-value="sharp" aria-pressed="false"><span class="corner-demo corner-sharp"><span></span><span></span><span></span></span><strong>Sharp</strong><small>Clean edges</small></button>
+      </div>
+      <p class="appearance-hint">How soft or sharp your Desk feels.</p>
+    </div>
+
+    <div class="appearance-control">
+      <div class="appearance-control-heading"><h3>Layout</h3><span class="appearance-selection" id="layoutSelection">Spacious</span></div>
+      <div class="appearance-two-options" role="group" aria-label="Layout spacing">
+        <button type="button" class="appearance-visual-option is-selected" data-group="layout" data-value="spacious" aria-pressed="true"><span class="layout-demo layout-spacious"><i></i><i></i><i></i><i></i></span><strong>Spacious</strong><small>More breathing room</small></button>
+        <button type="button" class="appearance-visual-option" data-group="layout" data-value="compact" aria-pressed="false"><span class="layout-demo layout-compact"><i></i><i></i><i></i><i></i></span><strong>Compact</strong><small>Closer together</small></button>
+      </div>
+      <p class="appearance-hint">How much breathing room your content has.</p>
+    </div>
+
+    <div class="appearance-control">
+      <div class="appearance-control-heading"><h3>Photo layout</h3><span class="appearance-selection" id="photoLayoutSelection">Grid</span></div>
+      <div class="appearance-photo-layouts" role="group" aria-label="Photo layout">
+        <button type="button" class="appearance-photo-option is-selected" data-group="photo-layout" data-value="grid" aria-pressed="true"><span class="photo-layout-demo photo-grid"><i></i><i></i><i></i></span><strong>Grid</strong></button>
+        <button type="button" class="appearance-photo-option" data-group="photo-layout" data-value="big-first" aria-pressed="false"><span class="photo-layout-demo photo-big-first"><i></i><i></i><i></i></span><strong>Big first</strong></button>
+        <button type="button" class="appearance-photo-option" data-group="photo-layout" data-value="slide" aria-pressed="false"><span class="photo-layout-demo photo-slide"><i></i><i></i><i></i><i></i></span><strong>Slide</strong></button>
+        <button type="button" class="appearance-photo-option" data-group="photo-layout" data-value="mosaic" aria-pressed="false"><span class="photo-layout-demo photo-mosaic"><i></i><i></i><i></i><i></i></span><strong>Mosaic</strong></button>
+      </div>
+      <p class="appearance-hint">How your photos arrange themselves.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- VISIBILITY -->
+<section class="edit-panel" id="panel-visibility" hidden>
+  <header class="panel-topbar">
+    <button class="back" type="button" data-close aria-label="Back">
+      <svg viewBox="0 0 24 24"><path d="M19 12H5m7 7-7-7 7-7"/></svg>
+    </button>
+    <h1>Visibility</h1>
+    <span class="panel-spacer"></span>
+  </header>
+
+  <div class="panel-body">
+    <label class="switch">
+      <input type="checkbox" name="show_in_explore" id="show_in_explore" checked>
+      <span class="track"><i></i></span>
+      <span>
+        <strong>Show my Desk in Explore</strong>
+        <small>People browsing STMDeskly can find your Desk. Your direct link works either way.</small>
+      </span>
+    </label>
+  </div>
 </section>
 
 </form>
-
-</main>
 
 <footer class="savebar">
   <span class="dirty" id="saveStatus">Unsaved changes</span>
@@ -332,6 +412,6 @@
 <script src="auth.js?v=8"></script>
 <script src="desk-render.js?v=1"></script>
 <script src="appearance.js?v=2"></script>
-<script src="edit.js?v=8"></script>
+<script src="edit.js?v=9"></script>
 </body>
 </html>
