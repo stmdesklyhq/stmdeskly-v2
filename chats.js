@@ -65,23 +65,14 @@
   /* ---------- Load ---------- */
 
   async function loadThreads() {
-    const asA = await sb
-      .from('chat_threads')
-      .select('*')
-      .eq('user_a', me.id);
-
-    const asB = await sb
-      .from('chat_threads')
-      .select('*')
-      .eq('user_b', me.id);
+    const asA = await sb.from('chat_threads').select('*').eq('user_a', me.id);
+    const asB = await sb.from('chat_threads').select('*').eq('user_b', me.id);
 
     if (asA.error) console.warn('threadsA:', asA.error);
     if (asB.error) console.warn('threadsB:', asB.error);
 
     const threads = [...(asA.data || []), ...(asB.data || [])]
-      .sort((x, y) =>
-        new Date(y.last_message_at || 0) - new Date(x.last_message_at || 0)
-      );
+      .sort((x, y) => new Date(y.last_message_at || 0) - new Date(x.last_message_at || 0));
 
     if (!threads.length) return [];
 
@@ -185,9 +176,7 @@
         : 'Waiting for them to accept.';
     } else if (row.lastMessage) {
       const lm = row.lastMessage;
-      const who = lm.sender_id === me.id
-        ? '<strong>You:</strong> '
-        : '';
+      const who = lm.sender_id === me.id ? '<strong>You:</strong> ' : '';
       const body = lm.body ? esc(lm.body) : '📷 Photo';
       preview = who + body;
     } else {
@@ -217,7 +206,6 @@
   function render() {
     const filtered = applyFilters(allRows);
 
-    // Remove old rows
     listEl.querySelectorAll('.chat-row').forEach(n => n.remove());
 
     if (!filtered.length) {
