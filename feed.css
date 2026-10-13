@@ -59,3 +59,21 @@
 #feedLoading[hidden] {
   display: none !important;
   }
+
+/* Liked state on the like button */
+.post-action.is-liked,
+.post-card.is-liked .post-action[data-action="like"] {
+  color: #C75D5D;
+}
+.post-card.is-liked .post-action[data-action="like"] svg {
+  fill: #C75D5D;
+  stroke: #C75D5D;
+}
+.post-action[data-action="share"].copied {
+  color: var(--teal, #2F6D70);
+}
+.reaction-count {
+  font-size: 10px;
+  margin-left: 2px;
+  min-width: 8px;
+}
