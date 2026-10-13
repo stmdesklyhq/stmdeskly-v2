@@ -18,7 +18,7 @@
     },
   });
 
-  /* ---------- Rate limit (client-side soft limit) ---------- */
+  /* ---------- Rate limit ---------- */
   const RL_KEY = 'stm_rl';
   function rlGet() {
     try { return JSON.parse(localStorage.getItem(RL_KEY) || '{}'); }
@@ -55,17 +55,13 @@
     if (/[^A-Za-z0-9]/.test(pw)) score++;
     if (score > 4) score = 4;
     const labels = ['Very weak', 'Weak', 'Okay', 'Good', 'Strong'];
-    return {
-      score: score,
-      label: labels[score],
-      ok: pw.length >= 8 && score >= 2,
-    };
+    return { score: score, label: labels[score], ok: pw.length >= 8 && score >= 2 };
   }
 
-  /* ---------- Breach check (HIBP k-anonymity) ---------- */
+  /* ---------- Breach check (HIBP) ---------- */
   async function sha1Hex(str) {
     if (!window.crypto || !window.crypto.subtle) {
-      throw new Error('crypto.subtle is not available in this browser.');
+      throw new Error('crypto.subtle is not available.');
     }
     const buf = new TextEncoder().encode(str);
     const hash = await crypto.subtle.digest('SHA-1', buf);
@@ -86,9 +82,7 @@
       return text.split('\n').some(function (line) {
         return line.split(':')[0] === suffix;
       });
-    } catch (e) {
-      return false;
-    }
+    } catch (e) { return false; }
   }
 
   /* ---------- Username availability ---------- */
@@ -127,9 +121,7 @@
     const user = res.data.user;
     const session = res.data.session;
 
-    if (!session) {
-      return { ok: true, needsConfirm: true, user: user };
-    }
+    if (!session) return { ok: true, needsConfirm: true, user: user };
 
     const deskRes = await sb.from('desks').insert({
       user_id: user.id,
@@ -166,7 +158,7 @@
     return { ok: true };
   }
 
-  /* ---------- Create desk (for users with no desk yet) ---------- */
+  /* ---------- Create desk ---------- */
   async function createDesk(input) {
     const userRes = await sb.auth.getUser();
     const user = userRes.data.user;
@@ -215,9 +207,7 @@
       });
       if (res.error) return { ok: false, error: res.error };
       return { ok: true };
-    } catch (err) {
-      return { ok: false, error: err };
-    }
+    } catch (err) { return { ok: false, error: err }; }
   }
 
   async function updatePassword(newPassword) {
@@ -225,9 +215,7 @@
       const res = await sb.auth.updateUser({ password: newPassword });
       if (res.error) return { ok: false, error: res.error };
       return { ok: true };
-    } catch (err) {
-      return { ok: false, error: err };
-    }
+    } catch (err) { return { ok: false, error: err }; }
   }
 
   /* =========================================================
@@ -258,7 +246,6 @@
 
       img.onload = function () {
         URL.revokeObjectURL(url);
-
         let width = img.width;
         let height = img.height;
 
@@ -275,18 +262,13 @@
         const canvas = document.createElement('canvas');
         canvas.width = width;
         canvas.height = height;
-
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, width, height);
 
-        canvas.toBlob(
-          function (blob) {
-            if (blob) resolve(blob);
-            else reject(new Error('Could not process image'));
-          },
-          'image/jpeg',
-          0.85
-        );
+        canvas.toBlob(function (blob) {
+          if (blob) resolve(blob);
+          else reject(new Error('Could not process image'));
+        }, 'image/jpeg', 0.85);
       };
 
       img.onerror = function () {
@@ -306,20 +288,13 @@
     try {
       const blob = await compressImage(file, 600);
       const path = user.id + '/avatar.jpg';
-
-      const up = await sb.storage
-        .from('desk-photos')
-        .upload(path, blob, { contentType: 'image/jpeg', upsert: true });
-
+      const up = await sb.storage.from('desk-photos').upload(path, blob, {
+        contentType: 'image/jpeg', upsert: true,
+      });
       if (up.error) return { ok: false, error: up.error };
-
       const pub = sb.storage.from('desk-photos').getPublicUrl(path);
-      const publicUrl = pub.data.publicUrl + '?t=' + Date.now();
-
-      return { ok: true, url: publicUrl };
-    } catch (err) {
-      return { ok: false, error: err };
-    }
+      return { ok: true, url: pub.data.publicUrl + '?t=' + Date.now() };
+    } catch (err) { return { ok: false, error: err }; }
   }
 
   async function uploadPhoto(file) {
@@ -329,24 +304,18 @@
 
     try {
       const blob = await compressImage(file, 1400);
-      const id =
-        (window.crypto && crypto.randomUUID)
-          ? crypto.randomUUID()
-          : String(Date.now()) + Math.random().toString(36).slice(2, 9);
-
+      const id = (window.crypto && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : String(Date.now()) + Math.random().toString(36).slice(2, 9);
       const path = user.id + '/photos/' + id + '.jpg';
 
-      const up = await sb.storage
-        .from('desk-photos')
-        .upload(path, blob, { contentType: 'image/jpeg', upsert: false });
-
+      const up = await sb.storage.from('desk-photos').upload(path, blob, {
+        contentType: 'image/jpeg', upsert: false,
+      });
       if (up.error) return { ok: false, error: up.error };
-
       const pub = sb.storage.from('desk-photos').getPublicUrl(path);
       return { ok: true, url: pub.data.publicUrl };
-    } catch (err) {
-      return { ok: false, error: err };
-    }
+    } catch (err) { return { ok: false, error: err }; }
   }
 
   async function removePhoto(url) {
@@ -354,21 +323,17 @@
       const marker = '/desk-photos/';
       const idx = String(url).indexOf(marker);
       if (idx === -1) return { ok: true };
-
       let path = url.slice(idx + marker.length);
       const q = path.indexOf('?');
       if (q !== -1) path = path.slice(0, q);
-
       const res = await sb.storage.from('desk-photos').remove([path]);
       if (res.error) return { ok: false, error: res.error };
       return { ok: true };
-    } catch (err) {
-      return { ok: false, error: err };
-    }
+    } catch (err) { return { ok: false, error: err }; }
   }
 
   /* =========================================================
-     FEED — posts and post media
+     FEED — posts
      ========================================================= */
 
   async function createPost(input) {
@@ -398,24 +363,67 @@
 
     try {
       const blob = await compressImage(file, 1400);
-      const id =
-        (window.crypto && crypto.randomUUID)
-          ? crypto.randomUUID()
-          : String(Date.now()) + Math.random().toString(36).slice(2, 9);
-
+      const id = (window.crypto && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : String(Date.now()) + Math.random().toString(36).slice(2, 9);
       const path = user.id + '/posts/' + id + '.jpg';
 
-      const up = await sb.storage
-        .from('desk-photos')
-        .upload(path, blob, { contentType: 'image/jpeg', upsert: false });
-
+      const up = await sb.storage.from('desk-photos').upload(path, blob, {
+        contentType: 'image/jpeg', upsert: false,
+      });
       if (up.error) return { ok: false, error: up.error };
-
       const pub = sb.storage.from('desk-photos').getPublicUrl(path);
       return { ok: true, url: pub.data.publicUrl };
-    } catch (err) {
-      return { ok: false, error: err };
+    } catch (err) { return { ok: false, error: err }; }
+  }
+
+  async function toggleReaction(postId, emoji) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    const existing = await sb
+      .from('post_reactions')
+      .select('id')
+      .eq('post_id', postId)
+      .eq('user_id', user.id)
+      .eq('emoji', emoji)
+      .maybeSingle();
+
+    if (existing.data) {
+      const del = await sb.from('post_reactions').delete().eq('id', existing.data.id);
+      if (del.error) return { ok: false, error: del.error };
+      return { ok: true, removed: true };
     }
+
+    const ins = await sb.from('post_reactions').insert({
+      post_id: postId, user_id: user.id, emoji: emoji,
+    });
+    if (ins.error) return { ok: false, error: ins.error };
+    return { ok: true, added: true };
+  }
+
+  async function getPostReactions(postIds) {
+    if (!Array.isArray(postIds) || !postIds.length) return { ok: true, data: {} };
+
+    const res = await sb
+      .from('post_reactions')
+      .select('post_id, emoji, user_id')
+      .in('post_id', postIds);
+
+    if (res.error) return { ok: false, error: res.error };
+
+    const userRes = await sb.auth.getUser();
+    const me = userRes.data.user ? userRes.data.user.id : null;
+
+    const map = {};
+    (res.data || []).forEach(function (r) {
+      if (!map[r.post_id]) map[r.post_id] = { count: 0, mine: {} };
+      map[r.post_id].count += 1;
+      if (me && r.user_id === me) map[r.post_id].mine[r.emoji] = true;
+    });
+
+    return { ok: true, data: map };
   }
 
   async function deletePost(postId) {
@@ -436,7 +444,7 @@
   }
 
   /* =========================================================
-     REPLIES — threaded comments on posts
+     REPLIES
      ========================================================= */
 
   async function getPostReplies(postId) {
@@ -453,14 +461,10 @@
     if (res.error) return { ok: false, error: res.error };
 
     const replies = res.data || [];
-
     const userIds = [...new Set(replies.map(function (r) { return r.user_id; }).filter(Boolean))];
     let nameMap = {};
     if (userIds.length) {
-      const aRes = await sb
-        .from('desks')
-        .select('user_id, name')
-        .in('user_id', userIds);
+      const aRes = await sb.from('desks').select('user_id, name').in('user_id', userIds);
       if (!aRes.error && aRes.data) {
         aRes.data.forEach(function (d) { nameMap[d.user_id] = d.name; });
       }
@@ -549,9 +553,11 @@
     uploadPhoto: uploadPhoto,
     removePhoto: removePhoto,
 
-    // Feed
+    // Feed — posts
     createPost: createPost,
     uploadPostPhoto: uploadPostPhoto,
+    toggleReaction: toggleReaction,
+    getPostReactions: getPostReactions,
     deletePost: deletePost,
 
     // Replies
