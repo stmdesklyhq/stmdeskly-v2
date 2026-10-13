@@ -998,3 +998,156 @@
 .page-desk[data-photo-layout="mosaic"] .desk-work-photo:nth-child(3n+2) {
   grid-row: span 2;
 }
+/* =========================================================
+   FORCE appearance overrides — wins against everything else
+   ========================================================= */
+
+.page-desk,
+.page-desk.desk-shell,
+body.page-desk {
+  background: var(--desk-bg, #F7F6F1) !important;
+}
+
+/* Font — applies to all text, overrides inline styles */
+.page-desk,
+.page-desk * {
+  font-family: var(--desk-font, "Poppins", sans-serif) !important;
+}
+
+/* Name colour follows accent */
+.page-desk .desk-name {
+  color: var(--desk-accent, #01764C) !important;
+}
+
+/* Pattern — always visible on the brand band */
+.page-desk[data-pattern="dots"] .desk-brand {
+  background-color: transparent !important;
+  background-image:
+    radial-gradient(var(--desk-accent, #01764C) 1px, transparent 1.5px) !important;
+  background-size: 22px 22px !important;
+}
+
+.page-desk[data-pattern="grid"] .desk-brand {
+  background-color: transparent !important;
+  background-image:
+    linear-gradient(var(--desk-accent, #01764C) 1px, transparent 1px) !important,
+    linear-gradient(90deg, var(--desk-accent, #01764C) 1px, transparent 1px) !important;
+  background-size: 26px 26px !important;
+}
+
+.page-desk[data-pattern="diagonal"] .desk-brand {
+  background-color: transparent !important;
+  background-image: repeating-linear-gradient(
+    135deg,
+    transparent 0,
+    transparent 12px,
+    var(--desk-accent-soft, rgba(1,118,76,0.10)) 13px,
+    transparent 14px
+  ) !important;
+}
+
+.page-desk[data-pattern="waves"] .desk-brand {
+  background-color: transparent !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='18' viewBox='0 0 40 18'%3E%3Cpath d='M0 9 Q10 0 20 9 T40 9' fill='none' stroke='%232F6D50' stroke-width='1'/%3E%3C/svg%3E") !important;
+  background-size: 40px 18px !important;
+}
+
+.page-desk[data-pattern="plus"] .desk-brand {
+  background-color: transparent !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M14 8v12M8 14h12' stroke='%232F6D50' stroke-width='1'/%3E%3C/svg%3E") !important;
+  background-size: 28px 28px !important;
+}
+
+.page-desk[data-pattern="rings"] .desk-brand {
+  background-color: transparent !important;
+  background-image: radial-gradient(circle, transparent 5px, var(--desk-accent, #01764C) 5.5px, transparent 6px) !important;
+  background-size: 26px 26px !important;
+}
+
+.page-desk[data-pattern="crosshatch"] .desk-brand {
+  background-color: transparent !important;
+  background-image:
+    repeating-linear-gradient(45deg, transparent 0, transparent 9px, var(--desk-accent-soft, rgba(1,118,76,0.10)) 10px, transparent 11px) !important,
+    repeating-linear-gradient(-45deg, transparent 0, transparent 9px, var(--desk-accent-soft, rgba(1,118,76,0.10)) 10px, transparent 11px) !important;
+}
+
+/* Corners */
+.page-desk[data-corners="sharp"] .desk-section,
+.page-desk[data-corners="sharp"] .desk-work-photo,
+.page-desk[data-corners="sharp"] .desk-contact-primary,
+.page-desk[data-corners="sharp"] .desk-contact-chip {
+  border-radius: 2px !important;
+}
+
+.page-desk[data-corners="rounded"] .desk-section,
+.page-desk[data-corners="rounded"] .desk-work-photo,
+.page-desk[data-corners="rounded"] .desk-contact-primary,
+.page-desk[data-corners="rounded"] .desk-contact-chip {
+  border-radius: 14px !important;
+}
+
+/* Layout density */
+.page-desk[data-layout="compact"] .desk-section {
+  padding: 26px 0 !important;
+}
+.page-desk[data-layout="compact"] .desk-brand {
+  padding: 40px 24px 30px !important;
+}
+.page-desk[data-layout="spacious"] .desk-section {
+  padding: 56px 0 !important;
+}
+
+/* Photo layout — grid */
+.page-desk[data-photo-layout="grid"] .desk-work-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+
+/* Photo layout — big first */
+.page-desk[data-photo-layout="big-first"] .desk-work-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  grid-auto-rows: 1fr !important;
+  gap: 8px !important;
+}
+.page-desk[data-photo-layout="big-first"] .desk-work-photo:first-child {
+  grid-column: 1 / span 2 !important;
+  grid-row: 1 / span 2 !important;
+  aspect-ratio: auto !important;
+}
+
+/* Photo layout — slide */
+.page-desk[data-photo-layout="slide"] .desk-work-grid {
+  display: flex !important;
+  overflow-x: auto !important;
+  gap: 10px !important;
+  scroll-snap-type: x mandatory !important;
+  scrollbar-width: none !important;
+}
+.page-desk[data-photo-layout="slide"] .desk-work-grid::-webkit-scrollbar {
+  display: none !important;
+}
+.page-desk[data-photo-layout="slide"] .desk-work-photo {
+  flex: 0 0 72% !important;
+  scroll-snap-align: start !important;
+  aspect-ratio: 1 / 1 !important;
+}
+
+/* Photo layout — mosaic */
+.page-desk[data-photo-layout="mosaic"] .desk-work-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  grid-auto-rows: 110px !important;
+  gap: 8px !important;
+}
+.page-desk[data-photo-layout="mosaic"] .desk-work-photo {
+  aspect-ratio: auto !important;
+}
+.page-desk[data-photo-layout="mosaic"] .desk-work-photo:nth-child(3n+1) {
+  grid-column: span 2 !important;
+  grid-row: span 2 !important;
+}
+.page-desk[data-photo-layout="mosaic"] .desk-work-photo:nth-child(3n+2) {
+  grid-row: span 2 !important;
+   }
