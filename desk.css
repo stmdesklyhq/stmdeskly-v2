@@ -865,3 +865,136 @@
     font-size: 23px;
   }
   }
+/* =========================================================
+   Appearance — background, pattern, corners, layout, photos
+   ========================================================= */
+
+/* Body background follows the setting */
+.page-desk { background: var(--desk-bg, #F7F6F1); }
+
+/* Font inheritance */
+.page-desk,
+.page-desk h1,
+.page-desk h2,
+.page-desk h3,
+.page-desk p,
+.page-desk a,
+.page-desk button {
+  font-family: var(--desk-font, "Poppins", sans-serif);
+}
+
+/* ---------- Pattern behind the brand band ---------- */
+
+.page-desk[data-pattern="dots"] .desk-brand {
+  background-image: radial-gradient(var(--desk-accent) 1px, transparent 1.5px);
+  background-size: 22px 22px;
+}
+.page-desk[data-pattern="grid"] .desk-brand {
+  background-image:
+    linear-gradient(var(--desk-accent) 1px, transparent 1px),
+    linear-gradient(90deg, var(--desk-accent) 1px, transparent 1px);
+  background-size: 26px 26px;
+}
+.page-desk[data-pattern="diagonal"] .desk-brand {
+  background-image: repeating-linear-gradient(
+    135deg,
+    transparent 0,
+    transparent 12px,
+    var(--desk-accent-soft) 13px,
+    transparent 14px
+  );
+}
+.page-desk[data-pattern="waves"] .desk-brand {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='18' viewBox='0 0 40 18'%3E%3Cpath d='M0 9 Q10 0 20 9 T40 9' fill='none' stroke='%232F6D50' stroke-width='1'/%3E%3C/svg%3E");
+  background-size: 40px 18px;
+}
+.page-desk[data-pattern="plus"] .desk-brand {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M14 8v12M8 14h12' stroke='%232F6D50' stroke-width='1'/%3E%3C/svg%3E");
+  background-size: 28px 28px;
+}
+.page-desk[data-pattern="rings"] .desk-brand {
+  background-image: radial-gradient(circle, transparent 5px, var(--desk-accent) 5.5px, transparent 6px);
+  background-size: 26px 26px;
+}
+.page-desk[data-pattern="crosshatch"] .desk-brand {
+  background-image:
+    repeating-linear-gradient(45deg, transparent 0, transparent 9px, var(--desk-accent-soft) 10px, transparent 11px),
+    repeating-linear-gradient(-45deg, transparent 0, transparent 9px, var(--desk-accent-soft) 10px, transparent 11px);
+}
+
+/* All patterns: fade them and layer them over the accent soft glow */
+.page-desk[data-pattern]:not([data-pattern="none"]) .desk-brand {
+  background-blend-mode: normal;
+  background-color: transparent;
+}
+
+/* ---------- Corners ---------- */
+
+.page-desk[data-corners="sharp"] {
+  --desk-radius: 2px;
+}
+.page-desk[data-corners="rounded"] {
+  --desk-radius: 14px;
+}
+
+.page-desk[data-corners="sharp"] .desk-section,
+.page-desk[data-corners="sharp"] .desk-work-photo,
+.page-desk[data-corners="sharp"] .desk-contact-primary,
+.page-desk[data-corners="sharp"] .desk-contact-chip,
+.page-desk[data-corners="sharp"] .desk-detail {
+  border-radius: var(--desk-radius);
+}
+
+/* ---------- Layout density ---------- */
+
+.page-desk[data-layout="compact"] .desk-section {
+  padding: 26px 0;
+}
+.page-desk[data-layout="compact"] .desk-brand {
+  padding: clamp(40px, 8vw, 70px) 24px clamp(30px, 5vw, 50px);
+}
+.page-desk[data-layout="compact"] .desk-offer-item {
+  padding: 10px 0;
+}
+
+.page-desk[data-layout="spacious"] .desk-section {
+  padding: 56px 0;
+}
+
+/* ---------- Photo layout ---------- */
+
+.page-desk[data-photo-layout="big-first"] .desk-work-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.page-desk[data-photo-layout="big-first"] .desk-work-photo:first-child {
+  grid-column: 1 / span 2;
+  grid-row: 1 / span 2;
+}
+
+.page-desk[data-photo-layout="slide"] .desk-work-grid {
+  display: flex;
+  overflow-x: auto;
+  gap: 10px;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+.page-desk[data-photo-layout="slide"] .desk-work-grid::-webkit-scrollbar { display: none; }
+.page-desk[data-photo-layout="slide"] .desk-work-photo {
+  flex: 0 0 72%;
+  scroll-snap-align: start;
+}
+
+.page-desk[data-photo-layout="mosaic"] .desk-work-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-rows: 110px;
+}
+.page-desk[data-photo-layout="mosaic"] .desk-work-photo {
+  aspect-ratio: auto;
+}
+.page-desk[data-photo-layout="mosaic"] .desk-work-photo:nth-child(3n+1) {
+  grid-column: span 2;
+  grid-row: span 2;
+}
+.page-desk[data-photo-layout="mosaic"] .desk-work-photo:nth-child(3n+2) {
+  grid-row: span 2;
+}
