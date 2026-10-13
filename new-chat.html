@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#F7F6F1">
+<title>New chat — STMDeskly</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css?v=10">
+<link rel="stylesheet" href="new-chat.css?v=1">
+</head>
+
+<body class="page-new-chat">
+
+<header class="nc-topbar">
+  <a class="nc-back" href="/chats.html" aria-label="Back">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M19 12H5M12 19l-7-7 7-7"/>
+    </svg>
+  </a>
+  <h1>New chat</h1>
+  <span class="nc-spacer"></span>
+</header>
+
+<main class="nc-main">
+
+  <div class="nc-search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="11" cy="11" r="7"/>
+      <path d="m20 20-3.5-3.5"/>
+    </svg>
+    <input
+      type="search"
+      id="ncInput"
+      placeholder="Name, @username, or paste a link"
+      autocomplete="off"
+      autocapitalize="off"
+      autocorrect="off"
+      spellcheck="false"
+      autofocus>
+    <button type="button" id="ncClear" class="nc-clear" aria-label="Clear" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 6L18 18M18 6L6 18"/>
+      </svg>
+    </button>
+  </div>
+
+  <p class="nc-hint" id="ncHint">
+    Search by name, username, or paste someone's Desk link.
+  </p>
+
+  <div class="nc-results" id="ncResults"></div>
+
+  <div class="nc-empty" id="ncEmpty" hidden>
+    <span class="nc-empty-mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="7"/>
+        <path d="m20 20-3.5-3.5"/>
+      </svg>
+    </span>
+    <h2 id="ncEmptyTitle">Find someone</h2>
+    <p id="ncEmptyBody">Type a name or paste a link.</p>
+  </div>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="auth.js?v=10"></script>
+<script src="new-chat.js?v=1"></script>
+
+</body>
+</html>
