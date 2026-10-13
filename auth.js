@@ -297,6 +297,26 @@
     } catch (err) { return { ok: false, error: err }; }
   }
 
+  async function uploadCover(file) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    try {
+      const blob = await compressImage(file, 1600);
+      const path = user.id + '/cover.jpg';
+      const up = await sb.storage.from('desk-photos').upload(path, blob, {
+        contentType: 'image/jpeg',
+        upsert: true,
+      });
+      if (up.error) return { ok: false, error: up.error };
+      const pub = sb.storage.from('desk-photos').getPublicUrl(path);
+      return { ok: true, url: pub.data.publicUrl + '?t=' + Date.now() };
+    } catch (err) {
+      return { ok: false, error: err };
+    }
+  }
+
   async function uploadPhoto(file) {
     const userRes = await sb.auth.getUser();
     const user = userRes.data.user;
@@ -550,6 +570,7 @@
     // Editor
     updateDesk: updateDesk,
     uploadAvatar: uploadAvatar,
+    uploadCover: uploadCover,
     uploadPhoto: uploadPhoto,
     removePhoto: removePhoto,
 
