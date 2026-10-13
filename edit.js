@@ -365,17 +365,20 @@
       updateAboutCount();
     }
 
-    // Let everything settle, THEN snapshot. Only after that, listen.
-    setTimeout(function () {
-      initialSnapshot = snapshot();
-      dirty = false;
-      setStatus('', '');
+    // Snapshot immediately. Only respond to real user events after that.
+    initialSnapshot = snapshot();
+    dirty = false;
+    setStatus('', '');
 
-      if (form) {
-        form.addEventListener('input', markDirty);
-        form.addEventListener('change', markDirty);
-      }
-    }, 400);
+    function onUserChange(e) {
+      if (!e.isTrusted) return;   // ignore programmatic events
+      markDirty();
+    }
+
+    if (form) {
+      form.addEventListener('input', onUserChange);
+      form.addEventListener('change', onUserChange);
+    }
 
     route();
   })();
@@ -432,3 +435,40 @@
       const file = e.target.files && e.target.files[0];
       e.target.value = '';
       if (!file) return;
+      if (file.size > MAX_FILE_SIZE) { alert('Max 5 MB.'); return; }
+      const res = await AUTH.uploadAvatar(file);
+      if (!res.ok) { alert('Could not upload that photo.'); return; }
+      desk.avatar_url = res.url;
+      paintAvatar();
+      markDirty();
+    });
+  }
+  if (avatarRemoveBtn) {
+    avatarRemoveBtn.addEventListener('click', function () {
+      desk.avatar_url = null;
+      paintAvatar();
+      markDirty();
+    });
+  }
+  if (addPhotoBtn && photoInput) {
+    addPhotoBtn.addEventListener('click', function () {
+      if ((desk.photos || []).length >= MAX_PHOTOS) { alert('Max ' + MAX_PHOTOS + ' photos.'); return; }
+      photoInput.click();
+    });
+  }
+  if (photoInput) {
+    photoInput.addEventListener('change', async function (e) {
+      const files = Array.from(e.target.files || []);
+      e.target.value = '';
+      for (const f of files) {
+        if ((desk.photos || []).length >= MAX_PHOTOS) { alert('Max ' + MAX_PHOTOS + ' photos.'); break; }
+        await handlePhotoFile(f);
+      }
+    });
+  }
+  window.addEventListener('beforeunload', function (e) {
+    if (!dirty) return;
+    e.preventDefault();
+    e.returnValue = '';
+  });
+})();
