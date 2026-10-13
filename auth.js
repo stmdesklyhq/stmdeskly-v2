@@ -113,6 +113,7 @@
       password: input.password,
       options: {
         emailRedirectTo: location.origin + '/signup.html',
+        captchaToken: input.captchaToken || undefined,
         data: {
           name: input.name,
           username: input.username,
@@ -380,6 +381,59 @@
   }
 
   /* =========================================================
+     FEED — posts and post media
+     ========================================================= */
+
+  /* ---------- Feed: create post ---------- */
+  async function createPost(input) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    const res = await sb.from('posts').insert({
+      user_id: user.id,
+      category: input.category,
+      title: input.title || null,
+      body: input.body,
+      photos: input.photos || [],
+      contact_whatsapp: input.whatsapp || null,
+      location: input.location || null,
+      price: input.price || null,
+    }).select('id').single();
+
+    if (res.error) return { ok: false, error: res.error };
+    return { ok: true, data: res.data };
+  }
+
+  /* ---------- Feed: upload post photo ---------- */
+  async function uploadPostPhoto(file) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    try {
+      const blob = await compressImage(file, 1400);
+      const id =
+        (window.crypto && crypto.randomUUID)
+          ? crypto.randomUUID()
+          : String(Date.now()) + Math.random().toString(36).slice(2, 9);
+
+      const path = user.id + '/posts/' + id + '.jpg';
+
+      const up = await sb.storage
+        .from('desk-photos')
+        .upload(path, blob, { contentType: 'image/jpeg', upsert: false });
+
+      if (up.error) return { ok: false, error: up.error };
+
+      const pub = sb.storage.from('desk-photos').getPublicUrl(path);
+      return { ok: true, url: pub.data.publicUrl };
+    } catch (err) {
+      return { ok: false, error: err };
+    }
+  }
+
+  /* =========================================================
      PUBLIC API
      ========================================================= */
 
@@ -407,5 +461,9 @@
     uploadAvatar: uploadAvatar,
     uploadPhoto: uploadPhoto,
     removePhoto: removePhoto,
+
+    // Feed
+    createPost: createPost,
+    uploadPostPhoto: uploadPostPhoto,
   };
 })();
