@@ -306,8 +306,15 @@
       return;
     }
 
+    const myId = currentUser ? currentUser.id : null;
+
     sheetReplies.innerHTML = replies.map(function (r) {
-      return '<div class="reply">' +
+      const isMine = myId && r.user_id === myId;
+      const removeBtn = isMine
+        ? '<button type="button" class="reply-remove" data-reply-id="' + esc(r.id) + '" aria-label="Remove reply">×</button>'
+        : '';
+
+      return '<div class="reply" data-reply-id="' + esc(r.id) + '">' +
         '<span class="reply-avatar">' + esc(initials(r.author_name || '·')) + '</span>' +
         '<div class="reply-body">' +
           '<div class="reply-head">' +
@@ -316,6 +323,7 @@
           '</div>' +
           '<p class="reply-text">' + esc(r.body) + '</p>' +
         '</div>' +
+        removeBtn +
       '</div>';
     }).join('');
   }
@@ -354,8 +362,9 @@
       sheetReplies.innerHTML = '';
     }
 
+    // New replies render with a remove button since they're always the author's own
     sheetReplies.insertAdjacentHTML('beforeend',
-      '<div class="reply">' +
+      '<div class="reply" data-reply-id="' + esc(r.id) + '">' +
         '<span class="reply-avatar">' + esc(initials(r.author_name)) + '</span>' +
         '<div class="reply-body">' +
           '<div class="reply-head">' +
@@ -364,6 +373,7 @@
           '</div>' +
           '<p class="reply-text">' + esc(r.body) + '</p>' +
         '</div>' +
+        '<button type="button" class="reply-remove" data-reply-id="' + esc(r.id) + '" aria-label="Remove reply">×</button>' +
       '</div>'
     );
 
@@ -458,6 +468,43 @@
   }
   if (sheetInput) sheetInput.addEventListener('input', updateSendState);
   if (sheetComposer) sheetComposer.addEventListener('submit', submitReply);
+
+  if (sheetReplies) {
+    sheetReplies.addEventListener('click', async function (e) {
+      const btn = e.target.closest('.reply-remove');
+      if (!btn) return;
+
+      const replyId = btn.dataset.replyId;
+      if (!replyId) return;
+      if (!window.confirm('Delete this reply?')) return;
+
+      const row = sheetReplies.querySelector('[data-reply-id="' + replyId + '"]');
+      if (row) {
+        row.style.opacity = '0.4';
+        row.style.pointerEvents = 'none';
+      }
+
+      const res = await AUTH.deleteReply(replyId);
+
+      if (!res.ok) {
+        if (row) {
+          row.style.opacity = '';
+          row.style.pointerEvents = '';
+        }
+        alert('Could not delete. Try again.');
+        return;
+      }
+
+      if (row) row.remove();
+
+      // Update the feed count
+      const countEl = feedEl.querySelector('[data-reply-count-for="' + activePostId + '"]');
+      if (countEl) {
+        const cur = Number(countEl.textContent) || 0;
+        countEl.textContent = Math.max(0, cur - 1) || '';
+      }
+    });
+  }
 
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && commentOverlay && !commentOverlay.hidden) {
