@@ -297,3 +297,222 @@
 .page-edit .main > form > .group:last-of-type {
   margin-bottom: 40px;
  }
+/* =========================================================
+   Section list + panel navigation
+   ========================================================= */
+
+/* Hide native file inputs */
+.page-edit input[type="file"] {
+  display: none !important;
+}
+
+/* ---------- List view ---------- */
+
+.section-list {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 40px;
+}
+
+.section-row {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 22px;
+  align-items: center;
+  gap: 14px;
+  padding: 18px 18px;
+  border: 1px solid var(--border, #E5E4DD);
+  border-left: 3px solid var(--mint, #DCEBE3);
+  border-radius: 15px;
+  background: var(--paper, #FFFEFB);
+  color: var(--navy, #172B3A);
+  text-decoration: none;
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.section-row:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px rgba(23, 43, 58, 0.06);
+  border-left-color: var(--teal, #2F6D70);
+}
+
+.section-row:active {
+  transform: translateY(0);
+}
+
+.section-num {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--navy, #172B3A);
+  color: var(--paper, #FFFEFB);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.section-copy {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.section-copy strong {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--navy, #172B3A);
+}
+
+.section-copy small {
+  font-size: 11px;
+  color: var(--muted, #718087);
+  line-height: 1.5;
+}
+
+.section-chevron {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: var(--muted, #718087);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ---------- Panel views ---------- */
+
+.edit-panel {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: var(--cream, #F7F6F1);
+  overflow-y: auto;
+  padding-bottom: 110px;
+  animation: panel-in 220ms cubic-bezier(.2, .7, .2, 1) both;
+}
+
+.edit-panel[hidden] { display: none !important; }
+
+@keyframes panel-in {
+  from { opacity: 0; transform: translateX(16px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.panel-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: 44px 1fr 44px;
+  align-items: center;
+  gap: 10px;
+  min-height: 62px;
+  padding: 10px 16px;
+  background: rgba(247, 246, 241, 0.94);
+  border-bottom: 1px solid var(--border, #E5E4DD);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.panel-topbar .back {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--navy, #172B3A);
+  cursor: pointer;
+}
+
+.panel-topbar .back svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.panel-topbar h1 {
+  margin: 0;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--navy, #172B3A);
+}
+
+.panel-spacer {
+  width: 40px;
+}
+
+.panel-body {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 24px 18px 32px;
+}
+
+.panel-body label:not(.switch) {
+  display: block;
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--navy, #172B3A);
+}
+
+.panel-body input:not([type="checkbox"]):not([type="file"]),
+.panel-body textarea {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  margin: 0 0 18px;
+  padding: 13px 14px;
+  border: 1px solid #DDE3DF;
+  border-radius: 13px;
+  background: var(--paper, #FFFEFB);
+  color: var(--navy, #172B3A);
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.6;
+  outline: none;
+}
+
+.panel-body input:focus,
+.panel-body textarea:focus {
+  border-color: var(--teal, #2F6D70);
+  box-shadow: 0 0 0 4px rgba(47, 109, 112, 0.10);
+}
+
+.panel-body textarea {
+  resize: vertical;
+  white-space: pre-wrap;
+}
+
+.panel-body .hint {
+  display: block;
+  margin: -10px 0 18px;
+  font-size: 11px;
+  color: var(--muted, #718087);
+  line-height: 1.6;
+}
+
+.panel-body .count {
+  float: right;
+  color: var(--muted, #718087);
+  font-weight: 400;
+  font-size: 11px;
+}
+
+/* Reuse existing avatar-card, photos, add-photo, switch styles */
+.panel-body .avatar-card,
+.panel-body .photos,
+.panel-body .add-photo,
+.panel-body .switch {
+  margin-bottom: 18px;
+ }
