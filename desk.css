@@ -1294,3 +1294,104 @@ body.page-desk {
 .public-desk-page .desk-section[data-section="details"] + .desk-section[data-section="details"] {
   display: none !important;
 }
+/* =========================================================
+   Pattern opacity + font quality fix
+   ========================================================= */
+
+/* Patterns sit behind the content at low opacity */
+.public-desk-page[data-pattern]:not([data-pattern="none"]) .desk-intro {
+  position: relative;
+}
+
+.public-desk-page[data-pattern]:not([data-pattern="none"]) .desk-intro::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.10;
+}
+
+.public-desk-page[data-pattern]:not([data-pattern="none"]) .desk-intro > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Remove the old pattern rules — they drew on the whole band */
+.public-desk-page[data-pattern="dots"] .desk-intro,
+.public-desk-page[data-pattern="grid"] .desk-intro,
+.public-desk-page[data-pattern="diagonal"] .desk-intro,
+.public-desk-page[data-pattern="waves"] .desk-intro,
+.public-desk-page[data-pattern="plus"] .desk-intro,
+.public-desk-page[data-pattern="rings"] .desk-intro,
+.public-desk-page[data-pattern="crosshatch"] .desk-intro {
+  background-image: none !important;
+}
+
+/* Draw patterns on the ::before layer at low opacity */
+.public-desk-page[data-pattern="dots"] .desk-intro::before {
+  background-image: radial-gradient(var(--desk-accent, #01764C) 1.2px, transparent 1.6px);
+  background-size: 26px 26px;
+}
+
+.public-desk-page[data-pattern="grid"] .desk-intro::before {
+  background-image:
+    linear-gradient(var(--desk-accent, #01764C) 1px, transparent 1px),
+    linear-gradient(90deg, var(--desk-accent, #01764C) 1px, transparent 1px);
+  background-size: 30px 30px;
+}
+
+.public-desk-page[data-pattern="diagonal"] .desk-intro::before {
+  background-image: repeating-linear-gradient(
+    135deg,
+    transparent 0,
+    transparent 14px,
+    var(--desk-accent, #01764C) 15px,
+    transparent 16px
+  );
+}
+
+.public-desk-page[data-pattern="waves"] .desk-intro::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='52' height='22' viewBox='0 0 52 22'%3E%3Cpath d='M0 11 Q13 0 26 11 T52 11' fill='none' stroke='%232F6D50' stroke-width='1.2'/%3E%3C/svg%3E");
+  background-size: 52px 22px;
+}
+
+.public-desk-page[data-pattern="plus"] .desk-intro::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='34' height='34' viewBox='0 0 34 34'%3E%3Cpath d='M17 11v12M11 17h12' stroke='%232F6D50' stroke-width='1.1'/%3E%3C/svg%3E");
+  background-size: 34px 34px;
+}
+
+.public-desk-page[data-pattern="rings"] .desk-intro::before {
+  background-image: radial-gradient(circle, transparent 6px, var(--desk-accent, #01764C) 6.8px, transparent 7.4px);
+  background-size: 32px 32px;
+}
+
+.public-desk-page[data-pattern="crosshatch"] .desk-intro::before {
+  background-image:
+    repeating-linear-gradient(45deg, transparent 0, transparent 11px, var(--desk-accent, #01764C) 12px, transparent 13px),
+    repeating-linear-gradient(-45deg, transparent 0, transparent 11px, var(--desk-accent, #01764C) 12px, transparent 13px);
+}
+
+/* ---------- Font quality ---------- */
+
+/* Editorial — use a real serif instead of Times */
+.public-desk-page[data-font="editorial"],
+.public-desk-page[data-font="editorial"] * {
+  font-family: "Fraunces", "Georgia", "Times New Roman", serif !important;
+}
+
+.public-desk-page[data-font="classic"],
+.public-desk-page[data-font="classic"] * {
+  font-family: "Lora", "Georgia", "Times New Roman", serif !important;
+}
+
+.public-desk-page[data-font="friendly"],
+.public-desk-page[data-font="friendly"] * {
+  font-family: "Nunito", "Trebuchet MS", sans-serif !important;
+}
+
+/* Name weight: bold without looking thin */
+.public-desk-page .desk-intro-copy h1 {
+  font-weight: 700 !important;
+  letter-spacing: -2px !important;
+     }
