@@ -556,12 +556,13 @@
     const userRes = await sb.auth.getUser();
     const user = userRes.data.user;
     if (!user) return { ok: false, error: { message: 'Not signed in' } };
-    if (user.id === otherUserId) return { ok: false, error: { message: 'Cannot start a chat with yourself' } };
+    if (user.id === otherUserId) return { ok: false, error: { message: 'You cannot chat with yourself' } };
 
     const pair = sortPair(user.id, otherUserId);
     const a = pair[0];
     const b = pair[1];
 
+    // Look for existing
     const existing = await sb
       .from('chat_threads')
       .select('id, status, initiated_by, user_a, user_b')
@@ -572,14 +573,13 @@
     if (existing.error && existing.error.code !== 'PGRST116') {
       return { ok: false, error: existing.error };
     }
-
-    if (existing.data) return { ok: true, thread: existing.data };
+    if (existing.data) return { ok: true, thread: existing.data, created: false };
 
     const ins = await sb.from('chat_threads').insert({
       user_a: a,
       user_b: b,
       initiated_by: user.id,
-      status: 'pending',
+      status: 'pending'
     }).select('id, status, initiated_by, user_a, user_b').single();
 
     if (ins.error) return { ok: false, error: ins.error };
@@ -595,11 +595,13 @@
       .from('chat_threads')
       .select('id, user_a, user_b, status, initiated_by, last_message_at')
       .eq('id', threadId)
-      .single();
+      .maybeSingle();
 
-    if (tRes.error || !tRes.data) return { ok: false, error: tRes.error };
-
+    if (tRes.error || !tRes.data) {
+      return { ok: false, error: tRes.error || { message: 'Thread not found' } };
+    }
     const thread = tRes.data;
+
     const otherId = thread.user_a === user.id ? thread.user_b : thread.user_a;
 
     const pRes = await sb
@@ -617,7 +619,7 @@
     limit = limit || 50;
     const res = await sb
       .from('chat_messages')
-      .select('id, sender_id, body, photo_url, read_at, created_at')
+      .select('id, sender_id, body, photo_url, read_at, created_at, reply_to_id, deleted_at')
       .eq('thread_id', threadId)
       .order('created_at', { ascending: true })
       .limit(limit);
@@ -634,7 +636,7 @@
     const res = await sb
       .from('chat_messages')
       .insert({ thread_id: threadId, sender_id: user.id, body: body })
-      .select('id, sender_id, body, photo_url, read_at, created_at')
+      .select('id, sender_id, body, photo_url, read_at, created_at, reply_to_id, deleted_at')
       .single();
 
     if (res.error) return { ok: false, error: res.error };
