@@ -219,7 +219,7 @@
   }
 
   /* =========================================================
-     EDITOR — desk updates and media
+     EDITOR
      ========================================================= */
 
   async function updateDesk(fields) {
@@ -306,15 +306,12 @@
       const blob = await compressImage(file, 1600);
       const path = user.id + '/cover.jpg';
       const up = await sb.storage.from('desk-photos').upload(path, blob, {
-        contentType: 'image/jpeg',
-        upsert: true,
+        contentType: 'image/jpeg', upsert: true,
       });
       if (up.error) return { ok: false, error: up.error };
       const pub = sb.storage.from('desk-photos').getPublicUrl(path);
       return { ok: true, url: pub.data.publicUrl + '?t=' + Date.now() };
-    } catch (err) {
-      return { ok: false, error: err };
-    }
+    } catch (err) { return { ok: false, error: err }; }
   }
 
   async function uploadPhoto(file) {
@@ -434,13 +431,13 @@
     if (res.error) return { ok: false, error: res.error };
 
     const userRes = await sb.auth.getUser();
-    const me = userRes.data.user ? userRes.data.user.id : null;
+    const meId = userRes.data.user ? userRes.data.user.id : null;
 
     const map = {};
     (res.data || []).forEach(function (r) {
       if (!map[r.post_id]) map[r.post_id] = { count: 0, mine: {} };
       map[r.post_id].count += 1;
-      if (me && r.user_id === me) map[r.post_id].mine[r.emoji] = true;
+      if (meId && r.user_id === meId) map[r.post_id].mine[r.emoji] = true;
     });
 
     return { ok: true, data: map };
@@ -464,7 +461,7 @@
   }
 
   /* =========================================================
-     REPLIES
+     REPLIES (post comments)
      ========================================================= */
 
   async function getPostReplies(postId) {
@@ -545,7 +542,7 @@
   }
 
   /* =========================================================
-     CHAT — threads and messages
+     CHAT — threads
      ========================================================= */
 
   function sortPair(a, b) {
@@ -562,7 +559,6 @@
     const a = pair[0];
     const b = pair[1];
 
-    // Look for existing
     const existing = await sb
       .from('chat_threads')
       .select('id, status, initiated_by, user_a, user_b')
@@ -597,9 +593,7 @@
       .eq('id', threadId)
       .maybeSingle();
 
-    if (tRes.error || !tRes.data) {
-      return { ok: false, error: tRes.error || { message: 'Thread not found' } };
-    }
+    if (tRes.error || !tRes.data) return { ok: false, error: tRes.error || { message: 'Thread not found' } };
     const thread = tRes.data;
 
     const otherId = thread.user_a === user.id ? thread.user_b : thread.user_a;
@@ -616,16 +610,27 @@
   }
 
   async function loadMessages(threadId, limit) {
-    limit = limit || 50;
+    limit = limit || 100;
+    const userRes = await sb.auth.getUser();
+    const me = userRes.data.user ? userRes.data.user.id : null;
+
     const res = await sb
       .from('chat_messages')
-      .select('id, sender_id, body, photo_url, read_at, created_at, reply_to_id, deleted_at')
+      .select('id, sender_id, body, photo_url, read_at, created_at, reply_to_id, deleted_at, deleted_for')
       .eq('thread_id', threadId)
       .order('created_at', { ascending: true })
       .limit(limit);
 
     if (res.error) return { ok: false, error: res.error };
-    return { ok: true, data: res.data || [] };
+
+    const all = res.data || [];
+    const visible = all.filter(function (m) {
+      if (!me) return true;
+      const df = Array.isArray(m.deleted_for) ? m.deleted_for : [];
+      return df.indexOf(me) === -1;
+    });
+
+    return { ok: true, data: visible, all: all };
   }
 
   async function sendMessage(threadId, body) {
@@ -636,11 +641,61 @@
     const res = await sb
       .from('chat_messages')
       .insert({ thread_id: threadId, sender_id: user.id, body: body })
-      .select('id, sender_id, body, photo_url, read_at, created_at, reply_to_id, deleted_at')
+      .select('id, sender_id, body, photo_url, read_at, created_at, reply_to_id, deleted_at, deleted_for')
       .single();
 
     if (res.error) return { ok: false, error: res.error };
     return { ok: true, message: res.data };
+  }
+
+  async function sendReply(threadId, body, replyToId) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    const res = await sb.from('chat_messages').insert({
+      thread_id: threadId,
+      sender_id: user.id,
+      body: body,
+      reply_to_id: replyToId
+    }).select('id, sender_id, body, photo_url, read_at, created_at, reply_to_id, deleted_at, deleted_for').single();
+
+    if (res.error) return { ok: false, error: res.error };
+    return { ok: true, message: res.data };
+  }
+
+  async function sendPhotoMessage(threadId, file) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    try {
+      const blob = await compressImage(file, 1400);
+      const id = (window.crypto && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : String(Date.now()) + Math.random().toString(36).slice(2, 9);
+
+      const path = user.id + '/chat/' + threadId + '/' + id + '.jpg';
+
+      const up = await sb.storage.from('desk-photos').upload(path, blob, {
+        contentType: 'image/jpeg',
+        upsert: false
+      });
+      if (up.error) return { ok: false, error: up.error };
+
+      const pub = sb.storage.from('desk-photos').getPublicUrl(path);
+
+      const ins = await sb.from('chat_messages').insert({
+        thread_id: threadId,
+        sender_id: user.id,
+        photo_url: pub.data.publicUrl
+      }).select('id, sender_id, body, photo_url, read_at, created_at, reply_to_id, deleted_at, deleted_for').single();
+
+      if (ins.error) return { ok: false, error: ins.error };
+      return { ok: true, message: ins.data };
+    } catch (err) {
+      return { ok: false, error: err };
+    }
   }
 
   async function acceptThread(threadId) {
@@ -691,6 +746,118 @@
   }
 
   /* =========================================================
+     CHAT — reactions, delete, presence
+     ========================================================= */
+
+  async function toggleMessageReaction(messageId, emoji) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    const existing = await sb
+      .from('chat_reactions')
+      .select('id')
+      .eq('message_id', messageId)
+      .eq('user_id', user.id)
+      .eq('emoji', emoji)
+      .maybeSingle();
+
+    if (existing.data) {
+      const del = await sb.from('chat_reactions').delete().eq('id', existing.data.id);
+      if (del.error) return { ok: false, error: del.error };
+      return { ok: true, removed: true };
+    }
+
+    const ins = await sb.from('chat_reactions').insert({
+      message_id: messageId,
+      user_id: user.id,
+      emoji: emoji
+    });
+    if (ins.error) return { ok: false, error: ins.error };
+    return { ok: true, added: true };
+  }
+
+  async function getMessageReactions(messageIds) {
+    if (!Array.isArray(messageIds) || !messageIds.length) return { ok: true, data: {} };
+
+    const res = await sb
+      .from('chat_reactions')
+      .select('message_id, user_id, emoji')
+      .in('message_id', messageIds);
+
+    if (res.error) return { ok: false, error: res.error };
+
+    const userRes = await sb.auth.getUser();
+    const meId = userRes.data.user ? userRes.data.user.id : null;
+
+    const map = {};
+    (res.data || []).forEach(function (r) {
+      if (!map[r.message_id]) map[r.message_id] = {};
+      if (!map[r.message_id][r.emoji]) map[r.message_id][r.emoji] = { count: 0, mine: false };
+      map[r.message_id][r.emoji].count += 1;
+      if (meId && r.user_id === meId) map[r.message_id][r.emoji].mine = true;
+    });
+
+    return { ok: true, data: map };
+  }
+
+  async function deleteMessageForMe(messageId) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    const cur = await sb.from('chat_messages').select('deleted_for').eq('id', messageId).maybeSingle();
+    if (cur.error) return { ok: false, error: cur.error };
+
+    const list = Array.isArray(cur.data && cur.data.deleted_for) ? cur.data.deleted_for.slice() : [];
+    if (list.indexOf(user.id) === -1) list.push(user.id);
+
+    const res = await sb.from('chat_messages').update({ deleted_for: list }).eq('id', messageId);
+    if (res.error) return { ok: false, error: res.error };
+    return { ok: true };
+  }
+
+  async function deleteMessageForEveryone(messageId) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    const cur = await sb.from('chat_messages').select('sender_id, created_at').eq('id', messageId).maybeSingle();
+    if (cur.error || !cur.data) return { ok: false, error: cur.error || { message: 'Not found' } };
+    if (cur.data.sender_id !== user.id) return { ok: false, error: { message: 'Only the sender can delete for everyone' } };
+    if (Date.now() - new Date(cur.data.created_at).getTime() > 24 * 60 * 60 * 1000) {
+      return { ok: false, error: { message: 'Too late to delete for everyone' } };
+    }
+
+    const res = await sb.from('chat_messages').update({
+      deleted_at: new Date().toISOString(),
+      body: null,
+      photo_url: null
+    }).eq('id', messageId);
+
+    if (res.error) return { ok: false, error: res.error };
+    return { ok: true };
+  }
+
+  async function touchPresence() {
+    try {
+      await sb.rpc('touch_presence');
+      return { ok: true };
+    } catch (e) {
+      return { ok: false };
+    }
+  }
+
+  async function getPresence(userId) {
+    const res = await sb.from('desks').select('last_seen_at').eq('user_id', userId).maybeSingle();
+    if (res.error || !res.data) return { online: false, lastSeen: null };
+    const t = res.data.last_seen_at;
+    if (!t) return { online: false, lastSeen: null };
+    const diff = Date.now() - new Date(t).getTime();
+    return { online: diff < 90000, lastSeen: t };
+  }
+
+  /* =========================================================
      PUBLIC API
      ========================================================= */
 
@@ -720,26 +887,36 @@
     uploadPhoto: uploadPhoto,
     removePhoto: removePhoto,
 
-    // Feed — posts
+    // Feed
     createPost: createPost,
     uploadPostPhoto: uploadPostPhoto,
     toggleReaction: toggleReaction,
     getPostReactions: getPostReactions,
     deletePost: deletePost,
 
-    // Replies
+    // Post replies
     getPostReplies: getPostReplies,
     createReply: createReply,
     getReplyCounts: getReplyCounts,
     deleteReply: deleteReply,
 
-    // Chat
+    // Chat — threads + messages
     startThread: startThread,
     loadThread: loadThread,
     loadMessages: loadMessages,
     sendMessage: sendMessage,
+    sendReply: sendReply,
+    sendPhotoMessage: sendPhotoMessage,
     acceptThread: acceptThread,
     declineThread: declineThread,
     markMessagesRead: markMessagesRead,
+
+    // Chat — reactions, delete, presence
+    toggleMessageReaction: toggleMessageReaction,
+    getMessageReactions: getMessageReactions,
+    deleteMessageForMe: deleteMessageForMe,
+    deleteMessageForEveryone: deleteMessageForEveryone,
+    touchPresence: touchPresence,
+    getPresence: getPresence,
   };
 })();
