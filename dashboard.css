@@ -109,3 +109,68 @@
   fill: var(--mint, #DCEBE3);
   stroke: var(--teal, #2F6D70);
   }
+
+
+/* =========================================================
+   Section cards — match the editor's weight
+   ========================================================= */
+
+.page-dashboard .intro {
+  padding: 32px 0 24px;
+}
+
+.page-dashboard .intro h1 {
+  font-size: clamp(28px, 6.5vw, 38px);
+  font-weight: 700;
+  letter-spacing: -0.05em;
+}
+
+.page-dashboard .publish-strip {
+  padding: 22px 20px;
+  border-width: 1.5px;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(23, 43, 58, 0.04);
+}
+
+.page-dashboard .link-card {
+  padding: 24px 20px;
+  border-radius: 16px;
+  border-width: 1.5px;
+  box-shadow: 0 6px 20px rgba(23, 43, 58, 0.04);
+}
+
+.page-dashboard .main-actions {
+  gap: 14px;
+}
+
+.page-dashboard .action-card {
+  border-radius: 16px;
+  border-width: 1.5px;
+  min-height: 100px;
+  padding: 20px;
+  box-shadow: 0 6px 20px rgba(23, 43, 58, 0.04);
+  transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+}
+
+.page-dashboard .action-card:hover {
+  box-shadow: 0 10px 26px rgba(23, 43, 58, 0.08);
+}
+
+.page-dashboard .edit-action {
+  border-left: 3px solid var(--mint, #DCEBE3);
+}
+
+.page-dashboard .action-text strong {
+  font-size: 15px;
+  letter-spacing: -0.02em;
+}
+
+.page-dashboard .action-text small {
+  font-size: 11.5px;
+  margin-top: 3px;
+}
+
+.page-dashboard .button {
+  min-height: 48px;
+  font-size: 12.5px;
+  }
