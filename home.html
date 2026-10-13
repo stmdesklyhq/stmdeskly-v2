@@ -5,7 +5,7 @@
 <meta name="theme-color" content="#F7F6F1"><title>Home — STMDeskly</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="feed.css?v=1">
+<link rel="stylesheet" href="feed.css?v=2">
 </head>
 <body><div class="app-shell">
 <header class="topbar">
@@ -56,8 +56,29 @@
 </nav>
 </div>
 
+<!-- Comment sheet -->
+<div class="sheet-overlay" id="commentOverlay" hidden>
+  <div class="sheet" id="commentSheet">
+    <div class="sheet-handle" id="sheetHandle"></div>
+    <header class="sheet-head">
+      <span id="sheetTitle">Replies</span>
+      <button type="button" id="sheetClose" aria-label="Close">×</button>
+    </header>
+    <div class="sheet-body" id="sheetBody">
+      <div class="sheet-post" id="sheetPost"></div>
+      <div class="sheet-replies" id="sheetReplies"></div>
+    </div>
+    <form class="sheet-composer" id="sheetComposer">
+      <input type="text" id="sheetInput" placeholder="Write a reply…" maxlength="500" autocomplete="off">
+      <button type="submit" id="sheetSend" disabled>
+        <svg viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+      </button>
+    </form>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
-<script src="auth.js?v=4"></script>
-<script src="home.js?v=1"></script>
+<script src="auth.js?v=7"></script>
+<script src="home.js?v=2"></script>
 </body></html>
