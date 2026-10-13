@@ -1,6 +1,5 @@
 /* =========================================================
    STMDESKLY v2 — Home (feed)
-   Loads posts, filters by category, greets the user.
    ========================================================= */
 (function () {
   'use strict';
@@ -108,7 +107,13 @@
       ? '<div class="post-price">' + esc(post.price) + '</div>'
       : '';
 
-    return '<article class="post-card" data-id="' + esc(post.id) + '">' +
+    const isMine = currentUser && post.user_id === currentUser.id;
+
+    const menuButton = isMine
+      ? '<button class="icon-button post-menu" data-action="menu" aria-label="Post options"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>'
+      : '';
+
+    return '<article class="post-card" data-id="' + esc(post.id) + '" data-owner="' + esc(post.user_id) + '">' +
       '<header class="post-header">' +
         '<span class="avatar post-avatar">' + esc(initials(post.author_name || '·')) + '</span>' +
         '<div class="post-author">' +
@@ -119,6 +124,7 @@
             location +
           '</div>' +
         '</div>' +
+        menuButton +
       '</header>' +
       title +
       '<p class="post-body">' + esc(post.body) + '</p>' +
@@ -188,7 +194,6 @@
 
     feedEl.insertAdjacentHTML('afterbegin', html);
 
-    // Load reactions for these posts
     const ids = posts.map(function (p) { return p.id; });
     const rx = await AUTH.getPostReactions(ids);
     if (rx.ok) {
@@ -225,16 +230,38 @@
     });
   }
 
-  /* ---------- Reactions & share ---------- */
+  /* ---------- Actions ---------- */
   if (feedEl) {
     feedEl.addEventListener('click', async function (e) {
-      const btn = e.target.closest('.post-action');
+      const btn = e.target.closest('.post-action, .post-menu');
       if (!btn) return;
 
       const card = btn.closest('.post-card');
       if (!card) return;
       const postId = card.dataset.id;
       const action = btn.dataset.action;
+
+      if (action === 'menu') {
+        const isMine = currentUser && card.dataset.owner === currentUser.id;
+        if (!isMine) return;
+
+        const confirmed = window.confirm('Delete this post?');
+        if (!confirmed) return;
+
+        card.style.opacity = '0.4';
+        card.style.pointerEvents = 'none';
+
+        const res = await AUTH.deletePost(postId);
+        if (!res.ok) {
+          card.style.opacity = '';
+          card.style.pointerEvents = '';
+          alert('Could not delete. Try again.');
+          console.warn('deletePost:', res.error);
+          return;
+        }
+        card.remove();
+        return;
+      }
 
       if (action === 'like') {
         const liked = card.classList.toggle('is-liked');
