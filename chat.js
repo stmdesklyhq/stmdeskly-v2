@@ -1,20 +1,19 @@
 /* =========================================================
    STMDESKLY v2 — Inbox list
-   All conversations you're part of.
    ========================================================= */
 (function () {
   'use strict';
 
   const $ = function (id) { return document.getElementById(id); };
 
-  const filtersEl = $('chatsFilters');
-  const listEl    = $('chatsList');
-  const loadingEl = $('chatsLoading');
-  const emptyEl   = $('chatsEmpty');
-  const emptyTitle = $('chatsEmptyTitle');
-  const emptyBody  = $('chatsEmptyBody');
-  const inboxBadge = $('inboxBadge');
-  const requestsBadge = $('requestsBadge');
+  const filtersEl      = $('chatsFilters');
+  const listEl         = $('chatsList');
+  const loadingEl      = $('chatsLoading');
+  const emptyEl        = $('chatsEmpty');
+  const emptyTitle     = $('chatsEmptyTitle');
+  const emptyBody      = $('chatsEmptyBody');
+  const inboxBadge     = $('inboxBadge');
+  const requestsBadge  = $('requestsBadge');
 
   let me = null;
   let sb = null;
@@ -27,6 +26,7 @@
     if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   }
+
   function esc(s) {
     return String(s == null ? '' : s)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -35,6 +35,7 @@
   }
 
   function timeShort(iso) {
+    if (!iso) return '';
     const then = new Date(iso).getTime();
     const now = Date.now();
     const diff = Math.max(0, Math.floor((now - then) / 1000));
@@ -45,32 +46,42 @@
     return new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
   }
 
-  /* ---------- Load data ---------- */
+  /* ---------- Load threads ---------- */
 
   async function loadThreads() {
-    // All threads I'm part of
-    const res = await sb
+    // Two clean queries — more reliable than .or() with UUIDs
+    const asA = await sb
       .from('chat_threads')
-      .select('id, user_a, user_b, status, initiated_by, last_message_at')
-      .or('user_a.eq.' + me.id + ',user_b.eq.' + me.id)
-      .order('last_message_at', { ascending: false });
+      .select('*')
+      .eq('user_a', me.id);
 
-    if (res.error) { console.warn('loadThreads:', res.error); return []; }
-    const threads = res.data || [];
+    const asB = await sb
+      .from('chat_threads')
+      .select('*')
+      .eq('user_b', me.id);
+
+    if (asA.error) { console.warn('threads asA:', asA.error); }
+    if (asB.error) { console.warn('threads asB:', asB.error); }
+
+    const threads = [...(asA.data || []), ...(asB.data || [])]
+      .sort(function (x, y) {
+        return new Date(y.last_message_at || 0) - new Date(x.last_message_at || 0);
+      });
 
     if (!threads.length) return [];
 
-    // Other user IDs
+    // Other user ids
     const otherIds = threads.map(function (t) {
       return t.user_a === me.id ? t.user_b : t.user_a;
     });
     const uniqueOtherIds = [...new Set(otherIds)];
 
-    // Fetch other users' desk rows
+    // Fetch other users' desk info
     const dRes = await sb
       .from('desks')
       .select('user_id, name, username, avatar_url, role')
       .in('user_id', uniqueOtherIds);
+
     const deskMap = {};
     if (!dRes.error && dRes.data) {
       dRes.data.forEach(function (d) { deskMap[d.user_id] = d; });
@@ -83,8 +94,10 @@
       .select('thread_id, body, photo_url, sender_id, created_at, read_at')
       .in('thread_id', threadIds)
       .order('created_at', { ascending: false });
+
     const lastByThread = {};
     const unreadByThread = {};
+
     if (!mRes.error && mRes.data) {
       mRes.data.forEach(function (m) {
         if (!lastByThread[m.thread_id]) lastByThread[m.thread_id] = m;
@@ -115,13 +128,12 @@
     const t = row.thread;
     const isPending = t.status === 'pending';
     const waitingOnMe = isPending && t.initiated_by && t.initiated_by !== me.id;
-    const waitingOnThem = isPending && !waitingOnMe;
 
     const avatar = other.avatar_url
       ? '<img src="' + esc(other.avatar_url) + '" alt="">'
       : esc(initials(other.name));
 
-    const dot = row.unread > 0 && !isPending
+    const dot = (row.unread > 0 && !isPending)
       ? '<span class="chat-row-dot" aria-hidden="true"></span>'
       : '';
 
@@ -144,7 +156,7 @@
       previewHtml = 'Say hi 👋';
     }
 
-    const badge = row.unread > 0 && !isPending
+    const badge = (row.unread > 0 && !isPending)
       ? '<span class="chat-row-badge">' + row.unread + '</span>'
       : '';
 
@@ -157,7 +169,7 @@
         '<span class="chat-row-preview">' + tag + previewHtml + '</span>' +
       '</span>' +
       '<span class="chat-row-meta">' +
-        '<span class="chat-row-time">' + esc(timeShort(t.last_message_at || '')) + '</span>' +
+        '<span class="chat-row-time">' + esc(timeShort(t.last_message_at)) + '</span>' +
         badge +
       '</span>' +
     '</a>';
@@ -172,7 +184,6 @@
       rows = allRows.filter(function (r) { return r.thread.status === 'pending'; });
     }
 
-    // Remove old rows
     listEl.querySelectorAll('.chat-row').forEach(function (n) { n.remove(); });
 
     if (!rows.length) {
@@ -223,11 +234,16 @@
   }
 
   async function refresh() {
-    loadingEl.hidden = false;
-    allRows = await loadThreads();
-    loadingEl.hidden = true;
-    paintBadges();
-    applyFilter();
+    try {
+      loadingEl.hidden = false;
+      allRows = await loadThreads();
+      loadingEl.hidden = true;
+      paintBadges();
+      applyFilter();
+    } catch (err) {
+      loadingEl.hidden = true;
+      console.warn('refresh error:', err);
+    }
   }
 
   /* ---------- Events ---------- */
@@ -254,7 +270,6 @@
     sb = AUTH.sb;
     await refresh();
 
-    // Refresh every 8 seconds so new requests/messages show up
     setInterval(refresh, 8000);
   })();
 })();
