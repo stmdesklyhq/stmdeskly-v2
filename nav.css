@@ -1,0 +1,103 @@
+/* =========================================================
+   STMDESKLY v2 — Shared bottom navigation
+   Standalone. No dependency on style.css or any other file.
+   ========================================================= */
+
+.stm-nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+
+  padding: 10px max(10px, calc((100vw - 640px) / 2 + 10px)) calc(10px + env(safe-area-inset-bottom));
+
+  background: rgba(255, 254, 251, 0.96);
+  border-top: 1px solid rgba(23, 43, 58, 0.08);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.stm-nav__item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+
+  min-height: 50px;
+
+  color: #5F707A;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  text-decoration: none;
+
+  transition: color 180ms ease;
+}
+
+.stm-nav__item:hover { color: #172B3A; }
+
+.stm-nav__item svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.stm-nav__item.is-current {
+  color: #2F6D70;
+}
+
+.stm-nav__item.is-current svg {
+  stroke: #2F6D70;
+  stroke-width: 2.6;
+}
+
+.stm-nav__item .stm-nav__dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  margin: -22px 0 0 16px;
+  border-radius: 50%;
+  background: #C75D5D;
+  border: 2px solid #FFFEFB;
+}
+
+/* Body padding so content doesn't hide behind the nav */
+.stm-nav-page {
+  padding-bottom: calc(88px + env(safe-area-inset-bottom)) !important;
+}
+
+/* Bolder type across signed-in pages */
+.stm-nav-page h1,
+.stm-nav-page h2,
+.stm-nav-page h3 {
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.stm-nav-page p,
+.stm-nav-page li {
+  font-weight: 500;
+}
+
+.stm-nav-page label {
+  font-weight: 700;
+}
+
+.stm-nav-page button,
+.stm-nav-page .btn {
+  font-weight: 700;
+}
+
+.stm-nav-page a {
+  font-weight: 600;
+  }
