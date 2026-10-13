@@ -77,3 +77,19 @@
   margin-left: 2px;
   min-width: 8px;
 }
+.post-menu {
+  margin-left: auto;
+  align-self: flex-start;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  color: #4A5F69;
+}
+.post-menu:hover {
+  background: rgba(23, 43, 58, 0.05);
+}
+.post-menu svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
