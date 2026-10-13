@@ -252,13 +252,17 @@
         card.style.pointerEvents = 'none';
 
         const res = await AUTH.deletePost(postId);
+
         if (!res.ok) {
           card.style.opacity = '';
           card.style.pointerEvents = '';
-          alert('Could not delete. Try again.');
+          const msg = (res.error && res.error.message) || JSON.stringify(res.error) || 'unknown';
+          const code = (res.error && res.error.code) ? ' [' + res.error.code + ']' : '';
+          alert('Could not delete' + code + ':\n' + msg);
           console.warn('deletePost:', res.error);
           return;
         }
+
         card.remove();
         return;
       }
