@@ -424,7 +424,6 @@
     }
   }
 
-  /* ---------- Feed: toggle reaction ---------- */
   async function toggleReaction(postId, emoji) {
     const userRes = await sb.auth.getUser();
     const user = userRes.data.user;
@@ -453,7 +452,6 @@
     return { ok: true, added: true };
   }
 
-  /* ---------- Feed: get reactions for a set of posts ---------- */
   async function getPostReactions(postIds) {
     if (!Array.isArray(postIds) || !postIds.length) return { ok: true, data: {} };
 
@@ -475,6 +473,21 @@
     });
 
     return { ok: true, data: map };
+  }
+
+  async function deletePost(postId) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    const res = await sb
+      .from('posts')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', postId)
+      .eq('user_id', user.id);
+
+    if (res.error) return { ok: false, error: res.error };
+    return { ok: true };
   }
 
   /* =========================================================
@@ -511,5 +524,6 @@
     uploadPostPhoto: uploadPostPhoto,
     toggleReaction: toggleReaction,
     getPostReactions: getPostReactions,
+    deletePost: deletePost,
   };
 })();
