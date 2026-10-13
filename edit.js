@@ -18,6 +18,10 @@
   const avatarInput     = $('avatarInput');
   const avatarUploadBtn = $('avatarUploadBtn');
   const avatarRemoveBtn = $('avatarRemoveBtn');
+  const coverPreview    = $('coverPreview');
+  const coverInput      = $('coverInput');
+  const coverUploadBtn  = $('coverUploadBtn');
+  const coverRemoveBtn  = $('coverRemoveBtn');
   const photoGrid       = $('photoGrid');
   const addPhotoBtn     = $('addPhotoBtn');
   const photoInput      = $('photoInput');
@@ -60,6 +64,7 @@
   function snapshot() {
     const data = collectFields();
     data.avatar_url = desk.avatar_url || '';
+    data.cover_url = desk.cover_url || '';
     data.photos = JSON.stringify(desk.photos || []);
     return JSON.stringify(data);
   }
@@ -102,6 +107,11 @@
       phone:           $('phone')           ? $('phone').value.trim() : '',
       website:         $('website')         ? $('website').value.trim() : '',
       show_in_explore: $('show_in_explore') ? $('show_in_explore').checked : true,
+
+      cover_url:       desk.cover_url || null,
+      avatar_url:      desk.avatar_url || null,
+      photos:          desk.photos || [],
+
       accent:          appearance.accent,
       background:      appearance.background,
       pattern:         appearance.pattern,
@@ -128,6 +138,18 @@
     } else {
       avatarPreview.textContent = initials(desk.name);
       if (avatarRemoveBtn) avatarRemoveBtn.hidden = true;
+    }
+  }
+
+  /* ---------- Cover ---------- */
+  function paintCover() {
+    if (!coverPreview) return;
+    if (desk.cover_url) {
+      coverPreview.style.backgroundImage = 'url(' + desk.cover_url + ')';
+      if (coverRemoveBtn) coverRemoveBtn.hidden = false;
+    } else {
+      coverPreview.style.backgroundImage = '';
+      if (coverRemoveBtn) coverRemoveBtn.hidden = true;
     }
   }
 
@@ -190,13 +212,12 @@
     setStatus('saving', 'Saving…');
     if (saveBtn) saveBtn.disabled = true;
     const oldPhotos = (desk.photos || []).slice();
-    values.avatar_url = desk.avatar_url || null;
-    values.photos = desk.photos || [];
     const res = await AUTH.updateDesk(values);
     if (!res.ok) {
       saving = false;
       if (saveBtn) saveBtn.disabled = false;
-      setStatus('error', 'Couldn\u2019t save. Try again.');
+      const msg = (res.error && res.error.message) || 'unknown';
+      setStatus('error', 'Couldn\u2019t save: ' + msg);
       return;
     }
     const newSet = {};
@@ -263,6 +284,7 @@
     const draft = Object.assign({}, desk, collectFields());
     draft.photos = desk.photos || [];
     draft.avatar_url = desk.avatar_url || '';
+    draft.cover_url = desk.cover_url || '';
     let encoded;
     try {
       const json = JSON.stringify(draft);
@@ -340,6 +362,7 @@
     if ($('show_in_explore')) $('show_in_explore').checked = !!desk.show_in_explore;
 
     paintAvatar();
+    paintCover();
     paintPhotos();
     paintPublishStrip();
 
@@ -365,13 +388,12 @@
       updateAboutCount();
     }
 
-    // Snapshot immediately. Only respond to real user events after that.
     initialSnapshot = snapshot();
     dirty = false;
     setStatus('', '');
 
     function onUserChange(e) {
-      if (!e.isTrusted) return;   // ignore programmatic events
+      if (!e.isTrusted) return;
       markDirty();
     }
 
@@ -427,6 +449,8 @@
       } catch (err) { prompt('Copy this link:', link); }
     });
   }
+
+  /* Avatar */
   if (avatarUploadBtn && avatarInput) {
     avatarUploadBtn.addEventListener('click', function () { avatarInput.click(); });
   }
@@ -450,6 +474,33 @@
       markDirty();
     });
   }
+
+  /* Cover */
+  if (coverUploadBtn && coverInput) {
+    coverUploadBtn.addEventListener('click', function () { coverInput.click(); });
+  }
+  if (coverInput) {
+    coverInput.addEventListener('change', async function (e) {
+      const file = e.target.files && e.target.files[0];
+      e.target.value = '';
+      if (!file) return;
+      if (file.size > MAX_FILE_SIZE) { alert('Max 5 MB.'); return; }
+      const res = await AUTH.uploadCover(file);
+      if (!res.ok) { alert('Could not upload cover.'); return; }
+      desk.cover_url = res.url;
+      paintCover();
+      markDirty();
+    });
+  }
+  if (coverRemoveBtn) {
+    coverRemoveBtn.addEventListener('click', function () {
+      desk.cover_url = null;
+      paintCover();
+      markDirty();
+    });
+  }
+
+  /* Photos */
   if (addPhotoBtn && photoInput) {
     addPhotoBtn.addEventListener('click', function () {
       if ((desk.photos || []).length >= MAX_PHOTOS) { alert('Max ' + MAX_PHOTOS + ' photos.'); return; }
