@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#F7F6F1">
+<title>New post — STMDeskly</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="new-post.css?v=1">
+</head>
+<body>
+<div class="app">
+
+<header class="topbar">
+  <a class="back" href="/home.html" aria-label="Cancel and return home">
+    <svg viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></svg>
+  </a>
+  <h1>New post</h1>
+  <button class="top-post" id="topPostBtn" disabled>Post</button>
+</header>
+
+<main class="main">
+
+  <section>
+    <div class="section-head">
+      <h2>What's this about?</h2>
+      <span>Choose one</span>
+    </div>
+    <div class="categories" id="categories">
+      <button class="category" data-category="gig" aria-pressed="false">
+        <i><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18"/></svg></i>
+        <b>Gig</b>
+        <small>Work and opportunities</small>
+      </button>
+      <button class="category" data-category="business" aria-pressed="false">
+        <i><svg viewBox="0 0 24 24"><path d="M3 21V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v16M2 21h20M8 7h2m4 0h2M8 11h2m4 0h2M10 21v-5h4v5"/></svg></i>
+        <b>Business update</b>
+        <small>News from your business</small>
+      </button>
+      <button class="category" data-category="deal" aria-pressed="false">
+        <i><svg viewBox="0 0 24 24"><path d="M20 13 12 21 3 12l9-9h8z"/><circle cx="16" cy="8" r="1"/></svg></i>
+        <b>Market deal</b>
+        <small>Something to buy or sell</small>
+      </button>
+      <button class="category" data-category="skill" aria-pressed="false">
+        <i><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20v-1a6 6 0 0 1 12 0v1zM16 5a3 3 0 0 1 0 6M18 14a5 5 0 0 1 3 5v1h-4"/></svg></i>
+        <b>Skills &amp; work</b>
+        <small>Show what you can do</small>
+      </button>
+    </div>
+  </section>
+
+  <section class="content">
+    <label for="title">Headline <span>Optional</span></label>
+    <input id="title" class="input" maxlength="100" placeholder="Headline (optional)">
+
+    <div class="body-wrap">
+      <label for="body">Your post</label>
+      <textarea id="body" rows="6" maxlength="1000" placeholder="What's happening?"></textarea>
+      <div class="counter-row">
+        <small>Keep it clear and useful.</small>
+        <b id="counter">0 / 1000</b>
+      </div>
+    </div>
+  </section>
+
+  <section class="photos">
+    <div class="section-head">
+      <h2>Add photos</h2>
+      <span id="photoCount">0 of 6</span>
+    </div>
+    <div class="photo-grid" id="photoGrid">
+      <!-- Photo tiles injected by JS -->
+    </div>
+    <input type="file" id="photoInput" accept="image/*" multiple hidden>
+    <p class="hint">Up to 6 photos.</p>
+  </section>
+
+  <details class="details">
+    <summary>
+      <span class="plus"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span>
+      <span class="detail-copy">
+        <b>Add more details</b>
+        <small>Price, location and contact</small>
+      </span>
+      <svg class="chevron" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg>
+    </summary>
+    <div class="detail-fields">
+      <label for="price">Price <span>Optional</span></label>
+      <input id="price" class="input" placeholder="₦5,000 or negotiable">
+
+      <label for="location">Location <span>Optional</span></label>
+      <input id="location" class="input" placeholder="Yaba, Lagos">
+
+      <label for="whatsapp">WhatsApp <span>Optional</span></label>
+      <input id="whatsapp" class="input" type="tel" placeholder="Leave blank to use your Desk number">
+    </div>
+  </details>
+
+</main>
+
+<footer class="savebar">
+  <div class="status"><i></i><span id="statusText">Ready when you are</span></div>
+  <button class="save-post" id="saveBtn" disabled>
+    Post
+    <svg viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+  </button>
+</footer>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="auth.js?v=5"></script>
+<script src="new-post.js?v=1"></script>
+</body>
+  </html>
