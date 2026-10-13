@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#F7F6F1">
+<title>Explore — STMDeskly</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css?v=10">
+<link rel="stylesheet" href="explore.css?v=1">
+</head>
+
+<body class="page-explore">
+
+<!-- Topbar -->
+<header class="explore-topbar">
+  <span class="explore-brand">STMDeskly</span>
+  <span class="explore-label">Explore</span>
+</header>
+
+<main class="explore-main">
+
+  <!-- Hero -->
+  <section class="explore-hero">
+    <h1>Find anyone. Find anything.</h1>
+    <p>Desks, gigs, deals, skills — all in one search.</p>
+  </section>
+
+  <!-- Search -->
+  <div class="explore-search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="11" cy="11" r="7"/>
+      <path d="m20 20-3.5-3.5"/>
+    </svg>
+    <input
+      type="search"
+      id="exploreQuery"
+      placeholder="Try: photographer, Lagos, jollof, phone repair…"
+      autocomplete="off"
+      autocapitalize="off"
+      autocorrect="off"
+      spellcheck="false">
+    <button type="button" id="clearQuery" class="explore-clear" aria-label="Clear" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M6 6L18 18M18 6L6 18"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <nav class="explore-filters" id="exploreFilters" aria-label="Filter results">
+    <button type="button" class="explore-chip is-current" data-filter="all" aria-pressed="true">
+      <span>All</span>
+    </button>
+    <button type="button" class="explore-chip" data-filter="desk" aria-pressed="false">
+      <span>Desks</span>
+    </button>
+    <button type="button" class="explore-chip" data-filter="post" aria-pressed="false">
+      <span>Posts</span>
+    </button>
+  </nav>
+
+  <!-- Results -->
+  <div class="explore-results" id="exploreResults">
+    <div class="explore-empty" id="exploreEmpty" hidden>
+      <span class="explore-empty-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="7"/>
+          <path d="m20 20-3.5-3.5"/>
+        </svg>
+      </span>
+      <h2>Nothing here yet.</h2>
+      <p>Try a different word. Or a name. Or a city.</p>
+    </div>
+  </div>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="auth.js?v=9"></script>
+<script src="explore.js?v=1"></script>
+<script src="nav.js?v=1"></script>
+</body>
+    </html>
