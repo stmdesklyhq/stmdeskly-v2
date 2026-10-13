@@ -23,6 +23,7 @@
   const photoInput      = $('photoInput');
   const deskLinkEl      = $('deskLink');
   const aboutCount      = $('aboutCount');
+  const backBtn         = $('backBtn');
   const publishStrip    = $('publishStrip');
   const publishStripLabel = $('publishStripLabel');
   const publishStripTitle = $('publishStripTitle');
@@ -64,6 +65,18 @@
   }
 
   function collectFields() {
+    const appearance = (window.APPEARANCE && window.APPEARANCE.get)
+      ? window.APPEARANCE.get()
+      : {
+          accent: '#2F6D50',
+          background: 'cream',
+          pattern: 'none',
+          font_pair: 'modern',
+          corner_style: 'rounded',
+          layout_style: 'spacious',
+          photo_layout: 'grid'
+        };
+
     return {
       name:            $('name')            ? $('name').value.trim() : '',
       role:            $('role')            ? $('role').value.trim() : '',
@@ -78,6 +91,14 @@
       phone:           $('phone')           ? $('phone').value.trim() : '',
       website:         $('website')         ? $('website').value.trim() : '',
       show_in_explore: $('show_in_explore') ? $('show_in_explore').checked : true,
+
+      accent:          appearance.accent,
+      background:      appearance.background,
+      pattern:         appearance.pattern,
+      font_pair:       appearance.font_pair,
+      corner_style:    appearance.corner_style,
+      layout_style:    appearance.layout_style,
+      photo_layout:    appearance.photo_layout,
     };
   }
 
@@ -88,6 +109,7 @@
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   }
 
+  /* ---------- Avatar ---------- */
   function paintAvatar() {
     if (!avatarPreview) return;
     if (desk.avatar_url) {
@@ -99,6 +121,7 @@
     }
   }
 
+  /* ---------- Photos ---------- */
   function paintPhotos() {
     if (!photoGrid) return;
     const photos = desk.photos || [];
@@ -154,6 +177,7 @@
     markDirty();
   }
 
+  /* ---------- Save ---------- */
   async function save() {
     if (saving) return;
     const values = collectFields();
@@ -171,7 +195,8 @@
     if (!res.ok) {
       saving = false;
       if (saveBtn) saveBtn.disabled = false;
-      setStatus('error', 'Couldn\u2019t save. Try again.');
+      const msg = (res.error && res.error.message) || 'unknown';
+      setStatus('error', 'Couldn\u2019t save: ' + msg);
       return;
     }
     const newSet = {};
@@ -218,15 +243,11 @@
 
   async function publishDesk() {
     if (publishing) return;
-
     publishing = true;
     publishAction.disabled = true;
-
     const wasPublished = !!desk.published;
     publishActionText.textContent = wasPublished ? 'Unpublishing…' : 'Publishing…';
-
     const res = await AUTH.updateDesk({ published: !wasPublished });
-
     if (!res.ok) {
       publishing = false;
       publishAction.disabled = false;
@@ -234,17 +255,12 @@
       alert('Could not update publication. Try again.');
       return;
     }
-
     desk.published = !wasPublished;
     publishing = false;
-
     if (desk.published) {
-      // Just published → go to the success page
       location.href = '/publish.html';
       return;
     }
-
-    // Just unpublished → stay here, update strip
     paintPublishStrip();
   }
 
@@ -311,7 +327,12 @@
     paintPhotos();
     paintPublishStrip();
 
-    const url = location.origin + '/desk.html?u=' + encodeURIComponent(desk.username);
+    // Load appearance controls from the desk row
+    if (window.APPEARANCE && window.APPEARANCE.load) {
+      window.APPEARANCE.load(desk);
+    }
+
+    const url = location.origin + '/u/' + encodeURIComponent(desk.username);
     if (deskLinkEl) {
       deskLinkEl.textContent = url.replace(/^https?:\/\//, '');
       if (deskLinkEl.tagName === 'A') deskLinkEl.href = url;
@@ -338,6 +359,13 @@
   })();
 
   /* ---------- Events ---------- */
+  if (backBtn) {
+    backBtn.addEventListener('click', function () {
+      if (window.history.length > 1) history.back();
+      else location.href = '/dashboard.html';
+    });
+  }
+
   if (form) {
     form.addEventListener('submit', function (e) {
       e.preventDefault();
