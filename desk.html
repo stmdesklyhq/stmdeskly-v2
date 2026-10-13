@@ -5,67 +5,150 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#F7F6F1">
   <title>Desk — STMDeskly</title>
-
-  <!-- OG tags are populated by desk.js after the Desk loads -->
   <meta property="og:title" content="STMDeskly">
   <meta property="og:description" content="Your own place on the internet.">
   <meta property="og:type" content="profile">
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
+  <!-- styles: style.css and desk.css (content not included here, but they shape the page) -->
   <link rel="stylesheet" href="style.css?v=9">
-  <link rel="stylesheet" href="desk.css?v=2">
-  
+  <link rel="stylesheet" href="desk.css?v=3">
 </head>
-
 <body class="page-desk">
 
-  <!-- Loading -->
-  <div class="desk-loading" id="loading">
-    <div class="desk-loading-dot"></div>
-    <div class="desk-loading-dot"></div>
-    <div class="desk-loading-dot"></div>
+  <!-- loading spinner (hidden after data loads) -->
+  <div class="desk-loading" id="loading" role="status" aria-label="Loading Desk">
+    <span></span><span></span><span></span>
   </div>
 
-  <!-- Missing -->
-  <div class="desk-missing" id="missing" hidden>
-    <h1>Desk not found</h1>
-    <p>This link doesn't point to a Desk yet.</p>
-    <a href="/" class="desk-missing-link"><span>Make your own Desk</span></a>
-  </div>
+  <!-- missing desk view (if desk not found) -->
+  <main class="desk-missing" id="missing" hidden>
+    <div class="missing-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M9 9a3 3 0 0 1 5.8 1c0 2-2.8 2.5-2.8 4.5M12 17.5h.01" />
+      </svg>
+    </div>
+    <span class="eyebrow">STMDESKLY</span>
+    <h1>We couldn't find this Desk.</h1>
+    <p>This link may be incorrect, or the Desk may not be available right now.</p>
+    <a href="/" class="desk-missing-link">
+      Make your own Desk
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+        <path d="M5 12h14M13 6l6 6-6 6" />
+      </svg>
+    </a>
+  </main>
 
-  <!-- The Desk -->
+  <!-- main desk shell (hidden until data loads) -->
   <main class="desk-shell" id="desk" hidden>
+    <!-- top bar -->
+    <nav class="desk-topbar" aria-label="STMDeskly">
+      <a class="wordmark" href="/">STMDeskly<span>.</span></a>
+      <span class="topbar-note">A place to be found</span>
+    </nav>
 
-    <!-- Brand band -->
-    <header class="desk-brand">
-      <div class="desk-brand-inner">
-        <div class="desk-mark" id="mark"></div>
-        <h1 class="desk-name" id="name"></h1>
-        <p class="desk-role" id="role" hidden></p>
-        <p class="desk-tagline" id="tagline" hidden></p>
+    <!-- hero section with cover and profile card -->
+    <header class="desk-hero">
+      <div class="hero-art" aria-hidden="true">
+        <i class="orb orb-one"></i>
+        <i class="orb orb-two"></i>
+        <i class="hero-line"></i>
+      </div>
+      <div class="hero-inner">
+        <!-- cover frame (placeholder design) -->
+        <div class="cover-frame" aria-hidden="true">
+          <div class="cover-placeholder">
+            <span>A LITTLE ABOUT ME</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2Z M8 7h8M8 11h6" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- profile card: populated by JS with name, role, tagline, mark -->
+        <section class="profile-card" aria-label="Profile">
+          <div class="profile-heading">
+            <div class="desk-mark" id="mark"></div>
+            <div class="profile-copy">
+              <span class="profile-eyebrow">MEET</span>
+              <h1 class="desk-name" id="name"></h1>
+              <p class="desk-role" id="role" hidden></p>
+            </div>
+          </div>
+          <p class="desk-tagline" id="tagline" hidden></p>
+          <div class="profile-rule"></div>
+          <div class="profile-bottom">
+            <span><i class="live-dot"></i>A little space on the internet</span>
+            <b>STMDeskly</b>
+          </div>
+        </section>
       </div>
     </header>
 
-    <!-- Content sections injected by desk.js -->
+    <!-- share link card with copy button -->
+    <section class="desk-link-wrap" aria-label="Share this Desk">
+      <div class="desk-link-card">
+        <div class="link-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M10 13a5 5 0 0 0 7.07 0l3-3A5 5 0 0 0 13 2.93l-1.72 1.71" />
+            <path d="M14 11a5 5 0 0 0-7.07 0l-3 3A5 5 0 0 0 11 21.07l1.71-1.71" />
+          </svg>
+        </div>
+        <div class="link-copy">
+          <span class="link-label">A LINK TO MY WORLD</span>
+          <strong>Your Desk, ready to share</strong>
+          <small>A simple way for people to find and reach you.</small>
+        </div>
+        <button class="copy-button" id="copyDeskLink" type="button" aria-label="Copy Desk link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="8" y="8" width="12" height="12" rx="2" />
+            <path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3" />
+          </svg>
+        </button>
+      </div>
+      <p class="copy-feedback" id="copyFeedback" aria-live="polite"></p>
+    </section>
+
+    <!-- dynamic content area: populated by desk-render.js (e.g., social links, blocks) -->
     <div class="desk-content" id="content"></div>
 
-    <!-- Footer -->
+    <!-- footer -->
     <footer class="desk-footer">
-      <a href="/">
-        <span class="desk-footer-dot"></span>
-        Made with <strong>STMDeskly</strong>
-      </a>
+      <div class="footer-rule"></div>
+      <a href="/"><i></i> Made with <strong>STMDeskly</strong></a>
+      <p>Your own place on the internet.</p>
     </footer>
-
   </main>
 
+  <!-- dependencies: Supabase, config, render logic, desk logic -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js"></script>
-<script src="desk-render.js?v=1"></script>
-<script src="desk.js?v=4"></script>
+  <script src="config.js"></script>
+  <script src="desk-render.js?v=1"></script>
+  <script src="desk.js?v=4"></script>
+
+  <!-- inline copy-link behaviour -->
+  <script>
+    (function() {
+      const b = document.getElementById('copyDeskLink');
+      const f = document.getElementById('copyFeedback');
+      if (!b) return;
+
+      b.addEventListener('click', async function() {
+        try {
+          await navigator.clipboard.writeText(location.href);
+          f.textContent = 'Link copied';
+          b.classList.add('is-copied');
+          setTimeout(() => {
+            f.textContent = '';
+            b.classList.remove('is-copied');
+          }, 1600);
+        } catch (e) {
+          f.textContent = 'Copy isn’t available here. Copy the page address instead.';
+        }
+      });
+    })();
+  </script>
 </body>
-</body>
-</html>
+          </html>
