@@ -11,21 +11,23 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <link rel="stylesheet" href="style.css?v=10">
-<link rel="stylesheet" href="chat.css?v=2">
+<link rel="stylesheet" href="chat.css?v=4">
 </head>
 
 <body class="page-chat">
 
-<!-- Topbar -->
 <header class="chat-topbar">
-  <a class="chat-back" href="/chats.html" aria-label="Back to chats">
+  <a class="chat-back" href="/chats.html" aria-label="Back">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M19 12H5M12 19l-7-7 7-7"/>
     </svg>
   </a>
 
   <a class="chat-head" id="chatHead" href="#">
-    <span class="chat-avatar" id="chatAvatar">·</span>
+    <span class="chat-avatar-wrap">
+      <span class="chat-avatar" id="chatAvatar">·</span>
+      <span class="chat-presence" id="chatPresence" hidden></span>
+    </span>
     <span class="chat-head-copy">
       <span class="chat-name" id="chatName">Loading…</span>
       <span class="chat-status" id="chatStatus"></span>
@@ -41,7 +43,6 @@
   </button>
 </header>
 
-<!-- Menu dropdown -->
 <div class="chat-menu-panel" id="chatMenuPanel" hidden>
   <a id="menuViewProfile" href="#" class="chat-menu-item">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -59,11 +60,10 @@
   </a>
 </div>
 
-<!-- Accept banner (incoming request) -->
 <div class="chat-accept" id="acceptBar" hidden>
   <div class="chat-accept-copy">
     <strong>New message request</strong>
-    <small id="acceptPreview">They'd like to chat with you.</small>
+    <small>They'd like to chat with you.</small>
   </div>
   <div class="chat-accept-actions">
     <button type="button" class="chat-btn ghost" id="declineBtn">Decline</button>
@@ -71,7 +71,6 @@
   </div>
 </div>
 
-<!-- Pending bar (outgoing request) -->
 <div class="chat-pending" id="pendingBar" hidden>
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <circle cx="12" cy="12" r="9"/>
@@ -80,7 +79,6 @@
   <span>Waiting for them to accept your request.</span>
 </div>
 
-<!-- Missing thread -->
 <div class="chat-missing" id="chatMissing" hidden>
   <span class="chat-missing-mark" aria-hidden="true">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -93,12 +91,26 @@
   <a href="/chats.html" class="chat-missing-link">Back to Chats</a>
 </div>
 
-<!-- Messages -->
 <main class="chat-log" id="chatLog" hidden></main>
 
-<!-- Composer -->
 <form class="chat-composer" id="chatComposer" hidden>
+  <div class="chat-reply-bar" id="replyBar" hidden>
+    <span class="chat-reply-stripe"></span>
+    <div class="chat-reply-copy">
+      <strong id="replyName"></strong>
+      <span id="replyPreview"></span>
+    </div>
+    <button type="button" class="chat-reply-close" id="replyClose" aria-label="Cancel reply">×</button>
+  </div>
+
   <div class="chat-composer-inner">
+    <button type="button" class="chat-attach" id="attachBtn" aria-label="Attach photo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="18" height="18" rx="4"/>
+        <circle cx="8.5" cy="8.5" r="1.5"/>
+        <path d="m21 15-5-5L5 21"/>
+      </svg>
+    </button>
     <textarea
       id="chatInput"
       rows="1"
@@ -112,12 +124,51 @@
       </svg>
     </button>
   </div>
+
+  <input type="file" id="photoInput" accept="image/*" hidden>
 </form>
+
+<div class="chat-context" id="contextMenu" hidden>
+  <div class="chat-context-emojis" id="contextEmojis"></div>
+  <button type="button" class="chat-context-item" data-action="reply">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 17l-6-6 6-6"/>
+      <path d="M3 11h13a6 6 0 0 1 6 6v3"/>
+    </svg>
+    <span>Reply</span>
+  </button>
+  <button type="button" class="chat-context-item" data-action="copy">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="9" y="9" width="12" height="12" rx="2"/>
+      <path d="M5 15V5a2 2 0 0 1 2-2h10"/>
+    </svg>
+    <span>Copy</span>
+  </button>
+  <button type="button" class="chat-context-item danger" data-action="delete-me">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+    </svg>
+    <span>Delete for me</span>
+  </button>
+  <button type="button" class="chat-context-item danger" data-action="delete-all" hidden>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/>
+    </svg>
+    <span>Delete for everyone</span>
+  </button>
+</div>
+
+<div class="chat-lightbox" id="chatLightbox" hidden>
+  <button type="button" class="chat-lightbox-close" id="chatLightboxClose" aria-label="Close">×</button>
+  <img id="chatLightboxImg" src="" alt="">
+</div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
-<script src="auth.js?v=10"></script>
-<script src="chat.js?v=3"></script>
+<script src="auth.js?v=11"></script>
+<script src="chat.js?v=4"></script>
 
 </body>
-  </html>
+</html>
