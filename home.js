@@ -14,6 +14,15 @@
   const emptyEl          = $('feedEmpty');
   const categoryNav      = $('categoryNav');
 
+  const commentOverlay   = $('commentOverlay');
+  const commentSheet     = $('commentSheet');
+  const sheetClose       = $('sheetClose');
+  const sheetPost        = $('sheetPost');
+  const sheetReplies     = $('sheetReplies');
+  const sheetComposer    = $('sheetComposer');
+  const sheetInput       = $('sheetInput');
+  const sheetSend        = $('sheetSend');
+
   const CATEGORY_LABELS = {
     gig:      'Gig',
     business: 'Business update',
@@ -24,6 +33,7 @@
   let currentUser = null;
   let currentCategory = 'all';
   let sb = null;
+  let activePostId = null;
 
   function firstName(name) {
     const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
@@ -132,7 +142,7 @@
       photoGrid +
       '<footer class="post-actions">' +
         '<button class="post-action" data-action="like" aria-label="Like"><svg viewBox="0 0 24 24"><path d="M20.8 4.8a5.5 5.5 0 0 0-7.8 0L12 5.9l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.3 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/></svg><span class="reaction-count" data-count-for="' + esc(post.id) + '"></span></button>' +
-        '<button class="post-action" data-action="comment" aria-label="Comment"><svg viewBox="0 0 24 24"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5 8 8 0 0 1-3.5-.8L4 20l1.3-4.2a7.5 7.5 0 1 1 14.7-4.3Z"/></svg></button>' +
+        '<button class="post-action" data-action="comment" aria-label="Comment"><svg viewBox="0 0 24 24"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5 8 8 0 0 1-3.5-.8L4 20l1.3-4.2a7.5 7.5 0 1 1 14.7-4.3Z"/></svg><span class="reply-count" data-reply-count-for="' + esc(post.id) + '"></span></button>' +
         '<button class="post-action" data-action="share" aria-label="Share"><svg viewBox="0 0 24 24"><path d="M12 16V4m-5 5 5-5 5 5M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg></button>' +
       '</footer>' +
     '</article>';
@@ -149,7 +159,6 @@
     let query = sb
       .from('posts')
       .select('*')
-      .is('deleted_at', null)
       .order('created_at', { ascending: false })
       .limit(30);
 
@@ -195,6 +204,8 @@
     feedEl.insertAdjacentHTML('afterbegin', html);
 
     const ids = posts.map(function (p) { return p.id; });
+
+    // Reactions
     const rx = await AUTH.getPostReactions(ids);
     if (rx.ok) {
       Object.keys(rx.data).forEach(function (postId) {
@@ -205,6 +216,15 @@
           const card = feedEl.querySelector('[data-id="' + postId + '"]');
           if (card) card.classList.add('is-liked');
         }
+      });
+    }
+
+    // Reply counts
+    const rc = await AUTH.getReplyCounts(ids);
+    if (rc.ok) {
+      Object.keys(rc.data).forEach(function (postId) {
+        const el = feedEl.querySelector('[data-reply-count-for="' + postId + '"]');
+        if (el && rc.data[postId] > 0) el.textContent = rc.data[postId];
       });
     }
   }
@@ -228,6 +248,138 @@
 
       loadFeed();
     });
+  }
+
+  /* ---------- Comment sheet ---------- */
+  function openCommentSheet(postId) {
+    if (!commentOverlay) return;
+    activePostId = postId;
+
+    // Post preview — clone the card from the feed and strip actions
+    const original = feedEl.querySelector('[data-id="' + postId + '"]');
+    if (original && sheetPost) {
+      const clone = original.cloneNode(true);
+      // Remove any interactive extras that don't belong in the sheet
+      const menu = clone.querySelector('.post-menu');
+      if (menu) menu.remove();
+      const actions = clone.querySelector('.post-actions');
+      if (actions) actions.remove();
+      sheetPost.innerHTML = '';
+      sheetPost.appendChild(clone);
+    } else if (sheetPost) {
+      sheetPost.innerHTML = '';
+    }
+
+    if (sheetReplies) {
+      sheetReplies.innerHTML = '<div class="sheet-empty">Loading…</div>';
+    }
+
+    commentOverlay.hidden = false;
+    document.body.style.overflow = 'hidden';
+
+    loadReplies();
+  }
+
+  function closeCommentSheet() {
+    if (!commentOverlay) return;
+    commentOverlay.hidden = true;
+    document.body.style.overflow = '';
+    activePostId = null;
+    if (sheetInput) sheetInput.value = '';
+    updateSendState();
+  }
+
+  async function loadReplies() {
+    if (!sheetReplies || !activePostId) return;
+
+    const res = await AUTH.getPostReplies(activePostId);
+
+    if (!res.ok) {
+      sheetReplies.innerHTML = '<div class="sheet-empty">Could not load replies.</div>';
+      return;
+    }
+
+    const replies = res.data || [];
+
+    if (!replies.length) {
+      sheetReplies.innerHTML = '<div class="sheet-empty">No replies yet. Be the first.</div>';
+      return;
+    }
+
+    sheetReplies.innerHTML = replies.map(function (r) {
+      return '<div class="reply">' +
+        '<span class="reply-avatar">' + esc(initials(r.author_name || '·')) + '</span>' +
+        '<div class="reply-body">' +
+          '<div class="reply-head">' +
+            '<span class="reply-name">' + esc(r.author_name || 'Someone') + '</span>' +
+            '<span class="reply-time">' + esc(timeAgo(r.created_at)) + '</span>' +
+          '</div>' +
+          '<p class="reply-text">' + esc(r.body) + '</p>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  function updateSendState() {
+    if (!sheetSend || !sheetInput) return;
+    sheetSend.disabled = !sheetInput.value.trim();
+  }
+
+  async function submitReply(e) {
+    e.preventDefault();
+    if (!activePostId || !sheetInput) return;
+
+    const body = sheetInput.value.trim();
+    if (!body) return;
+
+    sheetSend.disabled = true;
+    sheetInput.disabled = true;
+
+    const res = await AUTH.createReply(activePostId, body);
+
+    sheetInput.disabled = false;
+
+    if (!res.ok) {
+      alert('Could not post reply. Try again.');
+      updateSendState();
+      return;
+    }
+
+    // Append locally
+    const r = res.data;
+    const meName = (currentUser && currentUser.user_metadata && currentUser.user_metadata.name) || '';
+    r.author_name = meName || 'You';
+
+    if (sheetReplies && sheetReplies.querySelector('.sheet-empty')) {
+      sheetReplies.innerHTML = '';
+    }
+
+    sheetReplies.insertAdjacentHTML('beforeend',
+      '<div class="reply">' +
+        '<span class="reply-avatar">' + esc(initials(r.author_name)) + '</span>' +
+        '<div class="reply-body">' +
+          '<div class="reply-head">' +
+            '<span class="reply-name">' + esc(r.author_name) + '</span>' +
+            '<span class="reply-time">just now</span>' +
+          '</div>' +
+          '<p class="reply-text">' + esc(r.body) + '</p>' +
+        '</div>' +
+      '</div>'
+    );
+
+    // Scroll to bottom
+    const sheetBody = $('sheetBody');
+    if (sheetBody) sheetBody.scrollTop = sheetBody.scrollHeight;
+
+    sheetInput.value = '';
+    updateSendState();
+
+    // Update feed count
+    const countEl = feedEl.querySelector('[data-reply-count-for="' + activePostId + '"]');
+    if (countEl) {
+      const cur = Number(countEl.textContent) || 0;
+      countEl.textContent = cur + 1;
+    }
   }
 
   /* ---------- Actions ---------- */
@@ -256,14 +408,17 @@
         if (!res.ok) {
           card.style.opacity = '';
           card.style.pointerEvents = '';
-          const msg = (res.error && res.error.message) || JSON.stringify(res.error) || 'unknown';
-          const code = (res.error && res.error.code) ? ' [' + res.error.code + ']' : '';
-          alert('Could not delete' + code + ':\n' + msg);
-          console.warn('deletePost:', res.error);
+          const msg = (res.error && res.error.message) || 'unknown';
+          alert('Could not delete: ' + msg);
           return;
         }
 
         card.remove();
+        return;
+      }
+
+      if (action === 'comment') {
+        openCommentSheet(postId);
         return;
       }
 
@@ -277,7 +432,6 @@
         if (!res.ok) {
           card.classList.toggle('is-liked');
           countEl.textContent = cur || '';
-          console.warn('toggleReaction:', res.error);
         }
       }
 
@@ -291,12 +445,25 @@
             btn.classList.add('copied');
             setTimeout(function () { btn.classList.remove('copied'); }, 1400);
           }
-        } catch (err) {
-          // User cancelled
-        }
+        } catch (err) {}
       }
     });
   }
+
+  if (sheetClose) sheetClose.addEventListener('click', closeCommentSheet);
+  if (commentOverlay) {
+    commentOverlay.addEventListener('click', function (e) {
+      if (e.target === commentOverlay) closeCommentSheet();
+    });
+  }
+  if (sheetInput) sheetInput.addEventListener('input', updateSendState);
+  if (sheetComposer) sheetComposer.addEventListener('submit', submitReply);
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && commentOverlay && !commentOverlay.hidden) {
+      closeCommentSheet();
+    }
+  });
 
   /* ---------- Boot ---------- */
   (async function boot() {
