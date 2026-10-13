@@ -1,16 +1,10 @@
 /* =========================================================
    STMDESKLY v2 — Shared Desk renderer
-   Used by:
-     - desk.html (public Desk page)
-     - edit.html (live preview iframe)
-   All functions are pure — they return HTML strings and never touch the DOM.
    ========================================================= */
 (function () {
   'use strict';
 
   const DEFAULT_ACCENT = '#01764C';
-
-  /* ---------- Helpers ---------- */
 
   function escapeHtml(str) {
     return String(str == null ? '' : str)
@@ -70,10 +64,9 @@
     return u;
   }
 
-  /* ---------- Section builders ---------- */
-
   function buildSection(eyebrow, bodyHtml) {
-    return '<section class="desk-section">' +
+    const key = String(eyebrow || '').toLowerCase().replace(/\s+/g, '-');
+    return '<section class="desk-section" data-section="' + key + '">' +
       '<span class="desk-section-eyebrow">' + escapeHtml(eyebrow) + '</span>' +
       bodyHtml +
     '</section>';
@@ -187,8 +180,6 @@
     );
   }
 
-  /* ---------- Composite builders ---------- */
-
   function buildAllSections(desk) {
     const parts = [
       renderOffer(desk.services),
@@ -226,8 +217,6 @@
     '</footer>';
   }
 
-  /* ---------- Full HTML document (for preview iframe) ---------- */
-
   function renderFullHtml(desk) {
     const accent     = safeAccent(desk.accent);
     const accentSoft = hexToRgba(accent, 0.10);
@@ -241,16 +230,16 @@
       '<link rel="preconnect" href="https://fonts.googleapis.com">' +
       '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>' +
       '<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">' +
-      '<link rel="stylesheet" href="/style.css?v=8">' +
-      '<link rel="stylesheet" href="/desk.css?v=1">' +
+      '<link rel="stylesheet" href="/style.css?v=9">' +
+      '<link rel="stylesheet" href="/desk.css?v=4">' +
       '<style>' +
-        'body.page-desk{--desk-accent:' + accent + ';--desk-accent-soft:' + accentSoft + ';}' +
+        'body.public-desk-page{--desk-accent:' + accent + ';--desk-accent-soft:' + accentSoft + ';}' +
       '</style>' +
       '</head>';
 
     const body =
-      '<body class="page-desk">' +
-        '<main class="desk-shell">' +
+      '<body class="public-desk-page">' +
+        '<main class="public-desk">' +
           buildBrandHtml(desk) +
           '<div class="desk-content">' + buildAllSections(desk) + '</div>' +
           buildFooterHtml() +
@@ -259,8 +248,6 @@
 
     return head + body;
   }
-
-  /* ---------- Export ---------- */
 
   window.DESK_RENDER = {
     DEFAULT_ACCENT: DEFAULT_ACCENT,
