@@ -240,3 +240,60 @@
 .page-edit input[type="file"] {
   display: none !important;
    }
+/* =========================================================
+   Section cards — separate each group visually
+   ========================================================= */
+
+.page-edit .main {
+  padding-top: 8px;
+}
+
+.page-edit .group {
+  margin: 0 0 20px;
+  padding: 24px 18px 8px;
+  border: 1px solid var(--border, #E5E4DD);
+  border-left: 3px solid var(--mint, #DCEBE3);
+  border-radius: 16px;
+  background: var(--paper, #FFFEFB);
+  box-shadow: 0 6px 20px rgba(23, 43, 58, 0.03);
+}
+
+.page-edit .group:first-of-type {
+  margin-top: 0;
+}
+
+.page-edit .group header {
+  margin-bottom: 24px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border, #E5E4DD);
+}
+
+.page-edit .group header b {
+  background: var(--navy, #172B3A);
+  color: var(--paper, #FFFEFB);
+}
+
+.page-edit .group header h2 {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.page-edit .group header p {
+  color: var(--muted, #718087);
+  font-size: 12px;
+}
+
+/* Appearance section gets a stronger accent since it's the new one */
+.page-edit .group.appearance-group {
+  border-left-color: var(--teal, #2F6D70);
+}
+
+.page-edit .group.appearance-group header b {
+  background: var(--teal, #2F6D70);
+}
+
+/* Last group sits above the save bar with a bit of breathing space */
+.page-edit .main > form > .group:last-of-type {
+  margin-bottom: 40px;
+ }
