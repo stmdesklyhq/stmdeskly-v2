@@ -1,24 +1,35 @@
 /* =========================================================
-   STMDESKLY v2 — Profile (in-app view)
-   Reads ?u=username. Same content as Desk, plus Message + posts.
+   STMDESKLY v2 — In-app Profile
+   Same content as the public Desk + quicknav + recent posts.
    ========================================================= */
 (function () {
   'use strict';
 
   const $ = function (id) { return document.getElementById(id); };
 
-  const loadingEl  = $('loading');
-  const missingEl  = $('missing');
-  const shellEl    = $('profileShell');
-  const contentEl  = $('content');
-  const markEl     = $('mark');
-  const nameEl     = $('name');
-  const roleEl     = $('role');
-  const tagEl      = $('tagline');
-  const messageBtn = $('messageBtn');
-  const postsList  = $('postsList');
-  const topbarTitle = $('topbarTitle');
-  const backBtn    = $('backBtn');
+  const loadingEl     = $('loading');
+  const missingEl     = $('missing');
+  const deskEl        = $('desk');
+  const contentEl     = $('content');
+  const markEl        = $('mark');
+  const nameEl        = $('name');
+  const roleEl        = $('role');
+  const tagEl         = $('tagline');
+  const coverEl       = $('heroCover');
+  const profileTitle  = $('profileTitle');
+  const backBtn       = $('backBtn');
+  const pillOffer     = $('pillOffer');
+  const pillAbout     = $('pillAbout');
+  const pillContact   = $('pillContact');
+  const chatPill      = $('chatPill');
+  const profilePosts  = $('profilePosts');
+  const postsList     = $('postsList');
+  const lightbox      = $('lightbox');
+  const lightboxImg   = $('lightboxImage');
+  const lightboxClose = $('lightboxClose');
+
+  const R = window.DESK_RENDER;
+  if (!R) { console.error('desk-render.js is required'); return; }
 
   const CATEGORY_LABELS = {
     gig:      'Gig',
@@ -31,12 +42,58 @@
   let desk = null;
   let sb = null;
 
-  function esc(s) {
-    return String(s == null ? '' : s)
-      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;').replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
+  /* ---------- Lightbox ---------- */
+
+  function openLightbox(src) {
+    if (!lightbox || !lightboxImg) return;
+    lightboxImg.src = src;
+    lightbox.hidden = false;
+    document.body.style.overflow = 'hidden';
   }
+  function closeLightbox() {
+    if (!lightbox || !lightboxImg) return;
+    lightbox.hidden = true;
+    lightboxImg.src = '';
+    document.body.style.overflow = '';
+  }
+  if (lightboxClose) lightboxClose.addEventListener('click', closeLightbox);
+  if (lightbox) {
+    lightbox.addEventListener('click', function (e) {
+      if (e.target === lightbox) closeLightbox();
+    });
+  }
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && lightbox && !lightbox.hidden) closeLightbox();
+  });
+
+  /* ---------- Appearance ---------- */
+
+  function applyAppearance(d) {
+    const accent = R.safeAccent(d.accent);
+    document.body.style.setProperty('--desk-accent', accent);
+    document.body.style.setProperty('--desk-accent-soft', R.hexToRgba(accent, 0.10));
+
+    const bgMap = {
+      cream: '#F7F6F1',
+      white: '#FFFFFF',
+      'warm-grey': '#EEEAE3',
+      'cool-grey': '#E9EDF0'
+    };
+    const bg = bgMap[d.background] || bgMap.cream;
+    document.body.style.setProperty('--desk-bg', bg);
+
+    document.body.dataset.background = d.background || 'cream';
+    document.body.dataset.pattern = d.pattern || 'none';
+    document.body.dataset.font = d.font_pair || 'modern';
+    document.body.dataset.corners = d.corner_style || 'rounded';
+    document.body.dataset.layout = d.layout_style || 'spacious';
+    document.body.dataset.photoLayout = d.photo_layout || 'grid';
+
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', bg);
+  }
+
+  /* ---------- Recent posts ---------- */
 
   function timeAgo(iso) {
     const then = new Date(iso).getTime();
@@ -49,19 +106,10 @@
     return new Date(iso).toLocaleDateString();
   }
 
-  function applyAccent(accent) {
-    const a = /^#[0-9a-f]{6}$/i.test(accent || '') ? accent : '#01764C';
-    document.body.style.setProperty('--desk-accent', a);
+  function escHtml(s) { return R.escapeHtml(s); }
 
-    const hex = a.replace('#', '');
-    const r = parseInt(hex.slice(0, 2), 16);
-    const g = parseInt(hex.slice(2, 4), 16);
-    const b = parseInt(hex.slice(4, 6), 16);
-    document.body.style.setProperty('--desk-accent-soft', 'rgba(' + r + ',' + g + ',' + b + ',0.10)');
-  }
-
-  async function loadPosts() {
-    if (!postsList || !desk) return;
+  async function loadRecentPosts() {
+    if (!desk || !profilePosts || !postsList) return;
 
     const res = await sb
       .from('posts')
@@ -71,86 +119,106 @@
       .limit(5);
 
     if (res.error || !res.data || !res.data.length) {
-      postsList.innerHTML = '<div class="profile-posts-empty">No posts yet.</div>';
+      profilePosts.hidden = true;
       return;
     }
 
+    profilePosts.hidden = false;
+
     postsList.innerHTML = res.data.map(function (p) {
       const cat = CATEGORY_LABELS[p.category] || p.category;
-      const title = p.title ? '<h3 class="profile-post-title">' + esc(p.title) + '</h3>' : '';
-      const price = p.price ? '<div class="profile-post-price">' + esc(p.price) + '</div>' : '';
+      const title = p.title ? '<h3 class="profile-post-title">' + escHtml(p.title) + '</h3>' : '';
+      const price = p.price ? '<div class="profile-post-price">' + escHtml(p.price) + '</div>' : '';
 
       let photosHtml = '';
       if (Array.isArray(p.photos) && p.photos.length) {
         const shown = p.photos.slice(0, 3);
-        const extra = p.photos.length - shown.length;
-        const tiles = shown.map(function (u) {
-          return '<img src="' + esc(u) + '" alt="" loading="lazy">';
-        }).join('');
-        const more = extra > 0
-          ? '<div style="position:relative"><img src="' + esc(shown[0]) + '" alt="" style="visibility:hidden"><div style="position:absolute;inset:0;display:grid;place-items:center;background:rgba(7,17,25,.6);border-radius:8px;color:#fff;font-size:14px;font-weight:700;border-radius:8px">+' + extra + '</div></div>'
-          : '';
-        photosHtml = '<div class="profile-post-photos">' + tiles + '</div>';
+        photosHtml = '<div class="profile-post-photos">' +
+          shown.map(function (u) { return '<img src="' + escHtml(u) + '" alt="" loading="lazy">'; }).join('') +
+        '</div>';
       }
 
       return '<article class="profile-post">' +
         '<div class="profile-post-head">' +
-          '<span class="profile-post-cat">' + esc(cat) + '</span>' +
-          '<span class="profile-post-time">' + esc(timeAgo(p.created_at)) + '</span>' +
+          '<span class="profile-post-cat">' + escHtml(cat) + '</span>' +
+          '<span class="profile-post-time">' + escHtml(timeAgo(p.created_at)) + '</span>' +
         '</div>' +
         title +
-        '<p class="profile-post-body">' + esc(p.body) + '</p>' +
+        '<p class="profile-post-body">' + escHtml(p.body) + '</p>' +
         price +
         photosHtml +
       '</article>';
     }).join('');
   }
 
-  function renderProfile() {
-    applyAccent(desk.accent);
+  /* ---------- Render ---------- */
 
-    // Brand band
-    if (desk.avatar_url) {
-      markEl.innerHTML = '<img src="' + esc(desk.avatar_url) + '" alt="">';
+  function renderProfile() {
+    applyAppearance(desk);
+
+    // Cover
+    if (coverEl && desk.cover_url) {
+      coverEl.style.backgroundImage = 'url(' + desk.cover_url + ')';
+      document.body.classList.add('has-cover');
     } else {
-      markEl.textContent = (function (n) {
-        const parts = String(n || '').trim().split(/\s+/).filter(Boolean);
-        if (!parts.length) return '·';
-        if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-      })(desk.name);
+      document.body.classList.remove('has-cover');
     }
 
+    // Avatar
+    markEl.innerHTML = R.buildMarkHtml(desk);
+
+    // Name + role + tagline
     nameEl.textContent = desk.name || '';
-    topbarTitle.textContent = desk.name || 'Profile';
+    profileTitle.textContent = desk.name || 'Profile';
     document.title = (desk.name || 'Profile') + ' — STMDeskly';
 
     if (desk.role) { roleEl.textContent = desk.role; roleEl.hidden = false; }
     if (desk.tagline) { tagEl.textContent = desk.tagline; tagEl.hidden = false; }
 
-    // Content sections — reuse the shared renderer
-    if (window.DESK_RENDER) {
-      const parts = [
-        window.DESK_RENDER.renderOffer(desk.services),
-        window.DESK_RENDER.renderAbout(desk.about),
-        window.DESK_RENDER.renderWork(desk.photos),
-        window.DESK_RENDER.renderDetails(desk),
-        window.DESK_RENDER.renderContact(desk),
-      ].filter(Boolean);
-      contentEl.innerHTML = parts.join('');
+    // Quicknav pill visibility
+    const hasOffer   = String(desk.services || '').trim().length > 0;
+    const hasAbout   = String(desk.about || '').trim().length > 0;
+    const hasContact = !!(desk.whatsapp || desk.email || desk.phone || desk.website);
+
+    if (pillOffer)   pillOffer.hidden   = !hasOffer;
+    if (pillAbout)   pillAbout.hidden   = !hasAbout;
+    if (pillContact) pillContact.hidden = !hasContact;
+
+    // Chat pill — hide if viewing yourself
+    if (chatPill) {
+      const isMe = currentUser && currentUser.id === desk.user_id;
+      chatPill.hidden = isMe;
+      if (!isMe) {
+        chatPill.addEventListener('click', function () {
+          location.href = '/chat.html?to=' + encodeURIComponent(desk.user_id);
+        });
+      }
     }
 
-    // Hide message button if viewing your own profile
-    if (currentUser && currentUser.id === desk.user_id) {
-      messageBtn.disabled = true;
-      messageBtn.querySelector('span').textContent = 'This is you';
-    } else {
-      messageBtn.disabled = false;
-      messageBtn.querySelector('span').textContent = 'Message';
-    }
+    // Content sections
+    contentEl.innerHTML = R.buildAllSections(desk);
+
+    // Attach IDs to the inserted sections so anchor links work
+    const offerSection   = contentEl.querySelector('[data-section="what-we-offer"]');
+    const aboutSection   = contentEl.querySelector('[data-section="about"]');
+    const contactSection = contentEl.querySelector('[data-section="contact"]');
+    if (offerSection)   offerSection.id = 'section-offer';
+    if (aboutSection)   aboutSection.id = 'section-about';
+    if (contactSection) contactSection.id = 'section-contact';
+
+    // If a section doesn't exist, hide the corresponding pill
+    if (pillOffer && !offerSection)     pillOffer.hidden = true;
+    if (pillAbout && !aboutSection)     pillAbout.hidden = true;
+    if (pillContact && !contactSection) pillContact.hidden = true;
+
+    // Lightbox
+    contentEl.addEventListener('click', function (e) {
+      const tile = e.target.closest('.desk-work-photo');
+      if (tile) openLightbox(tile.dataset.src);
+    });
 
     loadingEl.hidden = true;
-    shellEl.hidden = false;
+    deskEl.hidden = false;
   }
 
   function showMissing() {
@@ -158,31 +226,25 @@
     missingEl.hidden = false;
   }
 
-  /* ---------- Events ---------- */
-  backBtn.addEventListener('click', function () {
-    if (window.history.length > 1) history.back();
-    else location.href = '/home.html';
-  });
+  /* ---------- Back button ---------- */
 
-  messageBtn.addEventListener('click', function () {
-    if (!desk) return;
-    if (currentUser && currentUser.id === desk.user_id) return;
-    location.href = '/chat.html?to=' + encodeURIComponent(desk.user_id);
-  });
+  if (backBtn) {
+    backBtn.addEventListener('click', function () {
+      if (window.history.length > 1) history.back();
+      else location.href = '/home.html';
+    });
+  }
 
   /* ---------- Boot ---------- */
-  (async function boot() {
+
+  (async function () {
     const user = await AUTH.currentUser();
     if (!user) { location.replace('/login.html'); return; }
     currentUser = user;
     sb = AUTH.sb;
 
     const params = new URLSearchParams(location.search);
-    let username = (params.get('u') || '').trim().toLowerCase();
-    if (!username) {
-      const m = location.pathname.match(/^\/@([^\/?#]+)/);
-      if (m) username = decodeURIComponent(m[1]).toLowerCase();
-    }
+    const username = (params.get('u') || '').trim().toLowerCase();
 
     if (!username) return showMissing();
 
@@ -191,6 +253,6 @@
 
     desk = res.data;
     renderProfile();
-    loadPosts();
+    loadRecentPosts();
   })();
 })();
