@@ -6,18 +6,18 @@
 
   const $ = function (id) { return document.getElementById(id); };
 
-  const loadingEl   = $('loading');
-  const missingEl   = $('missing');
-  const deskEl      = $('desk');
-  const contentEl   = $('content');
-  const markEl      = $('mark');
-  const nameEl      = $('name');
-  const roleEl      = $('role');
-  const tagEl       = $('tagline');
-  const coverEl     = $('heroCover');
-  const heroActions = $('heroActions');
-  const lightbox    = $('lightbox');
-  const lightboxImg = $('lightboxImage');
+  const loadingEl     = $('loading');
+  const missingEl     = $('missing');
+  const deskEl        = $('desk');
+  const contentEl     = $('content');
+  const markEl        = $('mark');
+  const nameEl        = $('name');
+  const roleEl        = $('role');
+  const tagEl         = $('tagline');
+  const coverEl       = $('heroCover');
+  const heroActions   = $('heroActions');
+  const lightbox      = $('lightbox');
+  const lightboxImg   = $('lightboxImage');
   const lightboxClose = $('lightboxClose');
 
   const R = window.DESK_RENDER;
@@ -25,6 +25,8 @@
     console.error('desk-render.js is required');
     return;
   }
+
+  /* ---------- Lightbox ---------- */
 
   function openLightbox(src) {
     if (!lightbox || !lightboxImg) return;
@@ -47,6 +49,8 @@
   document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && lightbox && !lightbox.hidden) closeLightbox();
   });
+
+  /* ---------- Appearance ---------- */
 
   function applyAppearance(desk) {
     const accent = R.safeAccent(desk.accent);
@@ -73,6 +77,8 @@
     if (meta) meta.setAttribute('content', bg);
   }
 
+  /* ---------- OG tags ---------- */
+
   function updateOGTags(desk) {
     const title = (desk.name || 'Desk') + ' — STMDeskly';
     const desc  = desk.tagline || (desk.role ? desk.role + ' on STMDeskly' : 'A Desk on STMDeskly');
@@ -97,22 +103,39 @@
     }
   }
 
+  /* ---------- Render ---------- */
+
   function renderDesk(desk) {
     applyAppearance(desk);
     updateOGTags(desk);
 
-    // Cover
+    // Cover — set as background image if present
     if (coverEl && desk.cover_url) {
       coverEl.style.backgroundImage = 'url(' + desk.cover_url + ')';
     }
 
-    // Avatar
+    // Hide topbar when a cover exists — cover carries the branding
+    if (desk.cover_url) {
+      document.body.classList.add('has-cover');
+    } else {
+      document.body.classList.remove('has-cover');
+    }
+
+    // Avatar / mark
     markEl.innerHTML = R.buildMarkHtml(desk);
 
-    // Name + role + tagline
+    // Name + role
     nameEl.textContent = desk.name || '';
-    if (desk.role)    { roleEl.textContent = desk.role;    roleEl.hidden = false; }
-    if (desk.tagline) { tagEl.textContent  = desk.tagline; tagEl.hidden  = false; }
+    if (desk.role) {
+      roleEl.textContent = desk.role;
+      roleEl.hidden = false;
+    }
+
+    // Tagline
+    if (desk.tagline) {
+      tagEl.textContent = desk.tagline;
+      tagEl.hidden = false;
+    }
 
     // Hero action (WhatsApp button)
     if (heroActions) {
@@ -122,6 +145,7 @@
     // Content sections
     contentEl.innerHTML = R.buildAllSections(desk);
 
+    // Photo lightbox
     contentEl.addEventListener('click', function (e) {
       const tile = e.target.closest('.desk-work-photo');
       if (tile) openLightbox(tile.dataset.src);
@@ -135,6 +159,8 @@
     loadingEl.hidden = true;
     missingEl.hidden = false;
   }
+
+  /* ---------- Boot ---------- */
 
   (async function () {
     const params = new URLSearchParams(location.search);
