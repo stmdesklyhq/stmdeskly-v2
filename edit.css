@@ -750,3 +750,29 @@ input[type="file"] { display: none !important; }
     transition-duration: 0.01ms !important;
   }
    }
+.cover-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  margin-bottom: 22px;
+  border: 1px solid var(--border, #E5E4DD);
+  border-radius: 15px;
+  background: var(--paper, #FFFEFB);
+}
+.cover-preview {
+  width: 96px;
+  height: 60px;
+  flex: 0 0 96px;
+  border-radius: 10px;
+  background: var(--mint, #DCEBE3);
+  background-size: cover;
+  background-position: center;
+}
+.cover-copy strong { font-size: 12px; }
+.cover-copy p {
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--muted, #718087);
+  margin: 4px 0 10px;
+}
