@@ -4,87 +4,60 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#F7F6F1">
-<title>Chat — STMDeskly</title>
+<title>Inbox — STMDeskly</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <link rel="stylesheet" href="style.css?v=10">
-<link rel="stylesheet" href="chat.css?v=1">
+<link rel="stylesheet" href="chats.css?v=1">
 </head>
 
-<body class="page-chat">
+<body class="page-chats">
 
-<!-- Topbar -->
-<header class="chat-topbar">
-  <a class="chat-back" href="/chats.html" aria-label="Back">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M19 12H5M12 19l-7-7 7-7"/>
-    </svg>
-  </a>
-  <div class="chat-head">
-    <a class="chat-avatar" id="chatAvatar" href="#">·</a>
-    <div class="chat-head-copy">
-      <a class="chat-name" id="chatName" href="#">Loading…</a>
-      <span class="chat-status" id="chatStatus"></span>
-    </div>
-  </div>
-  <button class="chat-menu" id="chatMenu" type="button" aria-label="Menu" hidden>
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <circle cx="12" cy="5" r="1"/>
-      <circle cx="12" cy="12" r="1"/>
-      <circle cx="12" cy="19" r="1"/>
-    </svg>
-  </button>
+<header class="chats-topbar">
+  <span class="chats-brand">STMDeskly</span>
+  <span class="chats-label">Inbox</span>
 </header>
 
-<!-- Accept banner (pending incoming request) -->
-<div class="chat-accept" id="acceptBar" hidden>
-  <div class="chat-accept-copy">
-    <strong>New message request</strong>
-    <small id="acceptPreview"></small>
+<main class="chats-main">
+
+  <!-- Filters -->
+  <nav class="chats-filters" id="chatsFilters" aria-label="Filter conversations">
+    <button type="button" class="chats-chip is-current" data-filter="all" aria-pressed="true">All</button>
+    <button type="button" class="chats-chip" data-filter="inbox" aria-pressed="false">
+      Inbox
+      <span class="chats-chip-badge" id="inboxBadge" hidden></span>
+    </button>
+    <button type="button" class="chats-chip" data-filter="requests" aria-pressed="false">
+      Requests
+      <span class="chats-chip-badge" id="requestsBadge" hidden></span>
+    </button>
+  </nav>
+
+  <!-- List -->
+  <div class="chats-list" id="chatsList">
+    <div class="chats-loading" id="chatsLoading">Loading conversations…</div>
+
+    <div class="chats-empty" id="chatsEmpty" hidden>
+      <span class="chats-empty-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 5h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-5l-3 2-3-2H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z"/>
+        </svg>
+      </span>
+      <h2 id="chatsEmptyTitle">No conversations yet.</h2>
+      <p id="chatsEmptyBody">Open someone's profile and tap Chat to start one.</p>
+    </div>
   </div>
-  <div class="chat-accept-actions">
-    <button type="button" class="chat-btn ghost" id="declineBtn">Decline</button>
-    <button type="button" class="chat-btn primary" id="acceptBtn">Accept</button>
-  </div>
-</div>
 
-<!-- Pending outgoing banner -->
-<div class="chat-pending" id="pendingBar" hidden>
-  <span>Waiting for them to accept your request.</span>
-</div>
-
-<!-- Missing thread -->
-<div class="chat-missing" id="chatMissing" hidden>
-  <h1>Conversation not found</h1>
-  <p>It may have been deleted, or the link is wrong.</p>
-  <a href="/home.html" class="chat-missing-link">Back to home</a>
-</div>
-
-<!-- Messages -->
-<main class="chat-log" id="chatLog" hidden></main>
-
-<!-- Composer -->
-<form class="chat-composer" id="chatComposer" hidden>
-  <textarea
-    id="chatInput"
-    rows="1"
-    placeholder="Message…"
-    autocomplete="off"
-    autocapitalize="sentences"></textarea>
-  <button type="submit" class="chat-send" id="sendBtn" disabled>
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M5 12h14M13 5l7 7-7 7"/>
-    </svg>
-  </button>
-</form>
+</main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 <script src="auth.js?v=10"></script>
-<script src="chat.js?v=1"></script>
+<script src="chats.js?v=1"></script>
+<script src="nav.js?v=1"></script>
 
 </body>
-  </html>
+</html>
