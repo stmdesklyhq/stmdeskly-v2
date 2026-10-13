@@ -86,7 +86,6 @@
         return line.split(':')[0] === suffix;
       });
     } catch (e) {
-      // Network failure or missing crypto — don't block signup.
       return false;
     }
   }
@@ -127,7 +126,6 @@
     const user = res.data.user;
     const session = res.data.session;
 
-    // Email confirmation required — the desk row will be created later.
     if (!session) {
       return { ok: true, needsConfirm: true, user: user };
     }
@@ -235,7 +233,6 @@
      EDITOR — desk updates and media
      ========================================================= */
 
-  /* ---------- Editor: update desk ---------- */
   async function updateDesk(fields) {
     const userRes = await sb.auth.getUser();
     const user = userRes.data.user;
@@ -252,7 +249,6 @@
     return { ok: true, data: res.data };
   }
 
-  /* ---------- Editor: image compression ---------- */
   async function compressImage(file, maxSize) {
     maxSize = maxSize || 1200;
     return new Promise(function (resolve, reject) {
@@ -301,7 +297,6 @@
     });
   }
 
-  /* ---------- Editor: upload avatar ---------- */
   async function uploadAvatar(file) {
     const userRes = await sb.auth.getUser();
     const user = userRes.data.user;
@@ -329,7 +324,6 @@
     }
   }
 
-  /* ---------- Editor: upload photo ---------- */
   async function uploadPhoto(file) {
     const userRes = await sb.auth.getUser();
     const user = userRes.data.user;
@@ -361,7 +355,6 @@
     }
   }
 
-  /* ---------- Editor: remove photo from storage ---------- */
   async function removePhoto(url) {
     try {
       const marker = '/desk-photos/';
@@ -384,7 +377,6 @@
      FEED — posts and post media
      ========================================================= */
 
-  /* ---------- Feed: create post ---------- */
   async function createPost(input) {
     const userRes = await sb.auth.getUser();
     const user = userRes.data.user;
@@ -405,7 +397,6 @@
     return { ok: true, data: res.data };
   }
 
-  /* ---------- Feed: upload post photo ---------- */
   async function uploadPostPhoto(file) {
     const userRes = await sb.auth.getUser();
     const user = userRes.data.user;
@@ -431,6 +422,59 @@
     } catch (err) {
       return { ok: false, error: err };
     }
+  }
+
+  /* ---------- Feed: toggle reaction ---------- */
+  async function toggleReaction(postId, emoji) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    const existing = await sb
+      .from('post_reactions')
+      .select('id')
+      .eq('post_id', postId)
+      .eq('user_id', user.id)
+      .eq('emoji', emoji)
+      .maybeSingle();
+
+    if (existing.data) {
+      const del = await sb.from('post_reactions').delete().eq('id', existing.data.id);
+      if (del.error) return { ok: false, error: del.error };
+      return { ok: true, removed: true };
+    }
+
+    const ins = await sb.from('post_reactions').insert({
+      post_id: postId,
+      user_id: user.id,
+      emoji: emoji,
+    });
+    if (ins.error) return { ok: false, error: ins.error };
+    return { ok: true, added: true };
+  }
+
+  /* ---------- Feed: get reactions for a set of posts ---------- */
+  async function getPostReactions(postIds) {
+    if (!Array.isArray(postIds) || !postIds.length) return { ok: true, data: {} };
+
+    const res = await sb
+      .from('post_reactions')
+      .select('post_id, emoji, user_id')
+      .in('post_id', postIds);
+
+    if (res.error) return { ok: false, error: res.error };
+
+    const userRes = await sb.auth.getUser();
+    const me = userRes.data.user ? userRes.data.user.id : null;
+
+    const map = {};
+    (res.data || []).forEach(function (r) {
+      if (!map[r.post_id]) map[r.post_id] = { count: 0, mine: {} };
+      map[r.post_id].count += 1;
+      if (me && r.user_id === me) map[r.post_id].mine[r.emoji] = true;
+    });
+
+    return { ok: true, data: map };
   }
 
   /* =========================================================
@@ -465,5 +509,7 @@
     // Feed
     createPost: createPost,
     uploadPostPhoto: uploadPostPhoto,
+    toggleReaction: toggleReaction,
+    getPostReactions: getPostReactions,
   };
 })();
