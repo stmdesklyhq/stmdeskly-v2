@@ -31,6 +31,7 @@
   };
 
   let currentUser = null;
+  let currentUsername = '';
   let currentCategory = 'all';
   let sb = null;
   let activePostId = null;
@@ -118,7 +119,15 @@
       : '';
 
     const isMine = currentUser && post.user_id === currentUser.id;
-    const profileUrl = post.author_username ? '/profile.html?u=' + esc(post.author_username) : '#';
+
+    let authorUsername = post.author_username || '';
+    if (!authorUsername && isMine && currentUsername) {
+      authorUsername = currentUsername;
+    }
+
+    const profileUrl = authorUsername
+      ? '/profile.html?u=' + encodeURIComponent(authorUsername)
+      : '/profile.html';
 
     const menuButton = isMine
       ? '<button class="icon-button post-menu" data-action="menu" aria-label="Post options"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>'
@@ -210,7 +219,6 @@
 
     const ids = posts.map(function (p) { return p.id; });
 
-    // Reactions
     const rx = await AUTH.getPostReactions(ids);
     if (rx.ok) {
       Object.keys(rx.data).forEach(function (postId) {
@@ -224,7 +232,6 @@
       });
     }
 
-    // Reply counts
     const rc = await AUTH.getReplyCounts(ids);
     if (rc.ok) {
       Object.keys(rc.data).forEach(function (postId) {
@@ -255,7 +262,6 @@
     });
   }
 
-  /* ---------- Comment sheet ---------- */
   function openCommentSheet(postId) {
     if (!commentOverlay) return;
     activePostId = postId;
@@ -390,7 +396,6 @@
     }
   }
 
-  /* ---------- Actions ---------- */
   if (feedEl) {
     feedEl.addEventListener('click', async function (e) {
       const btn = e.target.closest('.post-action, .post-menu');
@@ -509,12 +514,12 @@
     }
   });
 
-  /* ---------- Boot ---------- */
   (async function boot() {
     const user = await AUTH.currentUser();
     if (!user) { location.replace('/login.html'); return; }
 
     currentUser = user;
+    currentUsername = (user.user_metadata && user.user_metadata.username) || '';
     sb = AUTH.sb;
 
     paintGreeting();
