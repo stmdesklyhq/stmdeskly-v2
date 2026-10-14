@@ -2,6 +2,7 @@
    STMDESKLY v2 — Single chat
    Tap-to-record voice notes with IndexedDB persistence,
    wall-clock progress bar, scroll-to-bottom button.
+   Lazy thread creation — no request until first send.
    ========================================================= */
 (function () {
   'use strict';
@@ -93,6 +94,7 @@
 
   let messagesChannel = null;
   let typingChannel = null;
+  let threadChannel = null;
 
   let refreshDebounce = null;
   let refreshInFlight = false;
@@ -104,22 +106,19 @@
 
   let newMsgCount = 0;
 
-  /* ---------- Voice recording state ---------- */
   const REC_MAX_SECONDS = 120;
   const REC_MIN_SECONDS = 1;
   const REC_WAVE_BARS = 26;
 
   let recState = null;
 
-  /* ---------- Audio playback state ---------- */
   const audioEl = new Audio();
   audioEl.preload = 'metadata';
   let playingMsgId = null;
 
-  // Wall-clock playback tracking (bypasses broken currentTime on Android)
-  let playStartedAt = 0;   // Date.now() when playback began (or resumed)
-  let playStartOffset = 0; // seconds already elapsed at play/resume
-  let playTotalDur = 0;    // seconds, from data-duration
+  let playStartedAt = 0;
+  let playStartOffset = 0;
+  let playTotalDur = 0;
   let progressRaf = null;
 
   /* =========================================================
@@ -168,6 +167,7 @@
   }
 
   function loadFailedVoice(threadId) {
+    if (!threadId) return Promise.resolve([]);
     return openVoiceDb().then(function (db) {
       return new Promise(function (resolve) {
         const tx = db.transaction(VOICE_STORE, 'readonly');
@@ -371,7 +371,18 @@
   }
 
   function paintBanners() {
-    if (!thread) return;
+    // No thread yet — this is the "?to=" pre-send state.
+    // Just make sure the composer is usable.
+    if (!thread) {
+      acceptBar.hidden = true;
+      pendingBar.hidden = true;
+      paintBlockedBanner();
+      if (!blockedState.me && !blockedState.them) {
+        chatComposer.hidden = false;
+      }
+      return;
+    }
+
     const isRecipient = thread.initiated_by && thread.initiated_by !== me.id;
 
     if (thread.status === 'pending') {
@@ -399,6 +410,85 @@
     }
 
     paintBlockedBanner();
+  }
+
+  /* =========================================================
+     Lazy thread creation
+     ========================================================= */
+
+  async function ensureThread() {
+    if (thread) return thread;
+    if (!other) return null;
+
+    const res = await AUTH.startThread(other.user_id);
+    if (!res || !res.ok) {
+      flashToast('Could not start chat. Try again.');
+      return null;
+    }
+
+    thread = res.thread;
+
+    // Update URL so a reload keeps you in this thread
+    try {
+      history.replaceState({}, '', '/chat.html?id=' + encodeURIComponent(thread.id));
+    } catch (e) {}
+
+    // Mute state (we skipped it earlier because there was no thread)
+    try { isMuted = await AUTH.isThreadMuted(thread.id); } catch (e) { isMuted = false; }
+    paintMuteMenu();
+    chatMuteIcon.hidden = !isMuted;
+
+    // Pick up any messages that already existed (rare, but possible
+    // if the thread was pre-created by a race)
+    await refreshMessages();
+
+    // Now wire up the thread-scoped realtime + typing
+    initTyping();
+    initMessagesRealtime();
+    initThreadRealtime();
+
+    // Flush any service-worker queued replies for this thread
+    await flushPendingReplies();
+
+    // Pick up failed voice notes from previous sessions
+    const failedVoice = await loadFailedVoice(thread.id);
+    if (failedVoice.length) {
+      let added = 0;
+      for (let i = 0; i < failedVoice.length; i++) {
+        const f = failedVoice[i];
+        if (allMessages.some(function (m) { return m.id === f.id; })) continue;
+        const objectUrl = URL.createObjectURL(f.blob);
+        allMessages.push({
+          id: f.id,
+          sender_id: me.id,
+          body: null,
+          photo_url: null,
+          audio_url: objectUrl,
+          audio_duration: f.audioDuration,
+          read_at: null,
+          delivered_at: null,
+          created_at: new Date(f.createdAt).toISOString(),
+          reply_to_id: null,
+          deleted_at: null,
+          deleted_for: null,
+          is_auto: false,
+          __failed: true,
+          __blob: f.blob
+        });
+        added++;
+      }
+      if (added) {
+        allMessages.sort(function (a, b) {
+          return new Date(a.created_at) - new Date(b.created_at);
+        });
+        renderMessages();
+      }
+    }
+
+    paintBanners();
+    scrollToBottomNow();
+
+    return thread;
   }
 
   /* =========================================================
@@ -533,7 +623,6 @@
 
     chatLog.innerHTML = html;
 
-    // If we were playing, restore UI state and repaint
     if (playingMsgId) {
       const player = chatLog.querySelector('.chat-audio[data-id="' + playingMsgId + '"]');
       if (player) {
@@ -611,6 +700,21 @@
       if (thread.status === 'accepted' && !blockedState.me && !blockedState.them) {
         AUTH.markMessagesDelivered(thread.id);
         AUTH.markMessagesRead(thread.id);
+      }
+
+      // If we're still pending, re-check — the recipient may have accepted
+      // while we were sitting here. Realtime handles this normally, but
+      // this is a safety net for when realtime drops.
+      if (thread.status === 'pending') {
+        const tRes = await AUTH.sb
+          .from('chat_threads')
+          .select('status')
+          .eq('id', thread.id)
+          .maybeSingle();
+        if (tRes.data && tRes.data.status && tRes.data.status !== thread.status) {
+          thread.status = tRes.data.status;
+          paintBanners();
+        }
       }
     } finally {
       refreshInFlight = false;
@@ -693,7 +797,7 @@
 
   async function handleSend(e) {
     if (e && e.preventDefault) e.preventDefault();
-    if (!thread) return;
+    if (!thread && !other) return;
 
     if (blockedState.me || blockedState.them) {
       alert(blockedState.me ? 'You blocked this user.' : 'You cannot reply to this conversation.');
@@ -702,6 +806,12 @@
 
     const body = chatInput.value.trim();
     if (!body) return;
+
+    // Create the thread now if this is the first message
+    if (!thread) {
+      const t = await ensureThread();
+      if (!t) return;
+    }
 
     const savedReplyId = replyToId;
     const temp = makeTempMessage(body, savedReplyId);
@@ -739,6 +849,11 @@
     if (!m.__blob) {
       flashToast('Cannot retry — recording lost');
       return;
+    }
+
+    if (!thread) {
+      const t = await ensureThread();
+      if (!t) return;
     }
 
     m.__failed = false;
@@ -834,6 +949,7 @@
      ========================================================= */
 
   async function flushPendingReplies() {
+    if (!thread) return;
     try {
       const db = await new Promise(function (resolve, reject) {
         const req = indexedDB.open('stmdeskly-sw', 1);
@@ -916,7 +1032,7 @@
 
     const notes = prompt('Add anything else (optional):') || '';
 
-    const res = await AUTH.reportUser(other.user_id, reasons[idx], notes, thread.id);
+    const res = await AUTH.reportUser(other.user_id, reasons[idx], notes, thread ? thread.id : null);
     if (!res.ok) { alert('Could not send report. Try again.'); return; }
     alert('Thanks. We will review this report.');
   }
@@ -931,7 +1047,7 @@
       blockedState.me = false;
       paintBlockMenu();
       paintBlockedBanner();
-      if (thread.status === 'accepted') chatComposer.hidden = false;
+      if (!thread || thread.status === 'accepted') chatComposer.hidden = false;
       return;
     }
 
@@ -1259,7 +1375,8 @@
   }
 
   function startRecording() {
-    if (!thread || recState) return;
+    if (!thread && !other) return;
+    if (recState) return;
     if (blockedState.me || blockedState.them) {
       alert('Cannot record while blocked.');
       return;
@@ -1394,6 +1511,15 @@
   }
 
   async function sendVoiceBlob(blob, durationSec) {
+    // Create the thread now if this is the first interaction
+    if (!thread) {
+      const t = await ensureThread();
+      if (!t) {
+        flashToast('Could not start chat. Try again.');
+        return;
+      }
+    }
+
     const tempId = 'temp-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
     const objectUrl = URL.createObjectURL(blob);
 
@@ -1518,7 +1644,6 @@
     progressRaf = requestAnimationFrame(tick);
   }
 
-  // Wall-clock elapsed since playback started
   function getElapsedSeconds() {
     return playStartOffset + (Date.now() - playStartedAt) / 1000;
   }
@@ -1543,7 +1668,6 @@
     if (dot)  dot.style.left  = pct + '%';
     if (timeEl) timeEl.textContent = fmtDur(cur);
 
-    // Auto-finish when we've reached the end
     if (cur >= dur - 0.05) {
       finishPlayback();
     }
@@ -1633,8 +1757,6 @@
     startProgressLoop();
   }
 
-  // Safety net: if the audio element somehow ends before the wall clock,
-  // or after, end playback cleanly.
   audioEl.addEventListener('ended', function () {
     finishPlayback();
   });
@@ -1805,12 +1927,20 @@
   photoInput.addEventListener('change', async function (e) {
     const file = e.target.files && e.target.files[0];
     e.target.value = '';
-    if (!file || !thread) return;
+    if (!file) return;
+    if (!thread && !other) return;
     if (blockedState.me || blockedState.them) {
       alert('Cannot send while blocked.');
       return;
     }
     if (file.size > 5 * 1024 * 1024) { alert('Max 5 MB.'); return; }
+
+    // Create the thread now if this is the first interaction
+    if (!thread) {
+      const t = await ensureThread();
+      if (!t) return;
+    }
+
     attachBtn.disabled = true;
     const res = await AUTH.sendPhotoMessage(thread.id, file);
     attachBtn.disabled = false;
@@ -1853,6 +1983,7 @@
   });
 
   acceptBtn.addEventListener('click', async function () {
+    if (!thread) return;
     acceptBtn.disabled = true;
     declineBtn.disabled = true;
     const res = await AUTH.acceptThread(thread.id);
@@ -1866,6 +1997,7 @@
   });
 
   declineBtn.addEventListener('click', async function () {
+    if (!thread) return;
     acceptBtn.disabled = true;
     declineBtn.disabled = true;
     const res = await AUTH.declineThread(thread.id);
@@ -1961,6 +2093,7 @@
      ========================================================= */
 
   function initMessagesRealtime() {
+    if (!thread) return;
     try {
       messagesChannel = AUTH.sb
         .channel('chat-' + thread.id)
@@ -1984,6 +2117,29 @@
     }
   }
 
+  function initThreadRealtime() {
+    if (!thread) return;
+    try {
+      threadChannel = AUTH.sb
+        .channel('thread-' + thread.id)
+        .on('postgres_changes', {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'chat_threads',
+          filter: 'id=eq.' + thread.id
+        }, function (payload) {
+          if (!payload || !payload.new) return;
+          if (payload.new.status && payload.new.status !== thread.status) {
+            thread.status = payload.new.status;
+            paintBanners();
+          }
+        })
+        .subscribe();
+    } catch (err) {
+      console.warn('[chat] thread realtime failed:', err);
+    }
+  }
+
   function broadcastTyping() {
     if (!typingChannel || !thread) return;
     if (typingTimer) clearTimeout(typingTimer);
@@ -1996,6 +2152,7 @@
   }
 
   function initTyping() {
+    if (!thread) return;
     try {
       typingChannel = AUTH.sb.channel('typing-' + thread.id, {
         config: { broadcast: { self: false } }
@@ -2042,30 +2199,39 @@
         thread = res.thread;
         other = res.other;
       } else if (toUserId) {
-        const res = await AUTH.startThread(toUserId);
-        if (!res.ok) {
+        // Load the recipient's profile only — do NOT create the thread yet.
+        const pRes = await AUTH.sb
+          .from('desks')
+          .select('user_id, name, username, avatar_url, role')
+          .eq('user_id', toUserId)
+          .maybeSingle();
+
+        if (pRes.error || !pRes.data) {
           chatMissing.hidden = false;
           return;
         }
-        const full = await AUTH.loadThread(res.thread.id);
-        if (!full.ok) {
-          chatMissing.hidden = false;
-          return;
-        }
-        thread = full.thread;
-        other = full.other;
+
+        other = pRes.data;
+        thread = null;
       } else {
         chatMissing.hidden = false;
         return;
       }
 
-      try {
-        isMuted = await AUTH.isThreadMuted(thread.id);
-      } catch (e) { isMuted = false; }
+      // Mute state (only meaningful once a thread exists)
+      if (thread) {
+        try { isMuted = await AUTH.isThreadMuted(thread.id); }
+        catch (e) { isMuted = false; }
+      } else {
+        isMuted = false;
+      }
 
+      // Block state — works with user_id, no thread needed
       try {
         blockedState = await AUTH.isBlocked(other.user_id);
-      } catch (e) { blockedState = { me: false, them: false }; }
+      } catch (e) {
+        blockedState = { me: false, them: false };
+      }
 
       paintHeader();
       paintMuteMenu();
@@ -2074,41 +2240,46 @@
 
       chatLog.hidden = false;
 
-      const failedVoice = await loadFailedVoice(thread.id);
+      // Only fetch messages and failed voice if we have a thread
+      if (thread) {
+        await refreshMessages();
 
-      await refreshMessages();
-
-      if (failedVoice.length) {
-        let added = 0;
-        for (let i = 0; i < failedVoice.length; i++) {
-          const f = failedVoice[i];
-          if (allMessages.some(function (m) { return m.id === f.id; })) continue;
-          const objectUrl = URL.createObjectURL(f.blob);
-          allMessages.push({
-            id: f.id,
-            sender_id: me.id,
-            body: null,
-            photo_url: null,
-            audio_url: objectUrl,
-            audio_duration: f.audioDuration,
-            read_at: null,
-            delivered_at: null,
-            created_at: new Date(f.createdAt).toISOString(),
-            reply_to_id: null,
-            deleted_at: null,
-            deleted_for: null,
-            is_auto: false,
-            __failed: true,
-            __blob: f.blob
-          });
-          added++;
+        const failedVoice = await loadFailedVoice(thread.id);
+        if (failedVoice.length) {
+          let added = 0;
+          for (let i = 0; i < failedVoice.length; i++) {
+            const f = failedVoice[i];
+            if (allMessages.some(function (m) { return m.id === f.id; })) continue;
+            const objectUrl = URL.createObjectURL(f.blob);
+            allMessages.push({
+              id: f.id,
+              sender_id: me.id,
+              body: null,
+              photo_url: null,
+              audio_url: objectUrl,
+              audio_duration: f.audioDuration,
+              read_at: null,
+              delivered_at: null,
+              created_at: new Date(f.createdAt).toISOString(),
+              reply_to_id: null,
+              deleted_at: null,
+              deleted_for: null,
+              is_auto: false,
+              __failed: true,
+              __blob: f.blob
+            });
+            added++;
+          }
+          if (added) {
+            allMessages.sort(function (a, b) {
+              return new Date(a.created_at) - new Date(b.created_at);
+            });
+            renderMessages();
+          }
         }
-        if (added) {
-          allMessages.sort(function (a, b) {
-            return new Date(a.created_at) - new Date(b.created_at);
-          });
-          renderMessages();
-        }
+      } else {
+        // No thread — show the "Say hi" intro
+        renderMessages();
       }
 
       scrollToBottomNow();
@@ -2117,12 +2288,15 @@
 
       autoGrow();
       updatePresence();
-      initTyping();
-      initMessagesRealtime();
 
-      await flushPendingReplies();
+      if (thread) {
+        initTyping();
+        initMessagesRealtime();
+        initThreadRealtime();
+        await flushPendingReplies();
+      }
 
-      if (thread.status === 'accepted' && !blockedState.me && !blockedState.them) {
+      if (!chatComposer.hidden) {
         chatInput.focus();
       }
 
@@ -2146,5 +2320,6 @@
     try { stopAudio(); } catch (e) {}
     try { if (messagesChannel) AUTH.sb.removeChannel(messagesChannel); } catch (e) {}
     try { if (typingChannel) typingChannel.unsubscribe(); } catch (e) {}
+    try { if (threadChannel) AUTH.sb.removeChannel(threadChannel); } catch (e) {}
   });
 })();
