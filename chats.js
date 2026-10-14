@@ -190,11 +190,6 @@
       const who = other.name ? esc(String(other.name).split(/\s+/)[0]) : 'Them';
       const body = lm.body ? esc(lm.body) : '📷 Photo';
       preview = '<span class="chat-row-from">' + who + ':</span> ' + body;
-
-      // Count bubble next to the name
-      badge = '<span class="chat-row-count">' +
-        (row.unread > 9 ? '9+' : String(row.unread)) +
-      '</span>';
     } else if (row.lastMessage) {
       const lm = row.lastMessage;
       const who = lm.sender_id === me.id ? '<strong>You:</strong> ' : '';
@@ -208,6 +203,13 @@
       (isPending ? ' is-pending' : '') +
       (isUnread ? ' is-unread' : '');
 
+    // Unread count badge on the right column
+    const rightBadge = isUnread
+      ? '<span class="chat-row-count">' +
+          (row.unread > 9 ? '9+' : String(row.unread)) +
+        '</span>'
+      : '';
+
     return '<a class="' + cls + '" href="/chat.html?id=' + encodeURIComponent(t.id) + '">' +
       '<span class="chat-row-avatar">' +
         '<span class="chat-row-avatar-img">' + avatarInner + '</span>' +
@@ -220,7 +222,10 @@
         '</span>' +
         '<span class="chat-row-preview">' + preview + '</span>' +
       '</span>' +
-      '<span class="chat-row-time">' + esc(timeShort(t.last_message_at)) + '</span>' +
+      '<span class="chat-row-right">' +
+        '<span class="chat-row-time">' + esc(timeShort(t.last_message_at)) + '</span>' +
+        rightBadge +
+      '</span>' +
     '</a>';
   }
 
