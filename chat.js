@@ -1,8 +1,7 @@
 /* =========================================================
    STMDESKLY v2 — Single chat
-   Tap-to-record voice notes. Reply, react, delete, photos,
-   presence, typing, delivery, mute, block, report, quick
-   replies, search, star.
+   Tap-to-record voice notes with IndexedDB persistence,
+   reliable progress bar, scroll-to-bottom button.
    ========================================================= */
 (function () {
   'use strict';
@@ -58,6 +57,9 @@
   const blockedUnblock  = $('blockedUnblock');
   const starLabel       = $('starLabel');
 
+  const scrollBottomBtn = $('chatScrollBottom');
+  const scrollBadge     = $('chatScrollBadge');
+
   const quickBtn      = $('quickBtn');
   const quickOverlay  = $('quickOverlay');
   const quickClose    = $('quickClose');
@@ -100,6 +102,8 @@
   let blockedState = { me: false, them: false };
   let quickRepliesCache = [];
 
+  let newMsgCount = 0;
+
   /* ---------- Voice recording state ---------- */
   const REC_MAX_SECONDS = 120;
   const REC_MIN_SECONDS = 1;
@@ -111,6 +115,73 @@
   const audioEl = new Audio();
   audioEl.preload = 'metadata';
   let playingMsgId = null;
+
+  /* =========================================================
+     IndexedDB — persist failed voice notes across reloads
+     ========================================================= */
+
+  const VOICE_DB = 'stmdeskly-chat';
+  const VOICE_DB_VERSION = 1;
+  const VOICE_STORE = 'failed-voice';
+
+  function openVoiceDb() {
+    return new Promise(function (resolve, reject) {
+      if (!window.indexedDB) { reject(new Error('no-indexeddb')); return; }
+      const req = indexedDB.open(VOICE_DB, VOICE_DB_VERSION);
+      req.onupgradeneeded = function (e) {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains(VOICE_STORE)) {
+          db.createObjectStore(VOICE_STORE, { keyPath: 'id' });
+        }
+      };
+      req.onsuccess = function () { resolve(req.result); };
+      req.onerror = function () { reject(req.error); };
+    });
+  }
+
+  function saveFailedVoice(record) {
+    return openVoiceDb().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        const tx = db.transaction(VOICE_STORE, 'readwrite');
+        tx.objectStore(VOICE_STORE).put(record);
+        tx.oncomplete = function () { db.close(); resolve(); };
+        tx.onerror = function () { db.close(); reject(tx.error); };
+      });
+    }).catch(function (e) { console.warn('saveFailedVoice', e); });
+  }
+
+  function deleteFailedVoice(id) {
+    return openVoiceDb().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        const tx = db.transaction(VOICE_STORE, 'readwrite');
+        tx.objectStore(VOICE_STORE).delete(id);
+        tx.oncomplete = function () { db.close(); resolve(); };
+        tx.onerror = function () { db.close(); reject(tx.error); };
+      });
+    }).catch(function (e) { console.warn('deleteFailedVoice', e); });
+  }
+
+  function loadFailedVoice(threadId) {
+    return openVoiceDb().then(function (db) {
+      return new Promise(function (resolve) {
+        const tx = db.transaction(VOICE_STORE, 'readonly');
+        const store = tx.objectStore(VOICE_STORE);
+        const req = store.getAll();
+        req.onsuccess = function () { resolve(req.result || []); };
+        req.onerror = function () { resolve([]); };
+        tx.oncomplete = function () { db.close(); };
+      });
+    }).catch(function (e) {
+      console.warn('loadFailedVoice', e);
+      return [];
+    }).then(function (all) {
+      return all.filter(function (r) { return r.threadId === threadId; });
+    });
+  }
+
+  /* =========================================================
+     Helpers
+     ========================================================= */
 
   function initials(name) {
     const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
@@ -164,6 +235,65 @@
     const s = sec % 60;
     return m + ':' + (s < 10 ? '0' + s : s);
   }
+
+  /* =========================================================
+     Scroll helpers
+     ========================================================= */
+
+  function isAtBottom() {
+    return (chatLog.scrollHeight - chatLog.scrollTop - chatLog.clientHeight) < 80;
+  }
+
+  function scrollToBottomNow() {
+    chatLog.scrollTop = chatLog.scrollHeight;
+  }
+
+  function scrollToBottomSmooth() {
+    try {
+      chatLog.scrollTo({ top: chatLog.scrollHeight, behavior: 'smooth' });
+    } catch (e) {
+      chatLog.scrollTop = chatLog.scrollHeight;
+    }
+  }
+
+  function updateScrollButton() {
+    if (!scrollBottomBtn) return;
+    if (isAtBottom()) {
+      scrollBottomBtn.hidden = true;
+      newMsgCount = 0;
+    } else {
+      scrollBottomBtn.hidden = false;
+    }
+
+    if (scrollBadge) {
+      if (newMsgCount > 0) {
+        scrollBadge.hidden = false;
+        scrollBadge.textContent = newMsgCount > 99 ? '99+' : String(newMsgCount);
+      } else {
+        scrollBadge.hidden = true;
+      }
+    }
+  }
+
+  function pinToBottomAfterImages() {
+    // Re-pin while images load
+    const imgs = chatLog.querySelectorAll('img');
+    for (let i = 0; i < imgs.length; i++) {
+      const img = imgs[i];
+      if (!img.complete) {
+        img.addEventListener('load', function () {
+          if (isAtBottom()) scrollToBottomNow();
+        }, { once: true });
+      }
+    }
+    setTimeout(function () { scrollToBottomNow(); updateScrollButton(); }, 60);
+    setTimeout(function () { scrollToBottomNow(); updateScrollButton(); }, 240);
+    setTimeout(function () { scrollToBottomNow(); updateScrollButton(); }, 700);
+  }
+
+  /* =========================================================
+     Paint header / banners
+     ========================================================= */
 
   function paintHeader() {
     if (!other) return;
@@ -265,6 +395,10 @@
 
     paintBlockedBanner();
   }
+
+  /* =========================================================
+     Message rendering
+     ========================================================= */
 
   function findMessageById(id) {
     for (let i = 0; i < allMessages.length; i++) {
@@ -396,10 +530,18 @@
 
     if (playingMsgId) {
       const player = chatLog.querySelector('.chat-audio[data-id="' + playingMsgId + '"]');
-      if (player) player.classList.add('is-playing');
-      else stopAudio();
+      if (player) {
+        player.classList.add('is-playing');
+        paintAudioProgress();
+      } else {
+        stopAudio();
+      }
     }
   }
+
+  /* =========================================================
+     Refresh / load
+     ========================================================= */
 
   async function refreshMessages() {
     if (!thread) return;
@@ -415,8 +557,7 @@
         ? allMessages[allMessages.length - 1].id
         : null;
 
-      const wasAtBottom =
-        (chatLog.scrollHeight - chatLog.scrollTop - chatLog.clientHeight) < 80;
+      const wasAtBottom = isAtBottom();
 
       const res = await AUTH.loadMessages(thread.id, 100);
       if (!res.ok) return;
@@ -442,11 +583,24 @@
       lastNewestId = newestId;
       renderMessages();
 
-      if (hasNew || wasAtBottom) {
-        chatLog.scrollTop = chatLog.scrollHeight;
+      if (wasAtBottom) {
+        scrollToBottomNow();
+        newMsgCount = 0;
       } else {
         chatLog.scrollTop = prevScrollTop;
+        if (hasNew && prevNewest) {
+          const idx = messages.findIndex(function (m) { return m.id === prevNewest; });
+          if (idx >= 0) {
+            newMsgCount += (messages.length - 1 - idx);
+          } else {
+            newMsgCount += 1;
+          }
+        } else if (hasNew && !prevNewest) {
+          newMsgCount += 1;
+        }
       }
+
+      updateScrollButton();
 
       if (thread.status === 'accepted' && !blockedState.me && !blockedState.them) {
         AUTH.markMessagesDelivered(thread.id);
@@ -477,6 +631,10 @@
     sendBtn.hidden = !hasText;
     micBtn.hidden = hasText;
   }
+
+  /* =========================================================
+     Send text
+     ========================================================= */
 
   function makeTempMessage(body, replyId) {
     return {
@@ -524,7 +682,7 @@
 
     allMessages[idx] = res.message;
     renderMessages();
-    chatLog.scrollTop = chatLog.scrollHeight;
+    scrollToBottomNow();
   }
 
   async function handleSend(e) {
@@ -544,7 +702,7 @@
 
     allMessages.push(temp);
     renderMessages();
-    chatLog.scrollTop = chatLog.scrollHeight;
+    scrollToBottomNow();
 
     chatInput.value = '';
     cancelReply();
@@ -557,7 +715,7 @@
     const m = findMessageById(messageId);
     if (!m || !m.__failed) return;
 
-    if (m.audio_url && String(m.audio_url).indexOf('blob:') === 0) {
+    if (m.audio_url) {
       retryVoiceMessage(messageId);
       return;
     }
@@ -583,11 +741,12 @@
 
     const res = await AUTH.sendVoiceMessage(thread.id, m.__blob, m.audio_duration);
 
-    let idx = -1;
-    for (let i = 0; i < allMessages.length; i++) {
-      if (allMessages[i].id === messageId) { idx = i; break; }
+    let idx = allMessages.findIndex(function (x) { return x.id === messageId; });
+
+    if (idx === -1) {
+      allMessages.push(m);
+      idx = allMessages.length - 1;
     }
-    if (idx === -1) return;
 
     if (!res.ok) {
       allMessages[idx].__pending = false;
@@ -598,14 +757,21 @@
       return;
     }
 
-    const oldUrl = allMessages[idx].audio_url;
+    const oldUrl = m.audio_url;
     allMessages[idx] = res.message;
     renderMessages();
-    chatLog.scrollTop = chatLog.scrollHeight;
+    scrollToBottomNow();
+
     if (oldUrl && String(oldUrl).indexOf('blob:') === 0) {
       try { URL.revokeObjectURL(oldUrl); } catch (e) {}
     }
+
+    deleteFailedVoice(messageId);
   }
+
+  /* =========================================================
+     Reply
+     ========================================================= */
 
   function startReply(messageId) {
     const m = findMessageById(messageId);
@@ -627,6 +793,10 @@
     replyName.textContent = '';
     replyPreview.textContent = '';
   }
+
+  /* =========================================================
+     Context menu
+     ========================================================= */
 
   function openContext(messageId) {
     const m = findMessageById(messageId);
@@ -653,12 +823,16 @@
     contextMessageId = null;
   }
 
+  /* =========================================================
+     Pending replies from service worker (IndexedDB stmdeskly-sw)
+     ========================================================= */
+
   async function flushPendingReplies() {
     try {
-      const db = await new Promise((resolve, reject) => {
+      const db = await new Promise(function (resolve, reject) {
         const req = indexedDB.open('stmdeskly-sw', 1);
-        req.onsuccess = () => resolve(req.result);
-        req.onerror = () => reject(req.error);
+        req.onsuccess = function () { resolve(req.result); };
+        req.onerror = function () { reject(req.error); };
       });
 
       if (!db.objectStoreNames.contains('pending-replies')) {
@@ -669,10 +843,10 @@
       const tx = db.transaction('pending-replies', 'readwrite');
       const store = tx.objectStore('pending-replies');
 
-      const all = await new Promise((resolve) => {
+      const all = await new Promise(function (resolve) {
         const req = store.getAll();
-        req.onsuccess = () => resolve(req.result || []);
-        req.onerror = () => resolve([]);
+        req.onsuccess = function () { resolve(req.result || []); };
+        req.onerror = function () { resolve([]); };
       });
 
       let sent = 0;
@@ -689,14 +863,16 @@
 
       if (sent > 0) {
         await refreshMessages();
-        chatLog.scrollTop = chatLog.scrollHeight;
+        scrollToBottomNow();
       }
     } catch (e) {
       console.warn('[chat] pending replies failed:', e);
     }
   }
 
-  /* ---------- Safety actions ---------- */
+  /* =========================================================
+     Safety actions
+     ========================================================= */
 
   async function doMuteToggle() {
     if (!thread) return;
@@ -763,7 +939,9 @@
     chatComposer.hidden = true;
   }
 
-  /* ---------- Quick replies ---------- */
+  /* =========================================================
+     Quick replies
+     ========================================================= */
 
   function renderQuickList() {
     if (!quickList) return;
@@ -908,7 +1086,9 @@
     );
   }
 
-  /* ---------- Search ---------- */
+  /* =========================================================
+     Search
+     ========================================================= */
 
   function openSearch() {
     if (!searchOverlay) return;
@@ -966,7 +1146,9 @@
     }).join('');
   }
 
-  /* ---------- Starred ---------- */
+  /* =========================================================
+     Starred
+     ========================================================= */
 
   async function openStarred() {
     if (!starredOverlay) return;
@@ -1228,20 +1410,31 @@
     };
     allMessages.push(temp);
     renderMessages();
-    chatLog.scrollTop = chatLog.scrollHeight;
+    scrollToBottomNow();
 
     const res = await AUTH.sendVoiceMessage(thread.id, blob, durationSec);
 
-    let idx = -1;
-    for (let i = 0; i < allMessages.length; i++) {
-      if (allMessages[i].id === tempId) { idx = i; break; }
+    let idx = allMessages.findIndex(function (m) { return m.id === tempId; });
+
+    if (idx === -1) {
+      // Lost during a refresh — re-add so the user sees the failure
+      allMessages.push(temp);
+      idx = allMessages.length - 1;
     }
-    if (idx === -1) return;
 
     if (!res.ok) {
       allMessages[idx].__pending = false;
       allMessages[idx].__failed = true;
-      // Keep the object URL and blob so the user can retry
+
+      // Persist so it survives a page reload
+      saveFailedVoice({
+        id: tempId,
+        threadId: thread.id,
+        audioDuration: temp.audio_duration,
+        blob: blob,
+        createdAt: Date.now()
+      });
+
       renderMessages();
       var msg = res.error && (res.error.message || res.error.error_description) || 'unknown error';
       flashToast('Voice failed: ' + msg);
@@ -1250,8 +1443,10 @@
 
     allMessages[idx] = res.message;
     renderMessages();
-    chatLog.scrollTop = chatLog.scrollHeight;
+    scrollToBottomNow();
     try { URL.revokeObjectURL(objectUrl); } catch (e) {}
+
+    deleteFailedVoice(tempId);
   }
 
   function showRecorder() {
@@ -1308,7 +1503,15 @@
     try { audioEl.load(); } catch (e) {}
     if (playingMsgId) {
       const el = chatLog.querySelector('.chat-audio[data-id="' + playingMsgId + '"]');
-      if (el) el.classList.remove('is-playing');
+      if (el) {
+        el.classList.remove('is-playing');
+        const fill = el.querySelector('.chat-audio-track-fill');
+        const dot  = el.querySelector('.chat-audio-dot');
+        const timeEl = el.querySelector('.chat-audio-time');
+        if (fill) fill.style.width = '0%';
+        if (dot)  dot.style.left = '0%';
+        if (timeEl) timeEl.textContent = fmtDur(parseFloat(el.dataset.duration) || 0);
+      }
     }
     playingMsgId = null;
   }
@@ -1328,8 +1531,8 @@
     const cur = audioEl.currentTime || 0;
     const pct = dur ? Math.min(100, (cur / dur) * 100) : 0;
 
-    if (fill) fill.style.setProperty('--progress', pct + '%');
-    if (dot)  dot.style.setProperty('--progress', pct + '%');
+    if (fill) fill.style.width = pct + '%';
+    if (dot)  dot.style.left  = pct + '%';
     if (timeEl) timeEl.textContent = fmtDur(cur);
   }
 
@@ -1352,8 +1555,8 @@
     const fill = el.querySelector('.chat-audio-track-fill');
     const dot  = el.querySelector('.chat-audio-dot');
     const timeEl = el.querySelector('.chat-audio-time');
-    if (fill) fill.style.setProperty('--progress', '0%');
-    if (dot)  dot.style.setProperty('--progress', '0%');
+    if (fill) fill.style.width = '0%';
+    if (dot)  dot.style.left = '0%';
     if (timeEl) timeEl.textContent = fmtDur(parseFloat(el.dataset.duration) || 0);
 
     audioEl.src = src;
@@ -1376,14 +1579,16 @@
       const fill = el.querySelector('.chat-audio-track-fill');
       const dot  = el.querySelector('.chat-audio-dot');
       const timeEl = el.querySelector('.chat-audio-time');
-      if (fill) fill.style.setProperty('--progress', '0%');
-      if (dot)  dot.style.setProperty('--progress', '0%');
+      if (fill) fill.style.width = '0%';
+      if (dot)  dot.style.left = '0%';
       if (timeEl) timeEl.textContent = fmtDur(parseFloat(el.dataset.duration) || 0);
     }
     playingMsgId = null;
   });
 
-  /* Events */
+  /* =========================================================
+     Events
+     ========================================================= */
 
   chatLog.addEventListener('contextmenu', function (e) {
     const bubble = e.target.closest('.chat-bubble');
@@ -1420,6 +1625,18 @@
     if (touchTimer) { clearTimeout(touchTimer); touchTimer = null; }
     touchStart = null;
   });
+
+  chatLog.addEventListener('scroll', function () {
+    updateScrollButton();
+  }, { passive: true });
+
+  if (scrollBottomBtn) {
+    scrollBottomBtn.addEventListener('click', function () {
+      scrollToBottomSmooth();
+      newMsgCount = 0;
+      updateScrollButton();
+    });
+  }
 
   chatLog.addEventListener('click', function (e) {
     const playBtn = e.target.closest('.chat-audio-play');
@@ -1487,6 +1704,9 @@
     if (action === 'delete-me') {
       closeContext();
       await AUTH.deleteMessageForMe(msgId);
+      if (msg.__failed || String(msg.id).indexOf('temp-') === 0) {
+        deleteFailedVoice(msgId);
+      }
       await refreshMessages();
       return;
     }
@@ -1547,10 +1767,8 @@
       return;
     }
     await refreshMessages();
-    chatLog.scrollTop = chatLog.scrollHeight;
+    scrollToBottomNow();
   });
-
-  /* ---------- Mic button: tap to start recording ---------- */
 
   if (micBtn) {
     micBtn.addEventListener('click', function (e) {
@@ -1685,7 +1903,9 @@
     }
   });
 
-  /* ---------- Realtime: messages ---------- */
+  /* =========================================================
+     Realtime
+     ========================================================= */
 
   function initMessagesRealtime() {
     try {
@@ -1710,8 +1930,6 @@
       console.warn('[chat] realtime failed:', err);
     }
   }
-
-  /* ---------- Realtime: typing ---------- */
 
   function broadcastTyping() {
     if (!typingChannel || !thread) return;
@@ -1749,7 +1967,9 @@
     }, 3000);
   }
 
-  /* Boot */
+  /* =========================================================
+     Boot
+     ========================================================= */
 
   (async function boot() {
     try {
@@ -1801,8 +2021,48 @@
 
       chatLog.hidden = false;
 
+      // Restore any failed voice notes from IndexedDB
+      const failedVoice = await loadFailedVoice(thread.id);
+
       await refreshMessages();
-      chatLog.scrollTop = chatLog.scrollHeight;
+
+      // Merge in failed voice notes after the first refresh
+      if (failedVoice.length) {
+        let added = 0;
+        for (let i = 0; i < failedVoice.length; i++) {
+          const f = failedVoice[i];
+          if (allMessages.some(function (m) { return m.id === f.id; })) continue;
+          const objectUrl = URL.createObjectURL(f.blob);
+          allMessages.push({
+            id: f.id,
+            sender_id: me.id,
+            body: null,
+            photo_url: null,
+            audio_url: objectUrl,
+            audio_duration: f.audioDuration,
+            read_at: null,
+            delivered_at: null,
+            created_at: new Date(f.createdAt).toISOString(),
+            reply_to_id: null,
+            deleted_at: null,
+            deleted_for: null,
+            is_auto: false,
+            __failed: true,
+            __blob: f.blob
+          });
+          added++;
+        }
+        if (added) {
+          allMessages.sort(function (a, b) {
+            return new Date(a.created_at) - new Date(b.created_at);
+          });
+          renderMessages();
+        }
+      }
+
+      scrollToBottomNow();
+      pinToBottomAfterImages();
+      updateScrollButton();
 
       autoGrow();
       updatePresence();
