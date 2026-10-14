@@ -1,0 +1,357 @@
+/* =========================================================
+   STMDESKLY v2 — Design tokens
+   Single source of truth for colour, type, space, radii,
+   shadow, motion, and layout widths.
+
+   Link this file FIRST on every page, before style.css.
+   Every screen's own CSS should reference these tokens,
+   never hard-coded values.
+   ========================================================= */
+
+:root {
+
+  /* =======================================================
+     1. COLOUR — raw palette
+     ======================================================= */
+
+  /* Neutrals */
+  --navy:         #172B3A;
+  --navy-deep:    #10232F;
+  --navy-soft:    #254556;
+  --text:         #344A57;
+  --muted:        #718087;
+  --muted-soft:   #A7AEB0;
+
+  /* Surfaces */
+  --cream:        #F7F6F1;
+  --paper:        #FFFEFB;
+  --white:        #FFFFFF;
+
+  /* Brand accent */
+  --teal:         #2F6D70;
+  --teal-dark:    #24595C;
+  --teal-soft:    rgba(47, 109, 112, 0.10);
+
+  /* Mint accents (never a full-page background) */
+  --mint:         #DCEBE3;
+  --mint-strong:  #B9DED1;
+  --mint-deep:    #286D51;
+
+  /* Lavender (rare — one audience tile only) */
+  --lavender:     #F0EFF8;
+
+  /* Structure */
+  --border:       #E5E4DD;
+  --border-soft:  rgba(23, 43, 58, 0.06);
+  --border-hard:  #C9D2CE;
+
+  /* =======================================================
+     2. COLOUR — semantic (use these, not the raw ones)
+     ======================================================= */
+
+  /* Page */
+  --bg-page:              var(--cream);
+  --bg-surface:           var(--paper);
+  --bg-surface-alt:       #FBFBF7;
+
+  /* Text */
+  --text-primary:         var(--navy);
+  --text-secondary:       var(--text);
+  --text-muted:           var(--muted);
+  --text-inverse:         var(--white);
+
+  /* Actions */
+  --action-primary-bg:    var(--teal);
+  --action-primary-bg-hover: var(--teal-dark);
+  --action-primary-fg:    var(--white);
+
+  --action-secondary-bg:  transparent;
+  --action-secondary-fg:  var(--navy);
+  --action-secondary-border: var(--border);
+
+  /* State: success */
+  --success-bg:           #EFF7F0;
+  --success-border:       #D2E5D9;
+  --success-fg:           #286D51;
+
+  /* State: warning */
+  --warning-bg:           #FBF0D9;
+  --warning-border:       #E9D4A7;
+  --warning-fg:           #79551B;
+
+  /* State: danger */
+  --danger-bg:            #FFF1EF;
+  --danger-border:        #F2D4D0;
+  --danger-fg:            #B3261E;
+
+  /* State: info / live */
+  --live-bg:              var(--mint);
+  --live-border:          #C5DED1;
+  --live-fg:              #24595C;
+
+  /* Focus ring (used by buttons, inputs, links) */
+  --focus-ring:           0 0 0 4px rgba(47, 109, 112, 0.18);
+
+  /* =======================================================
+     3. TYPOGRAPHY — family
+     ======================================================= */
+
+  --font-ui:      "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono:    ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  /* =======================================================
+     4. TYPOGRAPHY — size scale (mobile-first)
+     ======================================================= */
+
+  --text-2xs:     10px;   /* micro labels, chips */
+  --text-xs:      11px;   /* metadata */
+  --text-sm:      12px;   /* labels, supporting text */
+  --text-base:    13px;   /* buttons */
+  --text-md:      14px;   /* body copy */
+  --text-lg:      15px;   /* post titles, larger body */
+  --text-xl:      16px;   /* section headings */
+  --text-2xl:     20px;   /* secondary page heading */
+  --text-3xl:     24px;   /* main screen title */
+  --text-4xl:     28px;   /* large mobile hero */
+  --text-5xl:     32px;   /* tablet hero */
+  --text-6xl:     40px;   /* desktop hero */
+
+  /* =======================================================
+     5. TYPOGRAPHY — weight
+     ======================================================= */
+
+  --fw-regular:   400;
+  --fw-medium:    500;
+  --fw-semibold:  600;
+  --fw-bold:      700;
+  --fw-extrabold: 800;
+
+  /* =======================================================
+     6. TYPOGRAPHY — line height
+     ======================================================= */
+
+  --lh-tight:     1.2;    /* display headings */
+  --lh-snug:      1.3;    /* section headings */
+  --lh-normal:    1.45;   /* UI text, chat bubbles */
+  --lh-relaxed:   1.6;    /* body copy */
+  --lh-loose:     1.8;    /* long paragraphs, form help */
+
+  /* =======================================================
+     7. TYPOGRAPHY — letter spacing
+     ======================================================= */
+
+  --ls-tightest:  -0.06em;   /* display headings */
+  --ls-tighter:   -0.04em;   /* page titles */
+  --ls-tight:     -0.02em;   /* section headings */
+  --ls-normal:     0;         /* body */
+  --ls-wide:       0.04em;   /* eyebrows, uppercase labels */
+  --ls-wider:      0.12em;   /* caps micro-labels */
+  --ls-widest:     0.17em;   /* tiny all-caps tags */
+
+  /* =======================================================
+     8. SPACING — 4px rhythm
+     ======================================================= */
+
+  --space-1:      4px;
+  --space-2:      8px;
+  --space-3:      12px;
+  --space-4:      16px;
+  --space-5:      20px;
+  --space-6:      24px;
+  --space-7:      28px;
+  --space-8:      32px;
+  --space-10:     40px;
+  --space-12:     48px;
+  --space-16:     64px;
+
+  /* =======================================================
+     9. RADII
+     ======================================================= */
+
+  --radius-xs:    6px;    /* micro controls, chips */
+  --radius-sm:    8px;    /* small buttons, tags */
+  --radius-md:    10px;   /* inputs, standard buttons */
+  --radius-lg:    12px;   /* cards, content surfaces */
+  --radius-xl:    16px;   /* larger cards, overlays */
+  --radius-2xl:   22px;   /* sheets, modals */
+  --radius-pill:  999px;  /* pills, avatars */
+
+  /* =======================================================
+     10. BORDERS
+     ======================================================= */
+
+  --border-thin:  1px;
+  --border-med:   1.5px;
+
+  /* =======================================================
+     11. SHADOWS — use sparingly
+     ======================================================= */
+
+  --shadow-none:  none;
+  --shadow-xs:    0 1px 2px rgba(23, 43, 58, 0.04);
+  --shadow-sm:    0 2px 6px rgba(23, 43, 58, 0.06);
+  --shadow-md:    0 8px 22px rgba(23, 43, 58, 0.08);
+  --shadow-lg:    0 20px 50px rgba(23, 43, 58, 0.12);
+  --shadow-nav:   0 -8px 28px rgba(23, 43, 58, 0.07);
+
+  /* =======================================================
+     12. MOTION
+     ======================================================= */
+
+  --ease-out:     cubic-bezier(.2, .7, .2, 1);
+  --ease-in-out:  cubic-bezier(.4, .0, .2, 1);
+
+  --dur-fast:     140ms;
+  --dur-normal:   200ms;
+  --dur-slow:     320ms;
+
+  /* =======================================================
+     13. Z-INDEX SCALE
+     ======================================================= */
+
+  --z-base:        0;
+  --z-sticky:      10;
+  --z-dropdown:    30;
+  --z-nav:         40;
+  --z-overlay:     90;
+  --z-sheet:       95;
+  --z-modal:       100;
+  --z-lightbox:    200;
+  --z-toast:       220;
+
+  /* =======================================================
+     14. LAYOUT WIDTHS
+     ======================================================= */
+
+  --width-feed:      620px;   /* main feed column */
+  --width-narrow:    560px;   /* settings, forms */
+  --width-content:   720px;   /* long-form content */
+  --width-wide:      1120px;  /* public Desk, marketing */
+  --page-gutter:     18px;    /* mobile side padding */
+
+  /* Height the bottom nav occupies (used for page bottom padding) */
+  --bottom-nav-h:    74px;
+
+  /* =======================================================
+     15. BREAKPOINTS (documentation only — use in media queries)
+     ----------------------------------------------------------
+     sm   ≤ 380px   tiny phones
+     md   ≤ 520px   small phones
+     lg   ≤ 768px   standard phones / small tablets
+     xl   ≥ 900px   tablet / desktop
+     ======================================================= */
+
+}
+
+
+/* =========================================================
+   GLOBAL TYPE DEFAULTS
+   -----------------------------------------
+   Only sets what every page should inherit. Individual
+   components still control their own size when needed.
+   ========================================================= */
+
+html {
+  font-family: var(--font-ui);
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  font-size: var(--text-md);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-relaxed);
+  color: var(--text-primary);
+  background: var(--bg-page);
+  letter-spacing: var(--ls-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4 {
+  margin: 0;
+  font-weight: var(--fw-semibold);
+  color: var(--text-primary);
+  letter-spacing: var(--ls-tight);
+  line-height: var(--lh-snug);
+}
+
+h1 { font-size: var(--text-3xl); letter-spacing: var(--ls-tighter); }
+h2 { font-size: var(--text-2xl); letter-spacing: var(--ls-tighter); }
+h3 { font-size: var(--text-xl); }
+h4 { font-size: var(--text-lg); }
+
+p {
+  margin: 0;
+  font-size: var(--text-md);
+  line-height: var(--lh-relaxed);
+  color: var(--text-secondary);
+}
+
+small {
+  font-size: var(--text-xs);
+  line-height: var(--lh-normal);
+  color: var(--text-muted);
+}
+
+label {
+  font-size: var(--text-sm);
+  font-weight: var(--fw-semibold);
+  line-height: 1.4;
+  color: var(--text-primary);
+}
+
+button {
+  font-family: var(--font-ui);
+  font-size: var(--text-base);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--ls-normal);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+input,
+textarea,
+select {
+  font-family: var(--font-ui);
+  font-size: var(--text-md);
+  color: var(--text-primary);
+}
+
+code,
+pre {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+
+
+/* =========================================================
+   GLOBAL FOCUS
+   ========================================================= */
+
+:focus-visible {
+  outline: 3px solid rgba(47, 109, 112, 0.42);
+  outline-offset: 3px;
+  border-radius: var(--radius-xs);
+}
+
+
+/* =========================================================
+   REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
