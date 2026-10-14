@@ -887,6 +887,145 @@
   }
 
   /* =========================================================
+     SAFETY — mute, block, report
+     ========================================================= */
+
+  async function muteThread(threadId) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    const res = await sb.from('chat_mutes').insert({
+      user_id: user.id,
+      thread_id: threadId
+    });
+    if (res.error && res.error.code !== '23505') {
+      return { ok: false, error: res.error };
+    }
+    return { ok: true };
+  }
+
+  async function unmuteThread(threadId) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    const res = await sb.from('chat_mutes')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('thread_id', threadId);
+    if (res.error) return { ok: false, error: res.error };
+    return { ok: true };
+  }
+
+  async function isThreadMuted(threadId) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return false;
+
+    const res = await sb.from('chat_mutes')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('thread_id', threadId)
+      .maybeSingle();
+    return !!res.data;
+  }
+
+  async function getMutedThreads() {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: true, data: [] };
+
+    const res = await sb.from('chat_mutes')
+      .select('thread_id')
+      .eq('user_id', user.id);
+    if (res.error) return { ok: false, error: res.error };
+    return { ok: true, data: (res.data || []).map(function (r) { return r.thread_id; }) };
+  }
+
+  async function blockUser(userId) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+    if (user.id === userId) return { ok: false, error: { message: 'You cannot block yourself' } };
+
+    const res = await sb.from('user_blocks').insert({
+      blocker_id: user.id,
+      blocked_id: userId
+    });
+    if (res.error && res.error.code !== '23505') {
+      return { ok: false, error: res.error };
+    }
+    return { ok: true };
+  }
+
+  async function unblockUser(userId) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    const res = await sb.from('user_blocks')
+      .delete()
+      .eq('blocker_id', user.id)
+      .eq('blocked_id', userId);
+    if (res.error) return { ok: false, error: res.error };
+    return { ok: true };
+  }
+
+  async function isBlocked(userId) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { me: false, them: false };
+
+    const mineRes = await sb.from('user_blocks')
+      .select('id')
+      .eq('blocker_id', user.id)
+      .eq('blocked_id', userId)
+      .maybeSingle();
+
+    const theirRes = await sb.from('user_blocks')
+      .select('id')
+      .eq('blocker_id', userId)
+      .eq('blocked_id', user.id)
+      .maybeSingle();
+
+    return {
+      me: !!mineRes.data,
+      them: !!theirRes.data
+    };
+  }
+
+  async function getBlockedUsers() {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: true, data: [] };
+
+    const res = await sb.from('user_blocks')
+      .select('blocked_id, created_at')
+      .eq('blocker_id', user.id)
+      .order('created_at', { ascending: false });
+    if (res.error) return { ok: false, error: res.error };
+    return { ok: true, data: res.data || [] };
+  }
+
+  async function reportUser(userId, reason, notes, threadId) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+    if (user.id === userId) return { ok: false, error: { message: 'You cannot report yourself' } };
+
+    const res = await sb.from('user_reports').insert({
+      reporter_id: user.id,
+      reported_id: userId,
+      reason: reason,
+      notes: notes || null,
+      thread_id: threadId || null
+    });
+    if (res.error) return { ok: false, error: res.error };
+    return { ok: true };
+  }
+
+  /* =========================================================
      PUSH NOTIFICATIONS
      ========================================================= */
 
@@ -1082,6 +1221,17 @@
     deleteMessageForEveryone: deleteMessageForEveryone,
     touchPresence: touchPresence,
     getPresence: getPresence,
+
+    // Safety
+    muteThread: muteThread,
+    unmuteThread: unmuteThread,
+    isThreadMuted: isThreadMuted,
+    getMutedThreads: getMutedThreads,
+    blockUser: blockUser,
+    unblockUser: unblockUser,
+    isBlocked: isBlocked,
+    getBlockedUsers: getBlockedUsers,
+    reportUser: reportUser,
 
     // Push
     registerServiceWorker: registerServiceWorker,
