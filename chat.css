@@ -1159,3 +1159,18 @@
     max-height: 72dvh;
   }
 }
+/* Force 4-column composer layout */
+.chat-composer-inner {
+  display: grid !important;
+  grid-template-columns: 44px 44px minmax(0, 1fr) 46px !important;
+  align-items: end;
+  gap: 6px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.chat-composer-inner textarea {
+  min-width: 0;
+  width: 100%;
+  grid-column: auto;
+}
