@@ -92,6 +92,13 @@
           <a href="/forgot.html" class="auth-forgot">Forgot password?</a>
         </div>
 
+        <!-- Turnstile widget -->
+        <div class="cf-turnstile"
+             data-sitekey="0x4AAAAAAFVDiwAnKoWmrKoj"
+             data-theme="light"
+             data-size="flexible"
+             style="margin-bottom: 16px;"></div>
+
         <button type="submit" class="auth-submit" id="submitBtn">
           <span>Log in</span>
           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -109,6 +116,7 @@
     <p class="auth-bottom-note">Your own place on the internet.</p>
   </main>
 
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="config.js"></script>
   <script src="auth.js"></script>
@@ -145,6 +153,17 @@
         submitBtn.setAttribute('aria-busy', String(loading));
       }
 
+      // Turnstile helpers
+      function getTurnstileToken() {
+        const el = document.querySelector('[name="cf-turnstile-response"]');
+        return el ? el.value : null;
+      }
+      function resetTurnstile() {
+        if (window.turnstile && window.turnstile.reset) {
+          try { window.turnstile.reset(); } catch (e) {}
+        }
+      }
+
       // Redirect an existing signed-in user to the right place.
       (async function checkSession() {
         try {
@@ -156,8 +175,6 @@
           if (desk) {
             window.location.replace('/dashboard.html');
           } else {
-            // Signed in but no Desk yet (e.g. email confirmed but signup
-            // never completed). Send them to finish setup.
             window.location.replace('/signup.html');
           }
         } catch (error) {
@@ -218,6 +235,12 @@
           return;
         }
 
+        const turnstileToken = getTurnstileToken();
+        if (!turnstileToken) {
+          showError('Please complete the verification check.');
+          return;
+        }
+
         setLoading(true);
 
         try {
@@ -225,16 +248,17 @@
 
           const result = await AUTH.loginEmail({ email, password });
           if (!result || !result.ok) {
+            resetTurnstile();
             showError('Email or password is incorrect.');
             return;
           }
 
-          // Send them where they belong.
           const desk = await AUTH.currentDesk();
           window.location.replace(desk ? '/dashboard.html' : '/signup.html');
 
         } catch (error) {
           console.error('Login failed:', error);
+          resetTurnstile();
           showError('Something went wrong. Please try again.');
         } finally {
           setLoading(false);
