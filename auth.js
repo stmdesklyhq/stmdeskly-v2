@@ -897,8 +897,11 @@
   }
 
   async function getCurrentSubscription() {
-    if (!swRegistration) return null;
     try {
+      if (!swRegistration && 'serviceWorker' in navigator) {
+        swRegistration = await navigator.serviceWorker.getRegistration('/');
+      }
+      if (!swRegistration) return null;
       return await swRegistration.pushManager.getSubscription();
     } catch (e) {
       return null;
@@ -938,8 +941,6 @@
       return { ok: false, reason: 'bad-subscription' };
     }
 
-    // Clear any stale row for this endpoint, then insert fresh.
-    // Avoids needing an UPDATE policy on this table.
     await sb.from('push_subscriptions').delete().eq('endpoint', json.endpoint);
 
     const save = await sb
