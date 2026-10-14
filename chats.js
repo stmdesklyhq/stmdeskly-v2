@@ -97,11 +97,20 @@
       .order('created_at', { ascending: false });
 
     const lastByThread = {};
+    const lastIncomingByThread = {};
     const unreadByThread = {};
 
     if (!mRes.error && mRes.data) {
       mRes.data.forEach(m => {
-        if (!lastByThread[m.thread_id]) lastByThread[m.thread_id] = m;
+        // Newest message overall
+        if (!lastByThread[m.thread_id]) {
+          lastByThread[m.thread_id] = m;
+        }
+        // Newest incoming (not from me)
+        if (m.sender_id !== me.id && !lastIncomingByThread[m.thread_id]) {
+          lastIncomingByThread[m.thread_id] = m;
+        }
+        // Count unread from others
         if (!m.read_at && m.sender_id !== me.id) {
           unreadByThread[m.thread_id] = (unreadByThread[m.thread_id] || 0) + 1;
         }
@@ -115,6 +124,7 @@
         thread: t,
         other,
         lastMessage: lastByThread[t.id],
+        lastIncoming: lastIncomingByThread[t.id],
         unread: unreadByThread[t.id] || 0
       };
     });
@@ -174,6 +184,17 @@
       preview = waitingOnMe
         ? 'Wants to chat with you.'
         : 'Waiting for them to accept.';
+    } else if (isUnread && row.lastIncoming) {
+      // Show the actual unread message, not your own reply
+      const lm = row.lastIncoming;
+      const who = other.name ? esc(String(other.name).split(/\s+/)[0]) : 'Them';
+      const body = lm.body ? esc(lm.body) : '📷 Photo';
+      preview = '<span class="chat-row-from">' + who + ':</span> ' + body;
+
+      // Count bubble next to the name
+      badge = '<span class="chat-row-count">' +
+        (row.unread > 9 ? '9+' : String(row.unread)) +
+      '</span>';
     } else if (row.lastMessage) {
       const lm = row.lastMessage;
       const who = lm.sender_id === me.id ? '<strong>You:</strong> ' : '';
