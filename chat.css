@@ -933,3 +933,36 @@
 .chat-menu-item.danger svg {
   color: #B3261E;
 }
+/* =========================================================
+   PHOTO BUBBLES — WhatsApp-style preview
+   ========================================================= */
+
+.chat-bubble-photo {
+  display: block;
+  width: auto;
+  max-width: 260px;
+  max-height: 340px;
+  border-radius: 16px;
+  margin: 0 0 4px;
+  cursor: zoom-in;
+  background: rgba(23, 43, 58, 0.05);
+  object-fit: cover;
+  object-position: center;
+}
+
+.chat-bubble.has-photo {
+  padding: 4px 4px 6px;
+  max-width: 78%;
+}
+
+.chat-bubble.me.has-photo,
+.chat-bubble.them.has-photo {
+  width: auto;
+}
+
+@media (max-width: 480px) {
+  .chat-bubble-photo {
+    max-width: 220px;
+    max-height: 300px;
+  }
+}
