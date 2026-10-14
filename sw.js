@@ -32,8 +32,8 @@ self.addEventListener('push', (event) => {
 
   const options = {
     body: data.body,
-    icon: data.icon || '/assets/images/deskly-logo-v2.png',
-    badge: data.badge || '/assets/images/deskly-logo-v2.png',
+    icon: data.icon || '/assets/brand/icon-192.png',
+    badge: data.badge || '/assets/brand/badge-96.png',
     tag: data.tag,
     renotify: !!data.tag,
     data: { url: data.url },
