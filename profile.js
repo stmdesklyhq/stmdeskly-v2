@@ -1,7 +1,6 @@
 /* =========================================================
    STMDESKLY v2 — In-app Profile
-   Same content as the public Desk + quicknav + recent posts.
-   No ?u= → shows your own profile.
+   Public view. No login needed to read. ?u= read FIRST.
    ========================================================= */
 (function () {
   'use strict';
@@ -157,7 +156,6 @@
   function renderProfile() {
     applyAppearance(desk);
 
-    // Cover
     if (coverEl && desk.cover_url) {
       coverEl.style.backgroundImage = 'url(' + desk.cover_url + ')';
       document.body.classList.add('has-cover');
@@ -165,10 +163,8 @@
       document.body.classList.remove('has-cover');
     }
 
-    // Avatar
     markEl.innerHTML = R.buildMarkHtml(desk);
 
-    // Name + role + tagline
     nameEl.textContent = desk.name || '';
     profileTitle.textContent = desk.name || 'Profile';
     document.title = (desk.name || 'Profile') + ' — STMDeskly';
@@ -176,7 +172,6 @@
     if (desk.role) { roleEl.textContent = desk.role; roleEl.hidden = false; }
     if (desk.tagline) { tagEl.textContent = desk.tagline; tagEl.hidden = false; }
 
-    // Quicknav pill visibility
     const hasOffer   = String(desk.services || '').trim().length > 0;
     const hasAbout   = String(desk.about || '').trim().length > 0;
     const hasContact = !!(desk.whatsapp || desk.email || desk.phone || desk.website);
@@ -185,21 +180,20 @@
     if (pillAbout)   pillAbout.hidden   = !hasAbout;
     if (pillContact) pillContact.hidden = !hasContact;
 
-    // Chat pill — hide if viewing yourself
+    /* Chat pill — only show if a signed-in viewer is looking at someone else */
     if (chatPill) {
       const isMe = currentUser && currentUser.id === desk.user_id;
-      chatPill.hidden = isMe;
-      if (!isMe) {
+      const canChat = !!currentUser && !isMe;
+      chatPill.hidden = !canChat;
+      if (canChat) {
         chatPill.addEventListener('click', function () {
           location.href = '/chat.html?to=' + encodeURIComponent(desk.user_id);
         });
       }
     }
 
-    // Content sections
     contentEl.innerHTML = R.buildAllSections(desk);
 
-    // Attach IDs to the inserted sections so anchor links work
     const offerSection   = contentEl.querySelector('[data-section="what-we-offer"]');
     const aboutSection   = contentEl.querySelector('[data-section="about"]');
     const contactSection = contentEl.querySelector('[data-section="contact"]');
@@ -207,12 +201,10 @@
     if (aboutSection)   aboutSection.id = 'section-about';
     if (contactSection) contactSection.id = 'section-contact';
 
-    // If a section doesn't exist, hide the corresponding pill
     if (pillOffer && !offerSection)     pillOffer.hidden = true;
     if (pillAbout && !aboutSection)     pillAbout.hidden = true;
     if (pillContact && !contactSection) pillContact.hidden = true;
 
-    // Lightbox
     contentEl.addEventListener('click', function (e) {
       const tile = e.target.closest('.desk-work-photo');
       if (tile) openLightbox(tile.dataset.src);
@@ -232,47 +224,77 @@
   if (backBtn) {
     backBtn.addEventListener('click', function () {
       if (window.history.length > 1) history.back();
-      else location.href = '/home.html';
+      else location.href = '/home';
     });
   }
 
-  /* ---------- Boot ---------- */
+  /* =========================================================
+     BOOT
+     Order matters:
+       1. Read ?u= (or /u/:username) from the URL
+       2. Load the public desk row
+       3. THEN check auth (for owner features only)
+     ========================================================= */
 
-  (async function () {
-    const user = await AUTH.currentUser();
-    if (!user) { location.replace('/login.html'); return; }
-    currentUser = user;
-    sb = AUTH.sb;
+  (async function boot() {
+    try {
+      sb = AUTH.sb;
 
-    const params = new URLSearchParams(location.search);
-    let username = (params.get('u') || '').trim().toLowerCase();
+      /* 1. Username from URL */
+      const params = new URLSearchParams(location.search);
+      let username = (params.get('u') || '').trim().toLowerCase();
 
-    // No ?u= → load your own profile.
-    // Try desk row first, fall back to user metadata.
-    if (!username) {
-      let ownUsername = '';
-
-      // 1. From the desks row
-      try {
-        const own = await AUTH.currentDesk();
-        if (own && own.username) ownUsername = String(own.username).toLowerCase();
-      } catch (e) {}
-
-      // 2. From user metadata
-      if (!ownUsername) {
-        const meta = user.user_metadata || {};
-        if (meta.username) ownUsername = String(meta.username).toLowerCase();
+      if (!username) {
+        const m = location.pathname.match(/^\/u\/([^\/?#]+)/);
+        if (m) username = decodeURIComponent(m[1]).toLowerCase();
       }
 
-      if (!ownUsername) return showMissing();
-      username = ownUsername;
+      /* 2. Get user (may be null — this is fine) */
+      try {
+        currentUser = await AUTH.currentUser();
+      } catch (e) {
+        currentUser = null;
+      }
+
+      /* 3. If no username in URL, fall back to the viewer's own username */
+      if (!username && currentUser) {
+        try {
+          const own = await AUTH.currentDesk();
+          if (own && own.username) username = String(own.username).toLowerCase();
+        } catch (e) {}
+        if (!username) {
+          const meta = currentUser.user_metadata || {};
+          if (meta.username) username = String(meta.username).toLowerCase();
+        }
+      }
+
+      /* 4. Still nothing? Then there's nothing to show */
+      if (!username) {
+        location.replace('/home');
+        return;
+      }
+
+      /* 5. Load the public desk row */
+      const res = await sb
+        .from('desks')
+        .select('*')
+        .eq('username', username)
+        .maybeSingle();
+
+      if (res.error || !res.data) {
+        showMissing();
+        return;
+      }
+
+      desk = res.data;
+
+      /* 6. Render */
+      renderProfile();
+      loadRecentPosts();
+
+    } catch (err) {
+      console.error('Profile load failed:', err);
+      showMissing();
     }
-
-    const res = await sb.from('desks').select('*').eq('username', username).maybeSingle();
-    if (res.error || !res.data) return showMissing();
-
-    desk = res.data;
-    renderProfile();
-    loadRecentPosts();
   })();
 })();
