@@ -804,3 +804,61 @@
   .post-card { padding: var(--space-3); }
   .post-actions { gap: var(--space-4); }
              }
+/* =========================================================
+   APPEND — no flash, no white overscroll, locked paper
+   ========================================================= */
+
+/* Stop the browser showing a white band during overscroll */
+html {
+  background-color: #F7F6F1;
+}
+
+html,
+body {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Lock the warm cream on the page and shell */
+body,
+.app-shell {
+  background-color: #F7F6F1;
+}
+
+/* Lock cards and surfaces to the original warm paper */
+.post-card,
+.composer,
+.filter-chip,
+.sheet,
+.sheet-post,
+.sheet-composer {
+  background-color: #FFFEFB;
+}
+
+/* Kill the momentary zoom-in on first paint.
+   Browsers render this before any external CSS loads. */
+html {
+  font-size: 16px;
+  font-family: Poppins, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+body {
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Wordmark sized to match the previous build */
+.wordmark {
+  font-size: 20px;
+  letter-spacing: -0.055em;
+}
+
+/* Headline pulled down a notch — was 24px, felt large */
+.welcome h1 {
+  font-size: 24px;
+}
+
+.welcome > p:last-child {
+  font-size: 12px;
+}
