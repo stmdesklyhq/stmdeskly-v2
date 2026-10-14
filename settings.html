@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#F7F6F1">
+<title>Settings — STMDeskly</title>
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    width: 100%; max-width: 100%;
+    overflow-x: clip;
+    background: #F7F6F1;
+    color: #172B3A;
+  }
+  body {
+    font-family: Poppins, system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 14px; line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  img { max-width: 100%; height: auto; display: block; }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; cursor: pointer; }
+  h1 { font-size: 24px; line-height: 1.2; margin: 0; font-weight: 600; letter-spacing: -0.04em; }
+  .settings-shell { width: 100%; max-width: 620px; margin: 0 auto; padding: 0 18px 112px; }
+  .topbar { min-height: 52px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="preload" as="style" href="tokens.css?v=1">
+<link rel="preload" as="style" href="settings.css?v=2">
+<link rel="preload" as="style" href="nav.css?v=4">
+
+<link rel="stylesheet" href="tokens.css?v=1">
+<link rel="stylesheet" href="settings.css?v=2">
+<link rel="stylesheet" href="nav.css?v=4">
+</head>
+
+<body class="page-settings stm-nav-page">
+
+<div class="settings-shell">
+
+<header class="topbar">
+  <a class="topbar-back" href="/home" aria-label="Back">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M19 12H5M12 19l-7-7 7-7"/>
+    </svg>
+  </a>
+  <span class="topbar-title">Settings</span>
+  <span class="topbar-spacer" aria-hidden="true"></span>
+</header>
+
+<main>
+
+  <!-- Account -->
+  <section class="settings-section">
+    <p class="settings-eyebrow">Account</p>
+    <div class="settings-list">
+      <div class="settings-row">
+        <div class="settings-row-copy">
+          <span class="settings-label">Email</span>
+        </div>
+        <span class="settings-value" id="emailValue">—</span>
+      </div>
+      <a class="settings-row is-link" href="/edit.html">
+        <div class="settings-row-copy">
+          <span class="settings-label">Display name</span>
+        </div>
+        <span class="settings-value" id="nameValue">—</span>
+        <svg class="settings-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 18l6-6-6-6"/>
+        </svg>
+      </a>
+      <a class="settings-row is-link" href="/edit.html">
+        <div class="settings-row-copy">
+          <span class="settings-label">Username</span>
+        </div>
+        <span class="settings-value" id="usernameValue">—</span>
+        <svg class="settings-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 18l6-6-6-6"/>
+        </svg>
+      </a>
+    </div>
+  </section>
+
+  <!-- Notifications -->
+  <section class="settings-section">
+    <p class="settings-eyebrow">Notifications</p>
+    <div class="settings-list">
+      <div class="settings-row">
+        <div class="settings-row-copy">
+          <span class="settings-label">Push notifications</span>
+          <span class="settings-help">Get a buzz when someone messages you.</span>
+        </div>
+        <button type="button" class="settings-switch" id="pushSwitch" role="switch" aria-checked="false" aria-label="Push notifications"><span></span></button>
+      </div>
+
+      <div class="settings-row">
+        <div class="settings-row-copy">
+          <span class="settings-label">Away mode</span>
+          <span class="settings-help">Auto-reply once when someone messages you.</span>
+        </div>
+        <button type="button" class="settings-switch" id="awaySwitch" role="switch" aria-checked="false" aria-label="Away mode"><span></span></button>
+      </div>
+
+      <div class="settings-away-editor" id="awayEditor" hidden>
+        <label class="settings-label-sm" for="awayMessage">Your away message</label>
+        <textarea class="settings-textarea" id="awayMessage" rows="3" maxlength="300" placeholder="I'm away right now. I'll get back to you soon."></textarea>
+        <div class="settings-away-actions">
+          <button type="button" class="settings-btn ghost" id="awayCancel">Cancel</button>
+          <button type="button" class="settings-btn primary" id="awaySave">Save</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Privacy & Safety -->
+  <section class="settings-section">
+    <p class="settings-eyebrow">Privacy &amp; safety</p>
+    <div class="settings-list">
+      <a class="settings-row is-link" href="/blocked">
+        <div class="settings-row-copy">
+          <span class="settings-label">Blocked users</span>
+          <span class="settings-help">People you've blocked from messaging you.</span>
+        </div>
+        <svg class="settings-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 18l6-6-6-6"/>
+        </svg>
+      </a>
+      <a class="settings-row is-link" href="mailto:support@stmdeskly.com">
+        <div class="settings-row-copy">
+          <span class="settings-label">Report a problem</span>
+          <span class="settings-help">Send us a message.</span>
+        </div>
+        <svg class="settings-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 18l6-6-6-6"/>
+        </svg>
+      </a>
+    </div>
+  </section>
+
+  <!-- About -->
+  <section class="settings-section">
+    <p class="settings-eyebrow">About</p>
+    <div class="settings-list">
+      <a class="settings-row is-link" href="/how.html">
+        <div class="settings-row-copy">
+          <span class="settings-label">How it works</span>
+        </div>
+        <svg class="settings-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 18l6-6-6-6"/>
+        </svg>
+      </a>
+      <a class="settings-row is-link" href="/term.html">
+        <div class="settings-row-copy">
+          <span class="settings-label">Terms of service</span>
+        </div>
+        <svg class="settings-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 18l6-6-6-6"/>
+        </svg>
+      </a>
+      <div class="settings-row">
+        <div class="settings-row-copy">
+          <span class="settings-label">Version</span>
+        </div>
+        <span class="settings-value">2.0</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Log out -->
+  <button type="button" class="settings-logout" id="logoutButton">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+      <path d="M16 17l5-5-5-5M21 12H9"/>
+    </svg>
+    Log out
+  </button>
+
+  <p class="settings-signature">Made with <strong>STMDeskly</strong></p>
+
+</main>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="auth.js?v=23"></script>
+<script src="settings.js?v=2"></script>
+<script src="nav.js?v=101"></script>
+
+<script>
+/* Topbar scroll behaviour — match the rest of the app */
+(function () {
+  var topbar = document.querySelector('.topbar');
+  if (!topbar) return;
+
+  function getScrollY() {
+    return Math.max(
+      window.scrollY || 0,
+      window.pageYOffset || 0,
+      document.documentElement ? document.documentElement.scrollTop : 0,
+      document.body ? document.body.scrollTop : 0
+    );
+  }
+
+  var lastY = getScrollY();
+  var ticking = false;
+
+  function update() {
+    var y = getScrollY();
+    var dy = y - lastY;
+
+    if (dy > 2 && y > 24) {
+      topbar.classList.add('is-hidden');
+      topbar.classList.remove('is-visible');
+    } else if (dy < -2) {
+      topbar.classList.remove('is-hidden');
+      topbar.classList.add('is-visible');
+    }
+
+    if (y <= 4) {
+      topbar.classList.remove('is-hidden');
+      topbar.classList.add('is-visible');
+    }
+
+    lastY = y;
+    ticking = false;
+  }
+
+  function onScroll() {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(update);
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  document.addEventListener('scroll', onScroll, { passive: true, capture: true });
+})();
+</script>
+
+</body>
+</html>
