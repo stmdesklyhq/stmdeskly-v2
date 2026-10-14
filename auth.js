@@ -571,7 +571,29 @@
     if (existing.error && existing.error.code !== 'PGRST116') {
       return { ok: false, error: existing.error };
     }
-    if (existing.data) return { ok: true, thread: existing.data, created: false };
+
+    if (existing.data) {
+      const t = existing.data;
+
+      // Cancelled or declined — reset to a fresh pending request.
+      if (t.status === 'cancelled' || t.status === 'declined') {
+        const upd = await sb
+          .from('chat_threads')
+          .update({
+            status: 'pending',
+            initiated_by: user.id,
+          })
+          .eq('id', t.id)
+          .select('id, status, initiated_by, user_a, user_b')
+          .single();
+
+        if (upd.error) return { ok: false, error: upd.error };
+        return { ok: true, thread: upd.data, created: false, reopened: true };
+      }
+
+      // Still pending or accepted — use it as-is.
+      return { ok: true, thread: t, created: false };
+    }
 
     const ins = await sb.from('chat_threads').insert({
       user_a: a,
@@ -783,7 +805,6 @@
     const user = userRes.data.user;
     if (!user) return { ok: false, error: { message: 'Not signed in' } };
 
-    // Only the sender can cancel, and only while pending.
     const cur = await sb
       .from('chat_threads')
       .select('id, initiated_by, status')
@@ -800,8 +821,6 @@
       return { ok: false, error: { message: 'This request is no longer pending' } };
     }
 
-    // No .single() here — if the update is blocked (RLS or CHECK),
-    // we get 0 rows back instead of an obscure error.
     const upd = await sb
       .from('chat_threads')
       .update({ status: 'cancelled' })
@@ -810,7 +829,6 @@
 
     if (upd.error) return { ok: false, error: upd.error };
 
-    // Confirm the change actually stuck.
     const check = await sb
       .from('chat_threads')
       .select('id, status')
@@ -821,10 +839,46 @@
       return { ok: false, error: { message: 'Update did not apply' } };
     }
     if (check.data.status !== 'cancelled') {
-      return { ok: false, error: { message: 'Database rejected the cancel. Ask the admin to update the status constraint.' } };
+      return { ok: false, error: { message: 'Database rejected the cancel.' } };
     }
 
     return { ok: true, thread: check.data };
+  }
+
+  /* ---------- Reopen a cancelled or declined thread ---------- */
+  async function reopenThread(threadId) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    const cur = await sb
+      .from('chat_threads')
+      .select('id, status, user_a, user_b, initiated_by')
+      .eq('id', threadId)
+      .maybeSingle();
+
+    if (cur.error || !cur.data) {
+      return { ok: false, error: cur.error || { message: 'Thread not found' } };
+    }
+    if (cur.data.user_a !== user.id && cur.data.user_b !== user.id) {
+      return { ok: false, error: { message: 'Not a member of this thread' } };
+    }
+    if (cur.data.status !== 'cancelled' && cur.data.status !== 'declined') {
+      return { ok: false, error: { message: 'This thread is not cancelled or declined' } };
+    }
+
+    const upd = await sb
+      .from('chat_threads')
+      .update({
+        status: 'pending',
+        initiated_by: user.id,
+      })
+      .eq('id', threadId)
+      .select('id, status, initiated_by, user_a, user_b, last_message_at')
+      .single();
+
+    if (upd.error) return { ok: false, error: upd.error };
+    return { ok: true, thread: upd.data };
   }
 
   async function markMessagesRead(threadId) {
@@ -1598,6 +1652,7 @@
     acceptThread: acceptThread,
     declineThread: declineThread,
     cancelThread: cancelThread,
+    reopenThread: reopenThread,
     markMessagesRead: markMessagesRead,
     markMessagesDelivered: markMessagesDelivered,
 
