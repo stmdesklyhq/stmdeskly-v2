@@ -777,6 +777,40 @@
     return { ok: true, thread: res.data };
   }
 
+  /* ---------- Cancel a pending request (sender only) ---------- */
+  async function cancelThread(threadId) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    // Only the sender can cancel, and only while pending.
+    const cur = await sb
+      .from('chat_threads')
+      .select('id, initiated_by, status')
+      .eq('id', threadId)
+      .maybeSingle();
+
+    if (cur.error || !cur.data) {
+      return { ok: false, error: cur.error || { message: 'Thread not found' } };
+    }
+    if (cur.data.initiated_by !== user.id) {
+      return { ok: false, error: { message: 'Only the sender can cancel' } };
+    }
+    if (cur.data.status !== 'pending') {
+      return { ok: false, error: { message: 'This request is no longer pending' } };
+    }
+
+    const res = await sb
+      .from('chat_threads')
+      .update({ status: 'cancelled' })
+      .eq('id', threadId)
+      .select('id, status')
+      .single();
+
+    if (res.error) return { ok: false, error: res.error };
+    return { ok: true, thread: res.data };
+  }
+
   async function markMessagesRead(threadId) {
     const userRes = await sb.auth.getUser();
     const user = userRes.data.user;
@@ -1547,6 +1581,7 @@
     sendVoiceMessage: sendVoiceMessage,
     acceptThread: acceptThread,
     declineThread: declineThread,
+    cancelThread: cancelThread,
     markMessagesRead: markMessagesRead,
     markMessagesDelivered: markMessagesDelivered,
 
