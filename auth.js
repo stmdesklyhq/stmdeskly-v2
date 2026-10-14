@@ -609,6 +609,8 @@
     return { ok: true, thread: thread, other: other, me: user };
   }
 
+  const MSG_COLS = 'id, sender_id, body, photo_url, audio_url, audio_duration, read_at, delivered_at, created_at, reply_to_id, deleted_at, deleted_for, is_auto';
+
   async function loadMessages(threadId, limit) {
     limit = limit || 100;
     const userRes = await sb.auth.getUser();
@@ -616,7 +618,7 @@
 
     const res = await sb
       .from('chat_messages')
-      .select('id, sender_id, body, photo_url, read_at, delivered_at, created_at, reply_to_id, deleted_at, deleted_for, is_auto')
+      .select(MSG_COLS)
       .eq('thread_id', threadId)
       .order('created_at', { ascending: true })
       .limit(limit);
@@ -641,7 +643,7 @@
     const res = await sb
       .from('chat_messages')
       .insert({ thread_id: threadId, sender_id: user.id, body: body })
-      .select('id, sender_id, body, photo_url, read_at, delivered_at, created_at, reply_to_id, deleted_at, deleted_for, is_auto')
+      .select(MSG_COLS)
       .single();
 
     if (res.error) return { ok: false, error: res.error };
@@ -658,7 +660,7 @@
       sender_id: user.id,
       body: body,
       reply_to_id: replyToId
-    }).select('id, sender_id, body, photo_url, read_at, delivered_at, created_at, reply_to_id, deleted_at, deleted_for, is_auto').single();
+    }).select(MSG_COLS).single();
 
     if (res.error) return { ok: false, error: res.error };
     return { ok: true, message: res.data };
@@ -689,7 +691,71 @@
         thread_id: threadId,
         sender_id: user.id,
         photo_url: pub.data.publicUrl
-      }).select('id, sender_id, body, photo_url, read_at, delivered_at, created_at, reply_to_id, deleted_at, deleted_for, is_auto').single();
+      }).select(MSG_COLS).single();
+
+      if (ins.error) return { ok: false, error: ins.error };
+      return { ok: true, message: ins.data };
+    } catch (err) {
+      return { ok: false, error: err };
+    }
+  }
+
+  function pickAudioMime() {
+    if (typeof MediaRecorder === 'undefined') return null;
+    const candidates = [
+      'audio/webm;codecs=opus',
+      'audio/webm',
+      'audio/ogg;codecs=opus',
+      'audio/mp4',
+    ];
+    for (let i = 0; i < candidates.length; i++) {
+      try {
+        if (MediaRecorder.isTypeSupported(candidates[i])) return candidates[i];
+      } catch (e) {}
+    }
+    return '';
+  }
+
+  function audioExtFor(mime) {
+    if (!mime) return 'webm';
+    if (mime.indexOf('mp4') !== -1) return 'm4a';
+    if (mime.indexOf('ogg') !== -1) return 'ogg';
+    return 'webm';
+  }
+
+  async function sendVoiceMessage(threadId, blob, durationSeconds) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    if (!blob || !blob.size) return { ok: false, error: { message: 'Empty recording' } };
+
+    const dur = Math.max(1, Math.round(Number(durationSeconds) || 0));
+    if (dur > 300) return { ok: false, error: { message: 'Recording too long' } };
+
+    try {
+      const id = (window.crypto && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : String(Date.now()) + Math.random().toString(36).slice(2, 9);
+
+      const mime = blob.type || 'audio/webm';
+      const ext = audioExtFor(mime);
+      const path = user.id + '/chat/' + threadId + '/voice-' + id + '.' + ext;
+
+      const up = await sb.storage.from('desk-photos').upload(path, blob, {
+        contentType: mime,
+        upsert: false
+      });
+      if (up.error) return { ok: false, error: up.error };
+
+      const pub = sb.storage.from('desk-photos').getPublicUrl(path);
+
+      const ins = await sb.from('chat_messages').insert({
+        thread_id: threadId,
+        sender_id: user.id,
+        audio_url: pub.data.publicUrl,
+        audio_duration: dur
+      }).select(MSG_COLS).single();
 
       if (ins.error) return { ok: false, error: ins.error };
       return { ok: true, message: ins.data };
@@ -704,845 +770,4 @@
     if (!user) return { ok: false, error: { message: 'Not signed in' } };
 
     const res = await sb
-      .from('chat_threads')
-      .update({ status: 'accepted' })
-      .eq('id', threadId)
-      .select('id, status')
-      .single();
-
-    if (res.error) return { ok: false, error: res.error };
-    return { ok: true, thread: res.data };
-  }
-
-  async function declineThread(threadId) {
-    const userRes = await sb.auth.getUser();
-    const user = userRes.data.user;
-    if (!user) return { ok: false, error: { message: 'Not signed in' } };
-
-    const res = await sb
-      .from('chat_threads')
-      .update({ status: 'declined' })
-      .eq('id', threadId)
-      .select('id, status')
-      .single();
-
-    if (res.error) return { ok: false, error: res.error };
-    return { ok: true, thread: res.data };
-  }
-
-  async function markMessagesRead(threadId) {
-    const userRes = await sb.auth.getUser();
-    const user = userRes.data.user;
-    if (!user) return { ok: false };
-
-    const res = await sb
-      .from('chat_messages')
-      .update({ read_at: new Date().toISOString() })
-      .eq('thread_id', threadId)
-      .is('read_at', null)
-      .neq('sender_id', user.id);
-
-    if (res.error) return { ok: false, error: res.error };
-    return { ok: true };
-  }
-
-  async function markMessagesDelivered(threadIds) {
-    const userRes = await sb.auth.getUser();
-    const user = userRes.data.user;
-    if (!user) return { ok: false };
-
-    let ids = threadIds;
-
-    if (!ids) {
-      const asA = await sb.from('chat_threads').select('id').eq('user_a', user.id);
-      const asB = await sb.from('chat_threads').select('id').eq('user_b', user.id);
-      ids = [...(asA.data || []), ...(asB.data || [])].map(function (t) { return t.id; });
-    } else if (typeof ids === 'string') {
-      ids = [ids];
-    }
-
-    if (!ids.length) return { ok: true };
-
-    const res = await sb
-      .from('chat_messages')
-      .update({ delivered_at: new Date().toISOString() })
-      .in('thread_id', ids)
-      .is('delivered_at', null)
-      .neq('sender_id', user.id);
-
-    if (res.error) return { ok: false, error: res.error };
-    return { ok: true };
-  }
-
-  /* =========================================================
-     CHAT — reactions, delete, presence
-     ========================================================= */
-
-  async function toggleMessageReaction(messageId, emoji) {
-    const userRes = await sb.auth.getUser();
-    const user = userRes.data.user;
-    if (!user) return { ok: false, error: { message: 'Not signed in' } };
-
-    const existing = await sb
-      .from('chat_reactions')
-      .select('id')
-      .eq('message_id', messageId)
-      .eq('user_id', user.id)
-      .eq('emoji', emoji)
-      .maybeSingle();
-
-    if (existing.data) {
-      const del = await sb.from('chat_reactions').delete().eq('id', existing.data.id);
-      if (del.error) return { ok: false, error: del.error };
-      return { ok: true, removed: true };
-    }
-
-    const ins = await sb.from('chat_reactions').insert({
-      message_id: messageId,
-      user_id: user.id,
-      emoji: emoji
-    });
-    if (ins.error) return { ok: false, error: ins.error };
-    return { ok: true, added: true };
-  }
-
-  async function getMessageReactions(messageIds) {
-    if (!Array.isArray(messageIds) || !messageIds.length) return { ok: true, data: {} };
-
-    const res = await sb
-      .from('chat_reactions')
-      .select('message_id, user_id, emoji')
-      .in('message_id', messageIds);
-
-    if (res.error) return { ok: false, error: res.error };
-
-    const userRes = await sb.auth.getUser();
-    const meId = userRes.data.user ? userRes.data.user.id : null;
-
-    const map = {};
-    (res.data || []).forEach(function (r) {
-      if (!map[r.message_id]) map[r.message_id] = {};
-      if (!map[r.message_id][r.emoji]) map[r.message_id][r.emoji] = { count: 0, mine: false };
-      map[r.message_id][r.emoji].count += 1;
-      if (meId && r.user_id === meId) map[r.message_id][r.emoji].mine = true;
-    });
-
-    return { ok: true, data: map };
-  }
-
-  async function deleteMessageForMe(messageId) {
-    const userRes = await sb.auth.getUser();
-    const user = userRes.data.user;
-    if (!user) return { ok: false, error: { message: 'Not signed in' } };
-
-    const cur = await sb.from('chat_messages').select('deleted_for').eq('id', messageId).maybeSingle();
-    if (cur.error) return { ok: false, error: cur.error };
-
-    const list = Array.isArray(cur.data && cur.data.deleted_for) ? cur.data.deleted_for.slice() : [];
-    if (list.indexOf(user.id) === -1) list.push(user.id);
-
-    const res = await sb.from('chat_messages').update({ deleted_for: list }).eq('id', messageId);
-    if (res.error) return { ok: false, error: res.error };
-    return { ok: true };
-  }
-
-  async function deleteMessageForEveryone(messageId) {
-    const userRes = await sb.auth.getUser();
-    const user = userRes.data.user;
-    if (!user) return { ok: false, error: { message: 'Not signed in' } };
-
-    const cur = await sb.from('chat_messages').select('sender_id, created_at').eq('id', messageId).maybeSingle();
-    if (cur.error || !cur.data) return { ok: false, error: cur.error || { message: 'Not found' } };
-    if (cur.data.sender_id !== user.id) return { ok: false, error: { message: 'Only the sender can delete for everyone' } };
-    if (Date.now() - new Date(cur.data.created_at).getTime() > 24 * 60 * 60 * 1000) {
-      return { ok: false, error: { message: 'Too late to delete for everyone' } };
-    }
-
-    const res = await sb.from('chat_messages').update({
-      deleted_at: new Date().toISOString(),
-      body: null,
-      photo_url: null
-    }).eq('id', messageId);
-
-    if (res.error) return { ok: false, error: res.error };
-    return { ok: true };
-  }
-
-  async function touchPresence() {
-    try {
-      await sb.rpc('touch_presence');
-      return { ok: true };
-    } catch (e) {
-      return { ok: false };
-    }
-  }
-
-  async function getPresence(userId) {
-    const res = await sb.from('desks').select('last_seen_at').eq('user_id', userId).maybeSingle();
-    if (res.error || !res.data) return { online: false, lastSeen: null };
-    const t = res.data.last_seen_at;
-    if (!t) return { online: false, lastSeen: null };
-    const diff = Date.now() - new Date(t).getTime();
-    return { online: diff < 90000, lastSeen: t };
-  }
-
-  /* =========================================================
-     SAFETY — mute, block, report
-     ========================================================= */
-
-  async function muteThread(threadId) {
-    const userRes = await sb.auth.getUser();
-    const user = userRes.data.user;
-    if (!user) return { ok: false, error: { message: 'Not signed in' } };
-
-    const res = await sb.from('chat_mutes').insert({
-      user_id: user.id,
-      thread_id: threadId
-    });
-    if (res.error && res.error.code !== '23505') {
-      return { ok: false, error: res.error };
-    }
-    return { ok: true };
-  }
-
-  async function unmuteThread(threadId) {
-    const userRes = await sb.auth.getUser();
-    const user = userRes.data.user;
-    if (!user) return { ok: false, error: { message: 'Not signed in' } };
-
-    const res = await sb.from('chat_mutes')
-      .delete()
-      .eq('user_id', user.id)
-      .eq('thread_id', threadId);
-    if (res.error) return { ok: false, error: res.error };
-    return { ok: true };
-  }
-
-  async function isThreadMuted(threadId) {
-    const userRes = await sb.auth.getUser();
-    const user = userRes.data.user;
-    if (!user) return false;
-
-    const res = await sb.from('chat_mutes')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('thread_id', threadId)
-      .maybeSingle();
-    return !!res.data;
-  }
-
-  async function getMutedThreads() {
-    const userRes = await sb.auth.getUser();
-    const user = userRes.data.user;
-    if (!user) return { ok: true, data: [] };
-
-    const res = await sb.from('chat_mutes')
-      .select('thread_id')
-      .eq('user_id', user.id);
-    if (res.error) return { ok: false, error: res.error };
-    return { ok: true, data: (res.data || []).map(function (r) { return r.thread_id; }) };
-  }
-
-  async function blockUser(userId) {
-    const userRes = await sb.auth.getUser();
-    const user = userRes.data.user;
-    if (!user) return { ok: false, error: { message: 'Not signed in' } };
-    if (user.id === userId) return { ok: false, error: { message: 'You cannot block yourself' } };
-
-    const res = await sb.from('user_blocks').insert({
-      blocker_id: user.id,
-      blocked_id: userId
-    });
-    if (res.error && res.error.code !== '23505') {
-      return { ok: false, error: res.error };
-    }
-    return { ok: true };
-  }
-
-  async function unblockUser(userId) {
-    const userRes = await sb.auth.getUser();
-    const user = userRes.data.user;
-    if (!user) return { ok: false, error: { message: 'Not signed in' } };
-
-    const res = await sb.from('user_blocks')
-      .delete()
-      .eq('blocker_id', user.id)
-      .eq('blocked_id', userId);
-    if (res.error) return { ok: false, error: res.error };
-    return { ok: true };
-  }
-
-  async function isBlocked(userId) {
-    const userRes = await sb.auth.getUser();
-    const user = userRes.data.user;
-    if (!user) return { me: false, them: false };
-
-    const mineRes = await sb.from('user_blocks')
-      .select('id')
-      .eq('blocker_id', user.id)
-      .eq('blocked_id', userId)
-      .maybeSingle();
-
-    const theirRes = await sb.from('user_blocks')
-      .select('id')
-      .eq('blocker_id', userId)
-      .eq('blocked_id', user.id)
-      .maybeSingle();
-
-    return {
-      me: !!mineRes.data,
-      them: !!theirRes.data
-    };
-  }
-
-  async function getBlockedUsers() {
-    const userRes = await sb.auth.getUser();
-    const user = userRes.data.user;
-    if (!user) return { ok: true, data: [] };
-
-    const res = await sb.from('user_blocks')
-      .select('blocked_id, created_at')
-      .eq('blocker_id', user.id)
-      .order('created_at', { ascending: false });
-    if (res.error) return { ok: false, error: res.error };
-    return { ok: true, data: res.data || [] };
-  }
-
-  async function reportUser(userId, reason, notes, threadId) {
-    const userRes = await sb.auth.getUser();
-    const user = userRes.data.user;
-    if (!user) return { ok: false, error: { message: 'Not signed in' } };
-    if (user.id === userId) return { ok: false, error: { message: 'You cannot report yourself' } };
-
-    const res = await sb.from('user_reports').insert({
-      reporter_id: user.id,
-      reported_id: userId,
-      reason: reason,
-      notes: notes || null,
-      thread_id: threadId || null
-    });
-    if (res.error) return { ok: false, error: res.error };
-    return { ok: true };
-  }
-
-  /* =========================================================
-     QUICK REPLIES
-     ========================================================= */
-
-  async function getQuickReplies() {
-    const userRes = await sb.auth.getUser();
-    const user = userRes.data.user;
-    if (!user) return { ok: true, data: [] };
-
-    const res = await sb.from('quick_replies')
-      .select('id, body, sort_order, created_at')
-      .eq('user_id', user.id)
-      .order('sort_order', { ascending: true })
-      .order('created_at', { ascending: true });
-
-    if (res.error) return { ok: false, error: res.error };
-    return { ok: true, data: res.data || [] };
-  }
-
-  async function createQuickReply(body, sortOrder) {
-    const userRes = await sb.auth.getUser();
-    const user = userRes.data.user;
-    if (!user) return { ok: false, error: { message: 'Not signed in' } };
-
-    const clean = String(body || '').trim();
-    if (!clean) return { ok: false, error: { message: 'Empty reply' } };
-    if (clean.length > 500) return { ok: false, error: { message: 'Too long (max 500)' } };
-
-    const res = await sb.from('quick_replies').insert({
-      user_id: user.id,
-      body: clean,
-      sort_order: sortOrder || 0
-    }).select('id, body, sort_order, created_at').single();
-
-    if (res.error) return { ok: false, error: res.error };
-    return { ok: true, data: res.data };
-  }
-
-  async function updateQuickReply(id, body) {
-    const userRes = await sb.auth.getUser();
-    const user = userRes.data.user;
-    if (!user) return { ok: false, error: { message: 'Not signed in' } };
-
-    const clean = String(body || '').trim();
-    if (!clean) return { ok: false, error: { message: 'Empty reply' } };
-    if (clean.length > 500) return { ok: false, error: { message: 'Too long (max 500)' } };
-
-    const res = await sb.from('quick_replies')
-      .update({ body: clean })
-      .eq('id', id)
-      .eq('user_id', user.id)
-      .select('id, body, sort_order, created_at')
-      .single();
-
-    if (res.error) return { ok: false, error: res.error };
-    return { ok: true, data: res.data };
-  }
-
-  async function deleteQuickReply(id) {
-    const userRes = await sb.auth.getUser();
-    const user = userRes.data.user;
-    if (!user) return { ok: false, error: { message: 'Not signed in' } };
-
-    const res = await sb.from('quick_replies')
-      .delete()
-      .eq('id', id)
-      .eq('user_id', user.id);
-    if (res.error) return { ok: false, error: res.error };
-    return { ok: true };
-  }
-
-  /* =========================================================
-     AWAY AUTO-REPLY
-     ========================================================= */
-
-  async function getAwaySettings() {
-    const userRes = await sb.auth.getUser();
-    const user = userRes.data.user;
-    if (!user) return { ok: false, enabled: false, message: '' };
-
-    const res = await sb.from('desks')
-      .select('away_enabled, away_message')
-      .eq('user_id', user.id)
-      .maybeSingle();
-
-    if (res.error) return { ok: false, enabled: false, message: '' };
-    return {
-      ok: true,
-      enabled: !!(res.data && res.data.away_enabled),
-      message: (res.data && res.data.away_message) || ''
-    };
-  }
-
-  async function setAwaySettings(enabled, message) {
-    const userRes = await sb.auth.getUser();
-    const user = userRes.data.user;
-    if (!user) return { ok: false, error: { message: 'Not signed in' } };
-
-    const clean = String(message || '').trim();
-    if (clean.length > 300) {
-      return { ok: false, error: { message: 'Message too long (max 300)' } };
-    }
-
-    const res = await sb.from('desks')
-      .update({
-        away_enabled: !!enabled,
-        away_message: clean || null
-      })
-      .eq('user_id', user.id);
-
-    if (res.error) return { ok: false, error: res.error };
-    return { ok: true };
-  }
-
-  /* =========================================================
-     BATCH 3 — stars, archives, pins, forced unread
-     ========================================================= */
-
-  async function toggleStarMessage(messageId) {
-    const userRes = await sb.auth.getUser();
-    const user = userRes.data.user;
-    if (!user) return { ok: false, error: { message: 'Not signed in' } };
-
-    const existing = await sb.from('chat_stars')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('message_id', messageId)
-      .maybeSingle();
-
-    if (existing.data) {
-      await sb.from('chat_stars').delete().eq('id', existing.data.id);
-      return { ok: true, starred: false };
-    }
-
-    const ins = await sb.from('chat_stars').insert({
-      user_id: user.id,
-      message_id: messageId
-    });
-    if (ins.error && ins.error.code !== '23505') {
-      return { ok: false, error: ins.error };
-    }
-    return { ok: true, starred: true };
-  }
-
-  async function getStarredMessages() {
-    const userRes = await sb.auth.getUser();
-    const user = userRes.data.user;
-    if (!user) return { ok: true, data: [] };
-
-    const res = await sb.from('chat_stars')
-      .select('id, message_id, created_at')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
-
-    if (res.error) return { ok: false, error: res.error };
-    if (!res.data || !res.data.length) return { ok: true, data: [] };
-
-    const messageIds = res.data.map(function (s) { return s.message_id; });
-
-    const msgRes = await sb.from('chat_messages')
-      .select('id, thread_id, sender_id, body, photo_url, created_at, deleted_at, is_auto')
-      .in('id', messageIds);
-
-    if (msgRes.error) return { ok: false, error: msgRes.error };
-
-    const msgMap = {};
-    (msgRes.data || []).forEach(function (m) { msgMap[m.id] = m; });
-
-    const rows = res.data.map(function (s) {
-      const m = msgMap[s.message_id];
-      if (!m) return null;
-      return {
-        star_id: s.id,
-        starred_at: s.created_at,
-        message: m
-      };
-    }).filter(Boolean);
-
-    return { ok: true, data: rows };
-  }
-
-  async function archiveThread(threadId) {
-    const userRes = await sb.auth.getUser();
-    const user = userRes.data.user;
-    if (!user) return { ok: false, error: { message: 'Not signed in' } };
-
-    const res = await sb.from('chat_archives').insert({
-      user_id: user.id,
-      thread_id: threadId
-    });
-    if (res.error && res.error.code !== '23505') return { ok: false, error: res.error };
-    return { ok: true };
-  }
-
-  async function unarchiveThread(threadId) {
-    const userRes = await sb.auth.getUser();
-    const user = userRes.data.user;
-    if (!user) return { ok: false, error: { message: 'Not signed in' } };
-
-    const res = await sb.from('chat_archives')
-      .delete()
-      .eq('user_id', user.id)
-      .eq('thread_id', threadId);
-    if (res.error) return { ok: false, error: res.error };
-    return { ok: true };
-  }
-
-  async function getArchivedThreads() {
-    const userRes = await sb.auth.getUser();
-    const user = userRes.data.user;
-    if (!user) return { ok: true, data: [] };
-
-    const res = await sb.from('chat_archives').select('thread_id').eq('user_id', user.id);
-    if (res.error) return { ok: false, error: res.error };
-    return { ok: true, data: (res.data || []).map(function (r) { return r.thread_id; }) };
-  }
-
-  async function pinThread(threadId) {
-    const userRes = await sb.auth.getUser();
-    const user = userRes.data.user;
-    if (!user) return { ok: false, error: { message: 'Not signed in' } };
-
-    const res = await sb.from('chat_pins').insert({
-      user_id: user.id,
-      thread_id: threadId
-    });
-    if (res.error && res.error.code !== '23505') return { ok: false, error: res.error };
-    return { ok: true };
-  }
-
-  async function unpinThread(threadId) {
-    const userRes = await sb.auth.getUser();
-    const user = userRes.data.user;
-    if (!user) return { ok: false, error: { message: 'Not signed in' } };
-
-    const res = await sb.from('chat_pins')
-      .delete()
-      .eq('user_id', user.id)
-      .eq('thread_id', threadId);
-    if (res.error) return { ok: false, error: res.error };
-    return { ok: true };
-  }
-
-  async function getPinnedThreads() {
-    const userRes = await sb.auth.getUser();
-    const user = userRes.data.user;
-    if (!user) return { ok: true, data: [] };
-
-    const res = await sb.from('chat_pins')
-      .select('thread_id, created_at')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: true });
-    if (res.error) return { ok: false, error: res.error };
-    return { ok: true, data: res.data || [] };
-  }
-
-  async function markThreadUnread(threadId) {
-    const userRes = await sb.auth.getUser();
-    const user = userRes.data.user;
-    if (!user) return { ok: false, error: { message: 'Not signed in' } };
-
-    const res = await sb.from('chat_forced_unread').insert({
-      user_id: user.id,
-      thread_id: threadId
-    });
-    if (res.error && res.error.code !== '23505') return { ok: false, error: res.error };
-    return { ok: true };
-  }
-
-  async function clearThreadUnread(threadId) {
-    const userRes = await sb.auth.getUser();
-    const user = userRes.data.user;
-    if (!user) return { ok: false, error: { message: 'Not signed in' } };
-
-    const res = await sb.from('chat_forced_unread')
-      .delete()
-      .eq('user_id', user.id)
-      .eq('thread_id', threadId);
-    if (res.error) return { ok: false, error: res.error };
-    return { ok: true };
-  }
-
-  async function getForcedUnreadThreads() {
-    const userRes = await sb.auth.getUser();
-    const user = userRes.data.user;
-    if (!user) return { ok: true, data: [] };
-
-    const res = await sb.from('chat_forced_unread').select('thread_id').eq('user_id', user.id);
-    if (res.error) return { ok: false, error: res.error };
-    return { ok: true, data: (res.data || []).map(function (r) { return r.thread_id; }) };
-  }
-
-  /* =========================================================
-     PUSH NOTIFICATIONS
-     ========================================================= */
-
-  let swRegistration = null;
-
-  async function registerServiceWorker() {
-    if (!('serviceWorker' in navigator)) return { ok: false, reason: 'unsupported' };
-    try {
-      swRegistration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
-      return { ok: true, registration: swRegistration };
-    } catch (err) {
-      return { ok: false, reason: 'register-failed', error: err };
-    }
-  }
-
-  function isPushSupported() {
-    return (
-      'serviceWorker' in navigator &&
-      'PushManager' in window &&
-      'Notification' in window
-    );
-  }
-
-  function getPushPermission() {
-    if (!('Notification' in window)) return 'unsupported';
-    return Notification.permission;
-  }
-
-  function urlBase64ToUint8Array(base64String) {
-    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
-    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-    const raw = atob(base64);
-    const out = new Uint8Array(raw.length);
-    for (let i = 0; i < raw.length; ++i) out[i] = raw.charCodeAt(i);
-    return out;
-  }
-
-  async function getCurrentSubscription() {
-    try {
-      if (!swRegistration && 'serviceWorker' in navigator) {
-        swRegistration = await navigator.serviceWorker.getRegistration('/');
-      }
-      if (!swRegistration) return null;
-      return await swRegistration.pushManager.getSubscription();
-    } catch (e) {
-      return null;
-    }
-  }
-
-  async function enablePush() {
-    const userRes = await sb.auth.getUser();
-    const user = userRes.data.user;
-    if (!user) return { ok: false, reason: 'not-signed-in' };
-
-    if (!isPushSupported()) return { ok: false, reason: 'unsupported' };
-
-    if (!swRegistration) {
-      const reg = await registerServiceWorker();
-      if (!reg.ok) return { ok: false, reason: reg.reason, error: reg.error };
-    }
-
-    const perm = await Notification.requestPermission();
-    if (perm !== 'granted') return { ok: false, reason: 'denied' };
-
-    const vapidPublic = cfg.vapidPublicKey;
-    if (!vapidPublic) return { ok: false, reason: 'no-vapid-key' };
-
-    let sub;
-    try {
-      sub = await swRegistration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(vapidPublic),
-      });
-    } catch (err) {
-      return { ok: false, reason: 'subscribe-failed', error: err };
-    }
-
-    const json = sub.toJSON();
-    if (!json.endpoint || !json.keys || !json.keys.p256dh || !json.keys.auth) {
-      return { ok: false, reason: 'bad-subscription' };
-    }
-
-    await sb.from('push_subscriptions').delete().eq('endpoint', json.endpoint);
-
-    const save = await sb
-      .from('push_subscriptions')
-      .insert({
-        user_id: user.id,
-        endpoint: json.endpoint,
-        p256dh: json.keys.p256dh,
-        auth: json.keys.auth,
-        user_agent: navigator.userAgent || null,
-      });
-
-    if (save.error) {
-      return {
-        ok: false,
-        reason: 'save-failed',
-        error: {
-          message: (save.error.message || 'unknown') +
-            ' [' + (save.error.code || '') + ']'
-        }
-      };
-    }
-
-    return { ok: true, endpoint: json.endpoint };
-  }
-
-  async function disablePush() {
-    const sub = await getCurrentSubscription();
-    if (sub) {
-      try { await sub.unsubscribe(); } catch (e) {}
-      await sb.from('push_subscriptions').delete().eq('endpoint', sub.endpoint);
-    }
-    const userRes = await sb.auth.getUser();
-    const user = userRes.data.user;
-    if (user) {
-      await sb.from('push_subscriptions').delete().eq('user_id', user.id);
-    }
-    return { ok: true };
-  }
-
-  async function getPushState() {
-    const supported = isPushSupported();
-    const permission = getPushPermission();
-    const sub = await getCurrentSubscription();
-    return {
-      supported,
-      permission,
-      subscribed: !!sub,
-    };
-  }
-
-  /* =========================================================
-     PUBLIC API
-     ========================================================= */
-
-  window.AUTH = {
-    sb: sb,
-
-    pwStrength: pwStrength,
-    pwBreached: pwBreached,
-    checkUsername: checkUsername,
-    signupEmail: signupEmail,
-    loginEmail: loginEmail,
-    signInGoogle: signInGoogle,
-    createDesk: createDesk,
-    currentUser: currentUser,
-    currentDesk: currentDesk,
-    logout: logout,
-    rlCheck: rlCheck,
-    rlRecord: rlRecord,
-    sendPasswordReset: sendPasswordReset,
-    updatePassword: updatePassword,
-
-    updateDesk: updateDesk,
-    uploadAvatar: uploadAvatar,
-    uploadCover: uploadCover,
-    uploadPhoto: uploadPhoto,
-    removePhoto: removePhoto,
-
-    createPost: createPost,
-    uploadPostPhoto: uploadPostPhoto,
-    toggleReaction: toggleReaction,
-    getPostReactions: getPostReactions,
-    deletePost: deletePost,
-
-    getPostReplies: getPostReplies,
-    createReply: createReply,
-    getReplyCounts: getReplyCounts,
-    deleteReply: deleteReply,
-
-    startThread: startThread,
-    loadThread: loadThread,
-    loadMessages: loadMessages,
-    sendMessage: sendMessage,
-    sendReply: sendReply,
-    sendPhotoMessage: sendPhotoMessage,
-    acceptThread: acceptThread,
-    declineThread: declineThread,
-    markMessagesRead: markMessagesRead,
-    markMessagesDelivered: markMessagesDelivered,
-
-    toggleMessageReaction: toggleMessageReaction,
-    getMessageReactions: getMessageReactions,
-    deleteMessageForMe: deleteMessageForMe,
-    deleteMessageForEveryone: deleteMessageForEveryone,
-    touchPresence: touchPresence,
-    getPresence: getPresence,
-
-    muteThread: muteThread,
-    unmuteThread: unmuteThread,
-    isThreadMuted: isThreadMuted,
-    getMutedThreads: getMutedThreads,
-    blockUser: blockUser,
-    unblockUser: unblockUser,
-    isBlocked: isBlocked,
-    getBlockedUsers: getBlockedUsers,
-    reportUser: reportUser,
-
-    getQuickReplies: getQuickReplies,
-    createQuickReply: createQuickReply,
-    updateQuickReply: updateQuickReply,
-    deleteQuickReply: deleteQuickReply,
-
-    getAwaySettings: getAwaySettings,
-    setAwaySettings: setAwaySettings,
-
-    toggleStarMessage: toggleStarMessage,
-    getStarredMessages: getStarredMessages,
-    archiveThread: archiveThread,
-    unarchiveThread: unarchiveThread,
-    getArchivedThreads: getArchivedThreads,
-    pinThread: pinThread,
-    unpinThread: unpinThread,
-    getPinnedThreads: getPinnedThreads,
-    markThreadUnread: markThreadUnread,
-    clearThreadUnread: clearThreadUnread,
-    getForcedUnreadThreads: getForcedUnreadThreads,
-
-    registerServiceWorker: registerServiceWorker,
-    isPushSupported: isPushSupported,
-    getPushPermission: getPushPermission,
-    enablePush: enablePush,
-    disablePush: disablePush,
-    getPushState: getPushState,
-  };
-})();
+      .from('chat_thread
