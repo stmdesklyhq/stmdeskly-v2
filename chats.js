@@ -1,6 +1,7 @@
 /* =========================================================
    STMDESKLY v2 — Chats inbox
-   Pin, archive, mark unread, mute, four tabs.
+   Pin, archive, mark unread, mute, all five tabs.
+   Cancelled threads are hidden everywhere.
    ========================================================= */
 (function () {
   'use strict';
@@ -137,6 +138,9 @@
   function applyFilters(rows) {
     let out = rows;
 
+    /* Hide cancelled threads from every tab */
+    out = out.filter(r => r.thread.status !== 'cancelled');
+
     if (currentTab === 'archived') {
       out = out.filter(r => r.archived);
     } else {
@@ -265,10 +269,8 @@
   function render() {
     const filtered = applyFilters(allRows);
 
-    /* Clear any existing rows */
     listEl.querySelectorAll('.chat-row').forEach(n => n.remove());
 
-    /* Always reset empty state to hidden first */
     emptyEl.hidden = true;
 
     if (!filtered.length) {
@@ -512,14 +514,14 @@
     if (data) openActionSheet(threadId, data.other);
   });
 
-  tabsEl.addEventListener('click', function (e) {
+  tabsEl.addEventListener('click', e => {
     const tab = e.target.closest('.chats-tab');
     if (!tab) return;
     const t = tab.dataset.tab;
     if (t === currentTab) return;
 
     currentTab = t;
-    tabsEl.querySelectorAll('.chats-tab').forEach(function (c) {
+    tabsEl.querySelectorAll('.chats-tab').forEach(c => {
       const on = c.dataset.tab === t;
       c.classList.toggle('is-current', on);
       c.setAttribute('aria-pressed', String(on));
@@ -528,7 +530,7 @@
   });
 
   if (searchEl) {
-    searchEl.addEventListener('input', function () {
+    searchEl.addEventListener('input', () => {
       currentQuery = searchEl.value.trim();
       if (clearEl) clearEl.hidden = !currentQuery;
       render();
@@ -536,7 +538,7 @@
   }
 
   if (clearEl) {
-    clearEl.addEventListener('click', function () {
+    clearEl.addEventListener('click', () => {
       searchEl.value = '';
       currentQuery = '';
       clearEl.hidden = true;
