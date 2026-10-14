@@ -859,6 +859,129 @@
   }
 
   /* =========================================================
+     PUSH NOTIFICATIONS
+     ========================================================= */
+
+  let swRegistration = null;
+
+  async function registerServiceWorker() {
+    if (!('serviceWorker' in navigator)) return { ok: false, reason: 'unsupported' };
+    try {
+      swRegistration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+      return { ok: true, registration: swRegistration };
+    } catch (err) {
+      return { ok: false, reason: 'register-failed', error: err };
+    }
+  }
+
+  function isPushSupported() {
+    return (
+      'serviceWorker' in navigator &&
+      'PushManager' in window &&
+      'Notification' in window
+    );
+  }
+
+  function getPushPermission() {
+    if (!('Notification' in window)) return 'unsupported';
+    return Notification.permission; // 'default' | 'granted' | 'denied'
+  }
+
+  function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const raw = atob(base64);
+    const out = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; ++i) out[i] = raw.charCodeAt(i);
+    return out;
+  }
+
+  async function getCurrentSubscription() {
+    if (!swRegistration) return null;
+    try {
+      return await swRegistration.pushManager.getSubscription();
+    } catch (e) {
+      return null;
+    }
+  }
+
+  async function enablePush() {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, reason: 'not-signed-in' };
+
+    if (!isPushSupported()) return { ok: false, reason: 'unsupported' };
+
+    if (!swRegistration) {
+      const reg = await registerServiceWorker();
+      if (!reg.ok) return { ok: false, reason: reg.reason, error: reg.error };
+    }
+
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') return { ok: false, reason: 'denied' };
+
+    const vapidPublic = cfg.vapidPublicKey;
+    if (!vapidPublic) return { ok: false, reason: 'no-vapid-key' };
+
+    let sub;
+    try {
+      sub = await swRegistration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(vapidPublic),
+      });
+    } catch (err) {
+      return { ok: false, reason: 'subscribe-failed', error: err };
+    }
+
+    const json = sub.toJSON();
+    if (!json.endpoint || !json.keys || !json.keys.p256dh || !json.keys.auth) {
+      return { ok: false, reason: 'bad-subscription' };
+    }
+
+    const save = await sb
+      .from('push_subscriptions')
+      .upsert({
+        user_id: user.id,
+        endpoint: json.endpoint,
+        p256dh: json.keys.p256dh,
+        auth: json.keys.auth,
+        user_agent: navigator.userAgent || null,
+      }, { onConflict: 'endpoint' });
+
+    if (save.error) return { ok: false, reason: 'save-failed', error: save.error };
+    return { ok: true, endpoint: json.endpoint };
+  }
+
+  async function disablePush() {
+    const sub = await getCurrentSubscription();
+    if (sub) {
+      try { await sub.unsubscribe(); } catch (e) {}
+
+      const endpoint = sub.endpoint;
+      await sb.from('push_subscriptions').delete().eq('endpoint', endpoint);
+    }
+
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (user) {
+      await sb.from('push_subscriptions').delete().eq('user_id', user.id);
+    }
+
+    return { ok: true };
+  }
+
+  async function getPushState() {
+    const supported = isPushSupported();
+    const permission = getPushPermission();
+    const sub = await getCurrentSubscription();
+    return {
+      supported,
+      permission,
+      subscribed: !!sub,
+    };
+  }
+
+  /* =========================================================
      PUBLIC API
      ========================================================= */
 
@@ -919,5 +1042,13 @@
     deleteMessageForEveryone: deleteMessageForEveryone,
     touchPresence: touchPresence,
     getPresence: getPresence,
+
+    // Push
+    registerServiceWorker: registerServiceWorker,
+    isPushSupported: isPushSupported,
+    getPushPermission: getPushPermission,
+    enablePush: enablePush,
+    disablePush: disablePush,
+    getPushState: getPushState,
   };
 })();
