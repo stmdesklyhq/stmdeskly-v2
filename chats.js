@@ -23,6 +23,7 @@
   let allRows = [];
   let currentTab = 'all';
   let currentQuery = '';
+  let mutedThreadIds = new Set();
 
   function initials(name) {
     const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
@@ -122,7 +123,8 @@
         other,
         lastMessage: lastByThread[t.id],
         lastIncoming: lastIncomingByThread[t.id],
-        unread: unreadByThread[t.id] || 0
+        unread: unreadByThread[t.id] || 0,
+        muted: mutedThreadIds.has(t.id)
       };
     });
   }
@@ -197,11 +199,22 @@
 
     const cls = 'chat-row' +
       (isPending ? ' is-pending' : '') +
-      (isUnread ? ' is-unread' : '');
+      (isUnread ? ' is-unread' : '') +
+      (row.muted ? ' is-muted' : '');
 
     const rightBadge = isUnread
       ? '<span class="chat-row-count">' +
           (row.unread > 9 ? '9+' : String(row.unread)) +
+        '</span>'
+      : '';
+
+    const muteMark = row.muted
+      ? '<span class="chat-row-muted" aria-label="Muted">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+            '<path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/>' +
+            '<path d="M10 21h4"/>' +
+            '<line x1="3" y1="3" x2="21" y2="21"/>' +
+          '</svg>' +
         '</span>'
       : '';
 
@@ -219,6 +232,7 @@
       '</span>' +
       '<span class="chat-row-right">' +
         '<span class="chat-row-time">' + esc(timeShort(t.last_message_at)) + '</span>' +
+        muteMark +
         rightBadge +
       '</span>' +
     '</a>';
@@ -259,7 +273,9 @@
   }
 
   function paintCounts() {
-    const unread = allRows.filter(r => r.unread > 0 && r.thread.status !== 'pending').length;
+    const unread = allRows.filter(r =>
+      r.unread > 0 && r.thread.status !== 'pending' && !r.muted
+    ).length;
     const requests = allRows.filter(r =>
       r.thread.status === 'pending' && r.thread.initiated_by !== me.id
     ).length;
@@ -284,6 +300,12 @@
 
   async function refresh() {
     try {
+      mutedThreadIds = new Set();
+      try {
+        const m = await AUTH.getMutedThreads();
+        if (m.ok) mutedThreadIds = new Set(m.data);
+      } catch (e) {}
+
       allRows = await loadThreads();
       loadingEl.hidden = true;
       paintCounts();
