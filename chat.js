@@ -1,7 +1,7 @@
 /* =========================================================
    STMDESKLY v2 — Single chat
    Reply, react, delete, photos, presence, typing, delivery,
-   mute, block, report.
+   mute, block, report, quick replies.
    ========================================================= */
 (function () {
   'use strict';
@@ -48,6 +48,14 @@
   const blockedBannerText = $('blockedBannerText');
   const blockedUnblock  = $('blockedUnblock');
 
+  const quickBtn      = $('quickBtn');
+  const quickOverlay  = $('quickOverlay');
+  const quickClose    = $('quickClose');
+  const quickList     = $('quickList');
+  const quickAdd      = $('quickAdd');
+  const quickDeskLink = $('quickDeskLink');
+  const quickLocation = $('quickLocation');
+
   const REACTION_EMOJIS = ['👍', '❤️', '😂', '🔥', '🙏', '👏'];
 
   let me = null;
@@ -70,6 +78,7 @@
 
   let isMuted = false;
   let blockedState = { me: false, them: false };
+  let quickRepliesCache = [];
 
   function initials(name) {
     const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
@@ -621,6 +630,153 @@
     chatComposer.hidden = true;
   }
 
+  /* ---------- Quick replies ---------- */
+
+  function renderQuickList() {
+    if (!quickList) return;
+
+    quickList.innerHTML = '';
+
+    if (!quickRepliesCache.length) {
+      const empty = document.createElement('div');
+      empty.className = 'quick-empty';
+      empty.textContent = 'No quick replies yet. Tap Add below to save your first one.';
+      quickList.appendChild(empty);
+      return;
+    }
+
+    quickRepliesCache.forEach(function (qr) {
+      const row = document.createElement('div');
+      row.className = 'quick-row';
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'quick-item';
+      btn.textContent = qr.body;
+      btn.addEventListener('click', function () {
+        insertQuickReply(qr.body);
+      });
+
+      row.appendChild(btn);
+
+      const menu = document.createElement('button');
+      menu.type = 'button';
+      menu.className = 'quick-item-menu';
+      menu.setAttribute('aria-label', 'Options');
+      menu.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>';
+      menu.addEventListener('click', function (e) {
+        e.stopPropagation();
+        openQuickItemMenu(qr);
+      });
+
+      row.appendChild(menu);
+      quickList.appendChild(row);
+    });
+  }
+
+  function openQuickItemMenu(qr) {
+    const preview = qr.body.slice(0, 40) + (qr.body.length > 40 ? '…' : '');
+    const action = prompt(
+      'Reply: "' + preview + '"\n\n' +
+      'Type:\n' +
+      '1 — Edit\n' +
+      '2 — Delete\n' +
+      '3 — Cancel'
+    );
+    if (!action) return;
+
+    if (action === '1') {
+      const next = prompt('Edit reply:', qr.body);
+      if (!next || next.trim() === qr.body) return;
+      AUTH.updateQuickReply(qr.id, next.trim()).then(function () {
+        loadQuickReplies();
+      });
+    } else if (action === '2') {
+      if (!confirm('Delete this quick reply?')) return;
+      AUTH.deleteQuickReply(qr.id).then(function () {
+        loadQuickReplies();
+      });
+    }
+  }
+
+  async function loadQuickReplies() {
+    const res = await AUTH.getQuickReplies();
+    quickRepliesCache = res.ok ? res.data : [];
+    renderQuickList();
+  }
+
+  function insertQuickReply(text) {
+    if (!chatInput) return;
+    const current = chatInput.value;
+    const next = current ? (current + ' ' + text) : text;
+    chatInput.value = next;
+    autoGrow();
+    chatInput.focus();
+    closeQuickSheet();
+  }
+
+  function openQuickSheet() {
+    if (!quickOverlay) return;
+    quickOverlay.hidden = false;
+    loadQuickReplies();
+  }
+
+  function closeQuickSheet() {
+    if (!quickOverlay) return;
+    quickOverlay.hidden = true;
+  }
+
+  async function doAddQuickReply() {
+    const text = prompt(
+      'Write the message you want to save as a quick reply:\n\n' +
+      'Examples:\n' +
+      '• What is your address?\n' +
+      '• My rate is ₦15,000 per session.\n' +
+      '• Service times are 8am and 10am.'
+    );
+    if (!text) return;
+    const clean = text.trim();
+    if (!clean) return;
+
+    const res = await AUTH.createQuickReply(clean, quickRepliesCache.length);
+    if (!res.ok) {
+      alert((res.error && res.error.message) || 'Could not save.');
+      return;
+    }
+    loadQuickReplies();
+  }
+
+  function doSendDeskLink() {
+    const username = me && me.user_metadata && me.user_metadata.username;
+    const fallback = other && other.username;
+    const link = location.origin + '/desk.html?u=' + encodeURIComponent(username || fallback || '');
+    insertQuickReply(link);
+  }
+
+  function doShareLocation() {
+    if (!navigator.geolocation) {
+      const manual = prompt('Type your location:', '');
+      if (!manual) return;
+      insertQuickReply('📍 ' + manual.trim() + '\nhttps://maps.google.com/?q=' + encodeURIComponent(manual.trim()));
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      function (pos) {
+        const lat = pos.coords.latitude.toFixed(6);
+        const lng = pos.coords.longitude.toFixed(6);
+        const url = 'https://maps.google.com/?q=' + lat + ',' + lng;
+        insertQuickReply('📍 My location:\n' + url);
+      },
+      function () {
+        const manual = prompt('Location access denied. Type your location:', '');
+        if (!manual) return;
+        insertQuickReply('📍 ' + manual.trim() + '\nhttps://maps.google.com/?q=' + encodeURIComponent(manual.trim()));
+      },
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 }
+    );
+  }
+
   /* Events */
 
   chatLog.addEventListener('contextmenu', function (e) {
@@ -802,6 +958,18 @@
 
   if (blockedUnblock) {
     blockedUnblock.addEventListener('click', doBlockToggle);
+  }
+
+  if (quickBtn)      quickBtn.addEventListener('click', openQuickSheet);
+  if (quickClose)    quickClose.addEventListener('click', closeQuickSheet);
+  if (quickAdd)      quickAdd.addEventListener('click', doAddQuickReply);
+  if (quickDeskLink) quickDeskLink.addEventListener('click', doSendDeskLink);
+  if (quickLocation) quickLocation.addEventListener('click', doShareLocation);
+
+  if (quickOverlay) {
+    quickOverlay.addEventListener('click', function (e) {
+      if (e.target === quickOverlay) closeQuickSheet();
+    });
   }
 
   chatMenu.addEventListener('click', function (e) {
