@@ -373,3 +373,44 @@
   .chat-row-avatar, .chat-row-avatar-img { width: 50px; height: 50px; font-size: 15px; }
   .chats-title { font-size: 24px; }
 }
+/* Unread row — clearer treatment */
+
+.chat-row.is-unread .chat-row-name {
+  font-weight: 800;
+  color: var(--navy, #172B3A);
+}
+
+.chat-row.is-unread .chat-row-preview {
+  color: var(--navy, #172B3A);
+  font-weight: 600;
+}
+
+.chat-row.is-unread .chat-row-time {
+  color: var(--teal, #2F6D70);
+  font-weight: 700;
+}
+
+/* Count bubble next to the name */
+
+.chat-row-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  margin-left: 8px;
+  border-radius: 999px;
+  background: var(--teal, #2F6D70);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* "Adkins:" prefix on the preview */
+
+.chat-row-from {
+  color: var(--muted, #718087);
+  font-weight: 700;
+}
