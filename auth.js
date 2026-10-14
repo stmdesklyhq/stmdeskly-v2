@@ -616,7 +616,7 @@
 
     const res = await sb
       .from('chat_messages')
-      .select('id, sender_id, body, photo_url, read_at, created_at, reply_to_id, deleted_at, deleted_for')
+      .select('id, sender_id, body, photo_url, read_at, delivered_at, created_at, reply_to_id, deleted_at, deleted_for')
       .eq('thread_id', threadId)
       .order('created_at', { ascending: true })
       .limit(limit);
@@ -641,7 +641,7 @@
     const res = await sb
       .from('chat_messages')
       .insert({ thread_id: threadId, sender_id: user.id, body: body })
-      .select('id, sender_id, body, photo_url, read_at, created_at, reply_to_id, deleted_at, deleted_for')
+      .select('id, sender_id, body, photo_url, read_at, delivered_at, created_at, reply_to_id, deleted_at, deleted_for')
       .single();
 
     if (res.error) return { ok: false, error: res.error };
@@ -658,7 +658,7 @@
       sender_id: user.id,
       body: body,
       reply_to_id: replyToId
-    }).select('id, sender_id, body, photo_url, read_at, created_at, reply_to_id, deleted_at, deleted_for').single();
+    }).select('id, sender_id, body, photo_url, read_at, delivered_at, created_at, reply_to_id, deleted_at, deleted_for').single();
 
     if (res.error) return { ok: false, error: res.error };
     return { ok: true, message: res.data };
@@ -689,7 +689,7 @@
         thread_id: threadId,
         sender_id: user.id,
         photo_url: pub.data.publicUrl
-      }).select('id, sender_id, body, photo_url, read_at, created_at, reply_to_id, deleted_at, deleted_for').single();
+      }).select('id, sender_id, body, photo_url, read_at, delivered_at, created_at, reply_to_id, deleted_at, deleted_for').single();
 
       if (ins.error) return { ok: false, error: ins.error };
       return { ok: true, message: ins.data };
@@ -740,6 +740,34 @@
       .update({ read_at: new Date().toISOString() })
       .eq('thread_id', threadId)
       .is('read_at', null)
+      .neq('sender_id', user.id);
+
+    if (res.error) return { ok: false, error: res.error };
+    return { ok: true };
+  }
+
+  async function markMessagesDelivered(threadIds) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false };
+
+    let ids = threadIds;
+
+    if (!ids) {
+      const asA = await sb.from('chat_threads').select('id').eq('user_a', user.id);
+      const asB = await sb.from('chat_threads').select('id').eq('user_b', user.id);
+      ids = [...(asA.data || []), ...(asB.data || [])].map(function (t) { return t.id; });
+    } else if (typeof ids === 'string') {
+      ids = [ids];
+    }
+
+    if (!ids.length) return { ok: true };
+
+    const res = await sb
+      .from('chat_messages')
+      .update({ delivered_at: new Date().toISOString() })
+      .in('thread_id', ids)
+      .is('delivered_at', null)
       .neq('sender_id', user.id);
 
     if (res.error) return { ok: false, error: res.error };
@@ -1045,6 +1073,7 @@
     acceptThread: acceptThread,
     declineThread: declineThread,
     markMessagesRead: markMessagesRead,
+    markMessagesDelivered: markMessagesDelivered,
 
     // Chat — reactions, delete, presence
     toggleMessageReaction: toggleMessageReaction,
