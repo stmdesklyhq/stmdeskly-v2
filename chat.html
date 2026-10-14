@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <link rel="stylesheet" href="style.css?v=10">
-<link rel="stylesheet" href="chat.css?v=17">
+<link rel="stylesheet" href="chat.css?v=18">
 </head>
 
 <body class="page-chat">
@@ -188,7 +188,11 @@
     <span class="chat-rec-dot"></span>
     <span class="chat-rec-timer" id="recTimer">0:00</span>
     <div class="chat-rec-wave" id="recWave" aria-hidden="true"></div>
-    <span class="chat-rec-hint" id="recHint">Slide to cancel</span>
+    <button type="button" class="chat-rec-send" id="recSend" aria-label="Send voice note">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 12h14M13 5l7 7-7 7"/>
+      </svg>
+    </button>
   </div>
 
   <input type="file" id="photoInput" accept="image/*" hidden>
@@ -287,8 +291,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
-<script src="auth.js?v=22"></script>
-<script src="chat.js?v=15"></script>
+<script src="auth.js?v=23"></script>
+<script src="chat.js?v=16"></script>
 
 </body>
-    </html>
+</html>
