@@ -800,15 +800,31 @@
       return { ok: false, error: { message: 'This request is no longer pending' } };
     }
 
-    const res = await sb
+    // No .single() here — if the update is blocked (RLS or CHECK),
+    // we get 0 rows back instead of an obscure error.
+    const upd = await sb
       .from('chat_threads')
       .update({ status: 'cancelled' })
       .eq('id', threadId)
-      .select('id, status')
-      .single();
+      .eq('initiated_by', user.id);
 
-    if (res.error) return { ok: false, error: res.error };
-    return { ok: true, thread: res.data };
+    if (upd.error) return { ok: false, error: upd.error };
+
+    // Confirm the change actually stuck.
+    const check = await sb
+      .from('chat_threads')
+      .select('id, status')
+      .eq('id', threadId)
+      .maybeSingle();
+
+    if (check.error || !check.data) {
+      return { ok: false, error: { message: 'Update did not apply' } };
+    }
+    if (check.data.status !== 'cancelled') {
+      return { ok: false, error: { message: 'Database rejected the cancel. Ask the admin to update the status constraint.' } };
+    }
+
+    return { ok: true, thread: check.data };
   }
 
   async function markMessagesRead(threadId) {
