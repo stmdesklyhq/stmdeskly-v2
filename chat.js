@@ -614,50 +614,66 @@
   /* Boot */
 
   (async function boot() {
-    me = await AUTH.currentUser();
-    if (!me) { location.replace('/login.html'); return; }
+    try {
+      me = await AUTH.currentUser();
+      if (!me) { location.replace('/login.html'); return; }
 
-    const params = new URLSearchParams(location.search);
-    const threadId = params.get('id');
-    const toUserId = params.get('to');
+      const params = new URLSearchParams(location.search);
+      const threadId = params.get('id');
+      const toUserId = params.get('to');
 
-    if (threadId) {
-      const res = await AUTH.loadThread(threadId);
-      if (!res.ok) { chatMissing.hidden = false; return; }
-      thread = res.thread;
-      other = res.other;
-    } else if (toUserId) {
-      const res = await AUTH.startThread(toUserId);
-      if (!res.ok) { chatMissing.hidden = false; return; }
-      const full = await AUTH.loadThread(res.thread.id);
-      if (!full.ok) { chatMissing.hidden = false; return; }
-      thread = full.thread;
-      other = full.other;
-    } else {
-      chatMissing.hidden = false;
-      return;
-    }
+      if (threadId) {
+        const res = await AUTH.loadThread(threadId);
+        if (!res.ok) {
+          alert('loadThread failed: ' + JSON.stringify(res.error || res));
+          chatMissing.hidden = false;
+          return;
+        }
+        thread = res.thread;
+        other = res.other;
+      } else if (toUserId) {
+        const res = await AUTH.startThread(toUserId);
+        if (!res.ok) {
+          alert('startThread failed: ' + JSON.stringify(res.error || res));
+          chatMissing.hidden = false;
+          return;
+        }
+        const full = await AUTH.loadThread(res.thread.id);
+        if (!full.ok) {
+          alert('loadThread after start failed: ' + JSON.stringify(full.error || full));
+          chatMissing.hidden = false;
+          return;
+        }
+        thread = full.thread;
+        other = full.other;
+      } else {
+        chatMissing.hidden = false;
+        return;
+      }
 
-    paintHeader();
-    paintBanners();
+      paintHeader();
+      paintBanners();
 
-    chatLog.hidden = false;
+      chatLog.hidden = false;
 
-    await refreshMessages();
-    chatLog.scrollTop = chatLog.scrollHeight;
+      await refreshMessages();
+      chatLog.scrollTop = chatLog.scrollHeight;
 
-    autoGrow();
-    updatePresence();
-    initTyping();
-    initMessagesRealtime();
-
-    if (thread.status === 'accepted') chatInput.focus();
-
-    presenceTimer = setInterval(function () {
-      AUTH.touchPresence();
+      autoGrow();
       updatePresence();
-    }, 30000);
-    AUTH.touchPresence();
+      initTyping();
+      initMessagesRealtime();
+
+      if (thread.status === 'accepted') chatInput.focus();
+
+      presenceTimer = setInterval(function () {
+        AUTH.touchPresence();
+        updatePresence();
+      }, 30000);
+      AUTH.touchPresence();
+    } catch (err) {
+      alert('BOOT ERROR: ' + (err && err.message ? err.message : String(err)));
+    }
   })();
 
   window.addEventListener('beforeunload', function () {
@@ -666,39 +682,4 @@
     try { if (messagesChannel) AUTH.sb.removeChannel(messagesChannel); } catch (e) {}
     try { if (typingChannel) typingChannel.unsubscribe(); } catch (e) {}
   });
-})();Save this. Copy it now before the chat closes.
-
----
-
-STMDeskly v2 — spine, in one message:
-
-Product: Free single-page public portfolio for Nigerian people, businesses, organisations. One link. No code.
-
-Desk (public): Portfolio. No login. Sections: mark, name, role, tagline, What we offer, About, Work, Details, Contact, Assistant, footer. Empty sections don't appear. Contact on WhatsApp.
-
-Profile (in-app): Members only. Desk content + chat, reviews, wall, Assistant.
-
-Assistant: Optional. Off by default. Owner trains it. Never pretends to be owner. Hands off to WhatsApp. Lives on both Desk and Profile. Tone: warm / brief / formal. Owner sees every conversation.
-
-Two customisation paths:
-
-· Fast — visual pickers, same depth as v1, preview always visible
-· Advanced — full design system, section-level control, nothing can break
-
-Customisation options for v2 launch: vibes (visual moods), live preview mirror, big icons, custom OG preview, custom favicon, scheduled sections, PIN-locked sections, language labels, hero alignment/badge/avatar ring.
-
-Safety first: RLS verified, chat photos private bucket, _headers file, _redirects blocking .git, rate limits on messages.
-
-Reference: Favour's Signature. Real business. Real menu. Real ordering. That's what a Desk should feel like.
-
-Rule for any feature: Does it help a Nigerian person/business/organisation be found, reached, or understood — faster, more clearly, more safely? If not, v3.
-
-Not a template. Not a website builder. Not a social network. Not a marketplace. Free. Prebuilt. Feels custom.
-
----
-
-Everything else we discussed is here in the thread. Copy the whole thing to Notes if you can.
-
-When you're back — with a new chat or this one — start with: "STMDeskly v2, continue." I'll pick up from here.
-
-Good luck. You built something real. Rest.
+})();
