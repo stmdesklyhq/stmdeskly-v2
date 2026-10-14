@@ -994,3 +994,29 @@ body,
   height: 36px !important;
   font-size: 12px !important;
 }
+/* =========================================================
+   APPEND — Snappier topbar show/hide
+   Faster reveal on scroll up, safer hide distance.
+   ========================================================= */
+
+.topbar {
+  transition:
+    transform 240ms cubic-bezier(.2, .7, .2, 1),
+    opacity 200ms ease !important;
+}
+
+/* Fixed hide distance — doesn't rely on element height */
+.topbar.is-hidden {
+  transform: translateY(-120px) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition:
+    transform 260ms cubic-bezier(.4, .0, .7, .2),
+    opacity 220ms ease !important;
+}
+
+.topbar.is-visible {
+  transform: translateY(0) !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
