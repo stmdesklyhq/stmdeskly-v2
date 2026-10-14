@@ -461,7 +461,7 @@
   }
 
   /* =========================================================
-     REPLIES (post comments)
+     POST REPLIES
      ========================================================= */
 
   async function getPostReplies(postId) {
@@ -735,14 +735,12 @@
     const user = userRes.data.user;
     if (!user) return { ok: false };
 
-    await sb
-      .from('chat_messages')
-      .update({ read_at: new Date().toISOString() })
-      .eq('thread_id', threadId)
-      .is('read_at', null)
-      .neq('sender_id', user.id);
-
-    return { ok: true };
+    try {
+      await sb.rpc('mark_thread_read', { p_thread_id: threadId });
+      return { ok: true };
+    } catch (err) {
+      return { ok: false, error: err };
+    }
   }
 
   /* =========================================================
