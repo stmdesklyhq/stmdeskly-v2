@@ -109,7 +109,7 @@
   /* ---------- Render ---------- */
 
   function renderDeskCard(desk) {
-    const url = '/desk.html?u=' + encodeURIComponent(desk.username || '');
+    const url = '/profile?u=' + encodeURIComponent(desk.username || '');
     const avatar = desk.avatar_url
       ? '<img src="' + esc(desk.avatar_url) + '" alt="" loading="lazy">'
       : esc(initials(desk.name));
@@ -147,7 +147,7 @@
     }
 
     const target = post.author_username
-      ? '/profile.html?u=' + encodeURIComponent(post.author_username)
+      ? '/profile?u=' + encodeURIComponent(post.author_username)
       : '#';
 
     return '<a class="explore-post" href="' + target + '">' +
