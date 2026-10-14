@@ -1,7 +1,7 @@
 /* =========================================================
    STMDESKLY v2 — Single chat
    Reply, react, delete, photos, presence, typing, delivery,
-   mute, block, report, quick replies.
+   mute, block, report, quick replies, search, star.
    ========================================================= */
 (function () {
   'use strict';
@@ -18,6 +18,7 @@
   const chatMenuPanel   = $('chatMenuPanel');
   const menuViewProfile = $('menuViewProfile');
   const menuOpenDesk    = $('menuOpenDesk');
+  const menuStarred     = $('menuStarred');
   const menuMute        = $('menuMute');
   const menuMuteIcon    = $('menuMuteIcon');
   const menuMuteLabel   = $('menuMuteLabel');
@@ -47,6 +48,7 @@
   const blockedBanner   = $('blockedBanner');
   const blockedBannerText = $('blockedBannerText');
   const blockedUnblock  = $('blockedUnblock');
+  const starLabel       = $('starLabel');
 
   const quickBtn      = $('quickBtn');
   const quickOverlay  = $('quickOverlay');
@@ -55,6 +57,16 @@
   const quickAdd      = $('quickAdd');
   const quickDeskLink = $('quickDeskLink');
   const quickLocation = $('quickLocation');
+
+  const chatSearchBtn  = $('chatSearchBtn');
+  const searchOverlay  = $('searchOverlay');
+  const searchClose    = $('searchClose');
+  const searchInput    = $('searchInput');
+  const searchCount    = $('searchCount');
+  const searchResults  = $('searchResults');
+  const starredOverlay = $('starredOverlay');
+  const starredClose   = $('starredClose');
+  const starredList    = $('starredList');
 
   const REACTION_EMOJIS = ['👍', '❤️', '😂', '🔥', '🙏', '👏'];
 
@@ -273,6 +285,7 @@
       }
 
       const mine = m.sender_id === me.id;
+      const isAuto = !!m.is_auto;
       const cls = mine ? 'me' : 'them';
       const wrapCls = mine ? 'chat-row mine' : 'chat-row theirs';
 
@@ -295,11 +308,18 @@
         photoHtml = '<img class="chat-bubble-photo" src="' + esc(m.photo_url) + '" alt="" data-src="' + esc(m.photo_url) + '">';
       }
 
+      const autoChip = isAuto
+        ? '<span class="auto-chip">Auto</span>'
+        : '';
+
       const body = m.deleted_at
         ? '<em>Message deleted</em>'
-        : (m.body ? esc(m.body) : '');
+        : (autoChip + (m.body ? esc(m.body) : ''));
 
-      const bodyCls = m.deleted_at ? ' chat-bubble deleted' : '';
+      const bodyCls = m.deleted_at
+        ? ' chat-bubble deleted'
+        : (isAuto ? ' chat-bubble-auto' : '');
+
       const photoCls = hasPhoto ? ' has-photo' : '';
       const stateCls = m.__failed ? ' is-failed' : (m.__pending ? ' is-pending' : '');
 
@@ -411,6 +431,7 @@
       reply_to_id: replyId || null,
       deleted_at: null,
       deleted_for: null,
+      is_auto: false,
       __pending: true
     };
   }
@@ -511,6 +532,8 @@
     const within24 = (Date.now() - new Date(m.created_at).getTime()) < 24 * 60 * 60 * 1000;
     const sendable = !m.__failed && !String(m.id).startsWith('temp-');
     deleteAllBtn.hidden = !(mine && within24 && sendable);
+
+    if (starLabel) starLabel.textContent = 'Star';
 
     contextMenu.hidden = false;
   }
@@ -634,7 +657,6 @@
 
   function renderQuickList() {
     if (!quickList) return;
-
     quickList.innerHTML = '';
 
     if (!quickRepliesCache.length) {
@@ -656,7 +678,6 @@
       btn.addEventListener('click', function () {
         insertQuickReply(qr.body);
       });
-
       row.appendChild(btn);
 
       const menu = document.createElement('button');
@@ -668,8 +689,8 @@
         e.stopPropagation();
         openQuickItemMenu(qr);
       });
-
       row.appendChild(menu);
+
       quickList.appendChild(row);
     });
   }
@@ -777,6 +798,115 @@
     );
   }
 
+  /* ---------- Search ---------- */
+
+  function openSearch() {
+    if (!searchOverlay) return;
+    searchOverlay.hidden = false;
+    searchInput.value = '';
+    renderSearchResults('');
+    searchInput.focus();
+  }
+
+  function closeSearch() {
+    if (!searchOverlay) return;
+    searchOverlay.hidden = true;
+    searchResults.innerHTML = '';
+  }
+
+  function escapeForRegex(s) {
+    return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
+
+  function renderSearchResults(q) {
+    if (!searchResults) return;
+
+    const term = String(q || '').trim().toLowerCase();
+
+    if (!term) {
+      searchResults.innerHTML = '<div class="search-empty">Type to search this conversation.</div>';
+      searchCount.textContent = '';
+      return;
+    }
+
+    const hits = allMessages.filter(function (m) {
+      if (!m.body) return false;
+      return m.body.toLowerCase().indexOf(term) !== -1;
+    });
+
+    searchCount.textContent = hits.length ? hits.length + ' found' : 'none';
+
+    if (!hits.length) {
+      searchResults.innerHTML = '<div class="search-empty">No matches.</div>';
+      return;
+    }
+
+    const re = new RegExp('(' + escapeForRegex(term) + ')', 'ig');
+
+    searchResults.innerHTML = hits.map(function (m) {
+      const mine = m.sender_id === me.id;
+      const who = mine ? 'You' : (other.name || 'Them');
+      const safe = esc(m.body).replace(re, '<mark>$1</mark>');
+      const when = dayLabel(m.created_at) + ' · ' + timeShort(m.created_at);
+      return '<button type="button" class="search-hit" data-msg-id="' + esc(m.id) + '">' +
+        '<div class="search-hit-meta">' + esc(who) + ' · ' + esc(when) + '</div>' +
+        '<div class="search-hit-body">' + safe + '</div>' +
+      '</button>';
+    }).join('');
+  }
+
+  /* ---------- Starred ---------- */
+
+  async function openStarred() {
+    if (!starredOverlay) return;
+    starredOverlay.hidden = false;
+    starredList.innerHTML = '<div class="search-empty">Loading…</div>';
+
+    const res = await AUTH.getStarredMessages();
+    if (!res.ok || !res.data.length) {
+      starredList.innerHTML = '<div class="search-empty">No starred messages yet. Long-press a message and tap Star.</div>';
+      return;
+    }
+
+    starredList.innerHTML = res.data.map(function (row) {
+      const m = row.message;
+      const mine = m.sender_id === me.id;
+      const who = mine ? 'You' : (other.name || 'Them');
+      const when = dayLabel(m.created_at) + ' · ' + timeShort(m.created_at);
+      const body = m.deleted_at
+        ? '<em>Message deleted</em>'
+        : esc(m.body || (m.photo_url ? '📷 Photo' : ''));
+      return '<button type="button" class="starred-item" data-msg-id="' + esc(m.id) + '">' +
+        '<div class="starred-item-meta">' + esc(who) + ' · ' + esc(when) + '</div>' +
+        '<div class="starred-item-body">' + body + '</div>' +
+      '</button>';
+    }).join('');
+  }
+
+  function closeStarred() {
+    if (!starredOverlay) return;
+    starredOverlay.hidden = true;
+  }
+
+  function scrollToMessage(messageId) {
+    const el = chatLog.querySelector('.chat-bubble[data-id="' + messageId + '"]');
+    if (!el) return;
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.classList.add('chat-bubble-highlight');
+    setTimeout(function () {
+      el.classList.remove('chat-bubble-highlight');
+    }, 1800);
+  }
+
+  async function toggleStarFromContext(messageId) {
+    const res = await AUTH.toggleStarMessage(messageId);
+    if (!res.ok) {
+      alert('Could not update star.');
+      return;
+    }
+    closeContext();
+  }
+
   /* Events */
 
   chatLog.addEventListener('contextmenu', function (e) {
@@ -852,6 +982,11 @@
     if (!msg) { closeContext(); return; }
 
     if (action === 'reply') { startReply(msgId); closeContext(); return; }
+
+    if (action === 'star') {
+      await toggleStarFromContext(msgId);
+      return;
+    }
 
     if (action === 'copy') {
       try { await navigator.clipboard.writeText(msg.body || ''); closeContext(); }
@@ -972,6 +1107,55 @@
     });
   }
 
+  if (chatSearchBtn) chatSearchBtn.addEventListener('click', openSearch);
+  if (searchClose)   searchClose.addEventListener('click', closeSearch);
+
+  if (searchInput) {
+    searchInput.addEventListener('input', function () {
+      renderSearchResults(searchInput.value);
+    });
+  }
+
+  if (searchResults) {
+    searchResults.addEventListener('click', function (e) {
+      const hit = e.target.closest('.search-hit');
+      if (!hit) return;
+      const msgId = hit.dataset.msgId;
+      closeSearch();
+      setTimeout(function () { scrollToMessage(msgId); }, 100);
+    });
+  }
+
+  if (menuStarred) {
+    menuStarred.addEventListener('click', function () {
+      chatMenuPanel.hidden = true;
+      openStarred();
+    });
+  }
+  if (starredClose) starredClose.addEventListener('click', closeStarred);
+
+  if (starredList) {
+    starredList.addEventListener('click', function (e) {
+      const item = e.target.closest('.starred-item');
+      if (!item) return;
+      const msgId = item.dataset.msgId;
+      closeStarred();
+      setTimeout(function () { scrollToMessage(msgId); }, 100);
+    });
+  }
+
+  if (starredOverlay) {
+    starredOverlay.addEventListener('click', function (e) {
+      if (e.target === starredOverlay) closeStarred();
+    });
+  }
+
+  if (searchOverlay) {
+    searchOverlay.addEventListener('click', function (e) {
+      if (e.target === searchOverlay) closeSearch();
+    });
+  }
+
   chatMenu.addEventListener('click', function (e) {
     e.stopPropagation();
     chatMenuPanel.hidden = !chatMenuPanel.hidden;
@@ -1087,7 +1271,6 @@
         return;
       }
 
-      /* Load mute + block state */
       try {
         isMuted = await AUTH.isThreadMuted(thread.id);
       } catch (e) { isMuted = false; }
