@@ -1,7 +1,6 @@
 /* =========================================================
    STMDESKLY v2 — Bottom navigation
-   Floating pill. Matches the topbar's design language.
-   4 primary destinations. Settings lives behind the avatar.
+   Floating pill. Force-outlined icons. Bulletproof.
    ========================================================= */
 
 nav.stm-nav {
@@ -17,29 +16,48 @@ nav.stm-nav {
   align-items: stretch !important;
   gap: 2px !important;
 
-  max-width: 460px !important;
+  max-width: 440px !important;
   margin: 0 auto !important;
-  padding: 6px !important;
+  padding: 5px !important;
 
   border-radius: 20px !important;
   border: 1px solid rgba(23, 43, 58, 0.06) !important;
 
   background: linear-gradient(
     180deg,
-    rgba(255, 254, 251, 0.95) 0%,
+    rgba(255, 254, 251, 0.96) 0%,
     rgba(247, 246, 241, 0.92) 100%
   ) !important;
 
   box-shadow:
     0 1px 2px rgba(23, 43, 58, 0.04),
-    0 12px 32px rgba(23, 43, 58, 0.10),
-    0 0 0 0.5px rgba(23, 43, 58, 0.03) !important;
+    0 14px 34px rgba(23, 43, 58, 0.12) !important;
 
   backdrop-filter: blur(20px) saturate(1.4) !important;
   -webkit-backdrop-filter: blur(20px) saturate(1.4) !important;
 }
 
 nav.stm-nav * { box-sizing: border-box !important; }
+
+/* Force every icon in the nav to be an outline, period. */
+nav.stm-nav svg {
+  display: block !important;
+  fill: none !important;
+  stroke: currentColor !important;
+  stroke-width: 2 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+
+nav.stm-nav svg path,
+nav.stm-nav svg circle,
+nav.stm-nav svg rect,
+nav.stm-nav svg line,
+nav.stm-nav svg polyline,
+nav.stm-nav svg polygon {
+  fill: none !important;
+  stroke: currentColor !important;
+}
 
 a.stm-nav__item {
   display: flex !important;
@@ -48,7 +66,7 @@ a.stm-nav__item {
   justify-content: center !important;
   gap: 3px !important;
 
-  min-height: 50px !important;
+  min-height: 48px !important;
   width: 100% !important;
   max-width: 100% !important;
 
@@ -68,22 +86,19 @@ a.stm-nav__item {
   text-decoration: none !important;
   text-transform: none !important;
 
-  transition:
-    color 160ms ease,
-    background 180ms ease !important;
+  transition: color 160ms ease, background 180ms ease !important;
 }
 
-a.stm-nav__item:hover {
-  color: #172B3A !important;
-}
+a.stm-nav__item:hover { color: #172B3A !important; }
 
+/* Icon wrapper — matches either the new markup or direct child */
 a.stm-nav__item .stm-nav__icon {
   position: relative !important;
   display: inline-grid !important;
   place-items: center !important;
 
   width: 32px !important;
-  height: 24px !important;
+  height: 22px !important;
 
   border-radius: 999px !important;
   background: transparent !important;
@@ -91,23 +106,14 @@ a.stm-nav__item .stm-nav__icon {
   transition: background 180ms ease, color 180ms ease !important;
 }
 
-a.stm-nav__item .stm-nav__icon > svg {
-  display: block !important;
-  width: 21px !important;
-  height: 21px !important;
-  max-width: 21px !important;
-  max-height: 21px !important;
-  min-width: 21px !important;
-  min-height: 21px !important;
-  flex: 0 0 21px !important;
-
-  fill: none !important;
-  stroke: currentColor !important;
-  stroke-width: 2 !important;
-  stroke-linecap: round !important;
-  stroke-linejoin: round !important;
-
-  transition: stroke-width 160ms ease !important;
+a.stm-nav__item svg {
+  width: 20px !important;
+  height: 20px !important;
+  max-width: 20px !important;
+  max-height: 20px !important;
+  min-width: 20px !important;
+  min-height: 20px !important;
+  flex: 0 0 20px !important;
 }
 
 a.stm-nav__label {
@@ -122,16 +128,14 @@ a.stm-nav__label {
 
 /* ---------- Active state ---------- */
 
-a.stm-nav__item.is-current {
-  color: #2F6D70 !important;
-}
+a.stm-nav__item.is-current { color: #2F6D70 !important; }
 
 a.stm-nav__item.is-current .stm-nav__icon {
   background: #DCEBE3 !important;
   color: #2F6D70 !important;
 }
 
-a.stm-nav__item.is-current .stm-nav__icon > svg {
+a.stm-nav__item.is-current svg {
   stroke-width: 2.4 !important;
 }
 
@@ -140,11 +144,11 @@ a.stm-nav__item.is-current .stm-nav__label {
   font-weight: 800 !important;
 }
 
-/* Unread dot on Inbox */
+/* Unread dot */
 a.stm-nav__item .stm-nav__dot {
   position: absolute !important;
-  top: -1px !important;
-  right: 1px !important;
+  top: -2px !important;
+  right: 0px !important;
   width: 8px !important;
   height: 8px !important;
   border-radius: 50% !important;
@@ -167,22 +171,14 @@ body.stm-nav-page h3 {
 }
 
 body.stm-nav-page p,
-body.stm-nav-page li {
-  font-weight: 500 !important;
-}
+body.stm-nav-page li { font-weight: 500 !important; }
 
-body.stm-nav-page label {
-  font-weight: 700 !important;
-}
+body.stm-nav-page label { font-weight: 700 !important; }
 
 body.stm-nav-page button,
-body.stm-nav-page .btn {
-  font-weight: 700 !important;
-}
+body.stm-nav-page .btn { font-weight: 700 !important; }
 
-body.stm-nav-page a {
-  font-weight: 600 !important;
-}
+body.stm-nav-page a { font-weight: 600 !important; }
 
 /* ---------- Small phones ---------- */
 
@@ -190,15 +186,12 @@ body.stm-nav-page a {
   nav.stm-nav {
     left: 8px !important;
     right: 8px !important;
-    padding: 5px !important;
+    padding: 4px !important;
   }
 
-  a.stm-nav__item .stm-nav__label {
-    font-size: 9px !important;
+  a.stm-nav__item .stm-nav__label { font-size: 9px !important; }
+  a.stm-nav__item svg {
+    width: 19px !important;
+    height: 19px !important;
   }
-
-  a.stm-nav__item .stm-nav__icon > svg {
-    width: 20px !important;
-    height: 20px !important;
-  }
-}
+                         }
