@@ -190,31 +190,12 @@
     '</div>';
   }
 
-  function tickHtml(m) {
-    if (m.__failed) {
-      return '<span class="tick failed" title="Tap to retry">' +
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' +
-          '<circle cx="12" cy="12" r="9"/>' +
-          '<path d="M12 8v5"/>' +
-          '<circle cx="12" cy="16.5" r="0.6" fill="currentColor"/>' +
-        '</svg>' +
-      '</span>';
-    }
-    if (m.__pending) {
-      return '<span class="tick pending">' +
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
-          '<circle cx="12" cy="12" r="9"/>' +
-          '<path d="M12 7v5l3 2"/>' +
-        '</svg>' +
-      '</span>';
-    }
-    const read = !!m.read_at;
-    return '<span class="tick' + (read ? ' read' : '') + '">' +
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">' +
-        '<path d="m1 12 5 5L17 6"/>' +
-        (read ? '<path d="m8 12 5 5L24 6" transform="translate(-5 0)"/>' : '') +
-      '</svg>' +
-    '</span>';
+  function dotHtml(m) {
+    if (m.__failed)     return '<span class="dot failed" title="Tap to retry">!</span>';
+    if (m.__pending)    return '<span class="dot sent"></span>';
+    if (m.read_at)      return '<span class="dot seen" title="Seen"></span>';
+    if (m.delivered_at) return '<span class="dot delivered" title="Delivered"></span>';
+    return '<span class="dot sent" title="Sent"></span>';
   }
 
   function renderMessages() {
@@ -264,11 +245,11 @@
       const stateCls = m.__failed ? ' is-failed' : (m.__pending ? ' is-pending' : '');
 
       const time = timeShort(m.created_at);
-      const tick = (mine && !m.deleted_at) ? tickHtml(m) : '';
+      const dot = (mine && !m.deleted_at) ? dotHtml(m) : '';
       const meta = m.deleted_at ? '' :
-        '<div class="chat-bubble-meta"><span>' + esc(time) + '</span>' + tick + '</div>';
+        '<div class="chat-bubble-meta"><span>' + esc(time) + '</span>' + dot + '</div>';
 
-      const reactionsHtml = m.__pending || m.__failed ? '' : reactionsHtmlFor(m.id);
+      const reactionsHtml = (m.__pending || m.__failed) ? '' : reactionsHtmlFor(m.id);
 
       return divider +
         '<div class="' + wrapCls + '">' +
@@ -307,7 +288,6 @@
 
       const messages = res.data;
 
-      // Preserve any local pending/failed messages that haven't been sent yet
       const localOnly = allMessages.filter(function (m) {
         return m.__pending || m.__failed;
       });
@@ -334,6 +314,7 @@
       }
 
       if (thread.status === 'accepted') {
+        AUTH.markMessagesDelivered(thread.id);
         AUTH.markMessagesRead(thread.id);
       }
     } finally {
@@ -366,6 +347,7 @@
       body: body,
       photo_url: null,
       read_at: null,
+      delivered_at: null,
       created_at: new Date().toISOString(),
       reply_to_id: replyId || null,
       deleted_at: null,
@@ -384,7 +366,10 @@
       res = { ok: false, error: err };
     }
 
-    const idx = allMessages.findIndex(function (m) { return m.id === tempId; });
+    let idx = -1;
+    for (let i = 0; i < allMessages.length; i++) {
+      if (allMessages[i].id === tempId) { idx = i; break; }
+    }
     if (idx === -1) return;
 
     if (!res.ok) {
@@ -460,7 +445,7 @@
     const deleteAllBtn = contextMenu.querySelector('[data-action="delete-all"]');
     const mine = m.sender_id === me.id;
     const within24 = (Date.now() - new Date(m.created_at).getTime()) < 24 * 60 * 60 * 1000;
-    const sendable = !m.__failed && !m.id.startsWith('temp-');
+    const sendable = !m.__failed && !String(m.id).startsWith('temp-');
     deleteAllBtn.hidden = !(mine && within24 && sendable);
 
     contextMenu.hidden = false;
