@@ -578,3 +578,126 @@
   }
   .notif-action { grid-column: auto; }
 }
+/* =========================================================
+   AWAY MODE
+   ========================================================= */
+
+.away-strip {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: center;
+  gap: 13px;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border, #E5E4DD);
+  border-radius: 15px;
+  background: var(--paper, #FFFEFB);
+}
+.away-strip.is-on {
+  border-color: #BFD8CE;
+  background: #F2F9F4;
+}
+
+.away-icon {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+  background: var(--cream, #F7F6F1);
+  color: var(--muted, #718087);
+}
+.away-strip.is-on .away-icon {
+  background: #D2EFDD;
+  color: #23734D;
+}
+.away-icon svg { width: 21px; height: 21px; }
+
+.away-copy { min-width: 0; }
+.away-copy strong {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--navy, #172B3A);
+  letter-spacing: -0.02em;
+}
+.away-copy small {
+  display: block;
+  margin-top: 3px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--muted, #718087);
+  overflow-wrap: anywhere;
+}
+
+.away-action {
+  grid-column: 2;
+  justify-self: start;
+  min-height: 40px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--navy, #172B3A);
+  color: #FFFEFB;
+  font: 600 12px inherit;
+  cursor: pointer;
+  transition: background 180ms ease, transform 180ms ease;
+}
+.away-action:hover { background: var(--teal, #2F6D70); transform: translateY(-1px); }
+.away-strip.is-on .away-action { background: var(--teal, #2F6D70); }
+.away-strip.is-on .away-action:hover { background: var(--navy, #172B3A); }
+
+.away-editor {
+  padding: 16px 18px;
+  margin: -8px 0 16px;
+  border: 1px solid var(--border, #E5E4DD);
+  border-top: 0;
+  border-radius: 0 0 15px 15px;
+  background: var(--paper, #FFFEFB);
+}
+.away-label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--navy, #172B3A);
+  font-size: 12px;
+  font-weight: 600;
+}
+.away-input {
+  width: 100%;
+  min-width: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border, #E5E4DD);
+  border-radius: 12px;
+  background: var(--cream, #F7F6F1);
+  color: var(--navy, #172B3A);
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.6;
+  outline: none;
+  resize: vertical;
+}
+.away-input:focus { border-color: var(--teal, #2F6D70); background: #FFF; }
+
+.away-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+.away-btn {
+  min-height: 40px;
+  padding: 0 20px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font: 600 12px inherit;
+  cursor: pointer;
+}
+.away-btn.ghost { background: transparent; border-color: var(--border, #E5E4DD); color: var(--navy, #172B3A); }
+.away-btn.ghost:hover { border-color: var(--navy, #172B3A); }
+.away-btn.primary { background: var(--navy, #172B3A); color: #FFFEFB; }
+.away-btn.primary:hover { background: var(--teal, #2F6D70); }
+
+@media (min-width: 640px) {
+  .away-strip { grid-template-columns: 42px minmax(0, 1fr) auto; }
+  .away-action { grid-column: auto; }
+   }
