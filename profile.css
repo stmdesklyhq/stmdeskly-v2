@@ -241,8 +241,9 @@
 .profile-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin: 20px 20px 0;
+  justify-content: center;
+  gap: 12px;
+  margin: 22px 20px 0;
 }
 
 .profile-action {
@@ -250,6 +251,7 @@
   height: 56px;
   display: grid;
   place-items: center;
+  padding: 0;
   border-radius: 16px;
   background: var(--paper, #FFFEFB);
   border: 1px solid rgba(23, 43, 58, 0.06);
@@ -257,14 +259,33 @@
   color: var(--navy, #172B3A);
   transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
   cursor: pointer;
+  overflow: hidden;
 }
 .profile-action:hover {
   transform: translateY(-2px);
   border-color: rgba(47, 109, 112, 0.35);
   background: #FFFFFF;
 }
-.profile-action svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
 .profile-action.is-accent { color: var(--teal, #2F6D70); }
+
+.profile-action svg {
+  display: block;
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Filled brand icons (WhatsApp logo) — fill the shape, no stroke */
+.profile-action svg[data-filled="true"] {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+  stroke: none;
+}
 
 /* ---------- Desk link card ---------- */
 
@@ -272,7 +293,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  margin: 20px 20px 0;
+  margin: 22px 20px 0;
   padding: 14px 14px 14px 16px;
   border-radius: 16px;
   background: linear-gradient(135deg, #EDF5F0 0%, #E4EFE8 100%);
@@ -469,12 +490,17 @@
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+.profile-contact-item svg[data-filled="true"] {
+  fill: var(--teal, #2F6D70);
+  stroke: none;
+}
 .profile-contact-item.is-primary {
   background: var(--teal, #2F6D70);
   border-color: var(--teal, #2F6D70);
   color: #FFFEFB;
 }
 .profile-contact-item.is-primary svg { stroke: #FFFEFB; }
+.profile-contact-item.is-primary svg[data-filled="true"] { fill: #FFFEFB; stroke: none; }
 
 /* ---------- Recent posts ---------- */
 
