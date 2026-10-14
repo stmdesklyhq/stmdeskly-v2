@@ -1,10 +1,3 @@
-/u/:username   /desk.html?u=:username   200
-/profile       /profile.html            200
-/home          /home.html               200
-/dashboard     /dashboard.html          200
-/explore       /explore.html            200
-/settings      /settings.html           200
-/chats         /chats.html              200
-/chat          /chat.html               200
-/login         /login.html              200
-/signup        /signup.html             200
+/profile.html /profile.html 200
+/profile /profile.html 200
+/u/:username /desk.html?u=:username 200
