@@ -442,3 +442,103 @@
   width: 12px;
   height: 12px;
 }
+/* =========================================================
+   BATCH 3 — pin, archive, action sheet
+   ========================================================= */
+
+.chat-row-pinned {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  color: var(--teal, #2F6D70);
+  margin-top: 2px;
+}
+.chat-row-pinned svg {
+  width: 12px;
+  height: 12px;
+  fill: rgba(47, 109, 112, 0.15);
+}
+
+.chat-row.is-pinned .chat-row-name {
+  color: var(--teal, #2F6D70);
+}
+
+/* Action sheet */
+.chat-action-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(16, 35, 47, 0.55);
+  backdrop-filter: blur(4px);
+  animation: chat-action-fade 180ms ease both;
+}
+.chat-action-overlay[hidden] { display: none !important; }
+
+@keyframes chat-action-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.chat-action-sheet {
+  width: 100%;
+  max-width: 480px;
+  padding: 8px 12px calc(14px + env(safe-area-inset-bottom));
+  background: var(--paper, #FFFEFB);
+  border-radius: 22px 22px 0 0;
+  box-shadow: 0 -14px 44px rgba(23, 43, 58, 0.22);
+  animation: chat-action-up 220ms cubic-bezier(.2, .7, .2, 1) both;
+}
+
+@keyframes chat-action-up {
+  from { transform: translateY(40px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.chat-action-head {
+  padding: 12px 14px 14px;
+  border-bottom: 1px solid var(--border, #E5E4DD);
+  margin-bottom: 6px;
+  text-align: center;
+}
+.chat-action-head > span {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--navy, #172B3A);
+  letter-spacing: -0.02em;
+}
+
+.chat-action-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--navy, #172B3A);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+  transition: background 140ms ease;
+}
+.chat-action-row:hover,
+.chat-action-row:active { background: rgba(23, 43, 58, 0.05); }
+.chat-action-row svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: var(--teal, #2F6D70);
+}
+.chat-action-row.danger { color: #B3261E; }
+.chat-action-row.danger svg { color: #B3261E; }
+
+@media (min-width: 720px) {
+  .chat-action-overlay { align-items: center; }
+  .chat-action-sheet { border-radius: 22px; }
+}
