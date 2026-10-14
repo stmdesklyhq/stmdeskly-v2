@@ -4,221 +4,120 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#F7F6F1">
-<title>Home — STMDeskly</title>
-
-<style>
-  *, *::before, *::after { box-sizing: border-box; }
-  html, body {
-    margin: 0; padding: 0;
-    width: 100%; max-width: 100%;
-    overflow-x: clip;
-    background: #F7F6F1;
-    color: #172B3A;
-  }
-  body {
-    font-family: Poppins, system-ui, -apple-system, "Segoe UI", sans-serif;
-    font-size: 14px; line-height: 1.6;
-    -webkit-font-smoothing: antialiased;
-  }
-  img { max-width: 100%; height: auto; display: block; }
-  a { color: inherit; text-decoration: none; }
-  button { font: inherit; cursor: pointer; }
-  h1 { font-size: 24px; line-height: 1.25; margin: 0; font-weight: 600; letter-spacing: -0.04em; }
-  .app-shell { width: 100%; max-width: 620px; margin: 0 auto; padding: 0 18px 112px; }
-  .topbar { min-height: 52px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-</style>
+<title>Profile — STMDeskly</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-<link rel="preload" as="style" href="tokens.css?v=1">
-<link rel="preload" as="style" href="feed.css?v=4">
-<link rel="preload" as="style" href="nav.css?v=4">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&family=Lora:wght@400;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet">
 
 <link rel="stylesheet" href="tokens.css?v=1">
-<link rel="stylesheet" href="feed.css?v=4">
-<link rel="stylesheet" href="nav.css?v=4">
+<link rel="stylesheet" href="style.css?v=9">
+<link rel="stylesheet" href="desk.css?v=20">
+<link rel="stylesheet" href="profile.css?v=3">
 </head>
 
-<body>
+<body class="public-desk-page profile-page">
 
-<div class="app-shell">
-
-<header class="topbar">
-  <a class="wordmark" href="/home.html" aria-label="STMDeskly home">STMDeskly</a>
-  <div class="top-actions">
-    <button class="icon-button" id="searchButton" aria-label="Search">
-      <svg viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5"/></svg>
-    </button>
-    <button class="icon-button notice" id="notificationsButton" aria-label="Notifications">
-      <svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
-      <i></i>
-    </button>
-    <a class="avatar-button" href="#" id="avatarButton" aria-label="Your profile">
-      <span class="avatar" id="userAvatar">·</span>
-    </a>
-  </div>
+<!-- Topbar with back -->
+<header class="profile-topbar">
+  <button type="button" class="profile-back" id="backBtn" aria-label="Back">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M19 12H5M12 19l-7-7 7-7"/>
+    </svg>
+  </button>
+  <span class="profile-title" id="profileTitle"></span>
+  <span class="profile-spacer"></span>
 </header>
 
-<main>
+<!-- Loading -->
+<div class="desk-loading" id="loading">
+  <div class="desk-loading-mark" aria-hidden="true"></div>
+  <p>Opening this profile…</p>
+</div>
 
-<section class="welcome">
-  <p class="eyebrow">Your community</p>
-  <h1 id="greeting">Hi there<span>.</span></h1>
-  <p>Find opportunities. Share your skills. Grow together.</p>
-</section>
-
-<nav class="category-scroll" id="categoryNav" aria-label="Filter posts">
-  <button class="filter-chip active" data-category="all" aria-pressed="true">
-    <svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>
-    All
-  </button>
-  <button class="filter-chip" data-category="gig" aria-pressed="false">
-    <svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18"/></svg>
-    Gigs
-  </button>
-  <button class="filter-chip" data-category="deal" aria-pressed="false">
-    <svg viewBox="0 0 24 24"><path d="M20 13 12 21 3 12l9-9h8z"/><circle cx="16" cy="8" r="1"/></svg>
-    Market deals
-  </button>
-  <button class="filter-chip" data-category="business" aria-pressed="false">
-    <svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="1"/><path d="M9 7h2m2 0h2M9 11h2m2 0h2M10 21v-5h4v5"/></svg>
-    Business
-  </button>
-  <button class="filter-chip" data-category="skill" aria-pressed="false">
-    <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20v-1a6 6 0 0 1 12 0v1zM16 5a3 3 0 0 1 0 6M18 14a5 5 0 0 1 3 5v1h-4"/></svg>
-    Skills &amp; work
-  </button>
-</nav>
-
-<a class="composer" href="/new-post.html">
-  <span class="avatar composer-avatar" id="composerAvatar">·</span>
-  <span class="composer-prompt">What's on your mind?</span>
-  <span class="composer-button">
-    <svg viewBox="0 0 24 24"><path d="m14 5 5 5M4 20l4.2-.9L19 8.3a2.1 2.1 0 0 0-3-3L5.2 16.1 4 20Z"/></svg>
-    New post
-  </span>
-</a>
-
-<section class="feed" id="feed" aria-label="Latest posts">
-  <div class="feed-loading" id="feedLoading">Loading…</div>
-  <div class="feed-empty" id="feedEmpty" hidden>
-    No posts yet. Be the first to share something.
+<!-- Missing -->
+<main class="desk-missing" id="missing" hidden>
+  <div class="desk-missing-mark" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="9"/>
+      <path d="M12 8v5M12 16v.01"/>
+    </svg>
   </div>
-</section>
+  <p class="desk-overline">Profile</p>
+  <h1>This profile isn't available</h1>
+  <p class="desk-missing-description">The person may have deleted their Desk, or the link may be wrong.</p>
+  <a class="desk-missing-link" href="/home.html">
+    Back to home
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M5 12H19M12 5L19 12L12 19"/>
+    </svg>
+  </a>
+</main>
+
+<!-- Profile -->
+<main class="public-desk" id="desk" hidden>
+
+  <!-- Hero -->
+  <section class="desk-hero" aria-labelledby="name">
+    <div class="desk-hero-cover" id="heroCover" aria-hidden="true"></div>
+
+    <div class="desk-hero-card">
+      <div class="desk-hero-avatar" id="mark" aria-label="Profile photo"></div>
+      <div class="desk-hero-identity">
+        <h1 id="name">Someone</h1>
+        <p class="desk-role" id="role"></p>
+      </div>
+    </div>
+
+    <p class="desk-tagline" id="tagline"></p>
+
+    <nav class="profile-quicknav" id="quicknav" aria-label="Jump to section">
+      <a class="profile-pill" href="#section-offer" id="pillOffer" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="12" cy="12" r="4"/></svg>
+        <span>Portfolio</span>
+      </a>
+      <a class="profile-pill" href="#section-about" id="pillAbout" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16l1 13H3L4 7Z"/><path d="M8 7a4 4 0 0 1 8 0"/></svg>
+        <span>Services</span>
+      </a>
+      <a class="profile-pill" href="#section-contact" id="pillContact" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+        <span>Contact</span>
+      </a>
+      <button type="button" class="profile-pill profile-pill--chat" id="chatPill" hidden>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+        <span>Chat</span>
+      </button>
+    </nav>
+  </section>
+
+  <!-- Content -->
+  <div class="desk-content" id="content"></div>
+
+  <!-- Recent posts -->
+  <section class="profile-posts" id="profilePosts" hidden>
+    <span class="desk-section-eyebrow">Recent posts</span>
+    <div class="profile-posts-list" id="postsList"></div>
+  </section>
 
 </main>
 
-</div>
-
-<div class="sheet-overlay" id="commentOverlay" hidden>
-  <div class="sheet" id="commentSheet">
-    <div class="sheet-handle" id="sheetHandle"></div>
-    <header class="sheet-head">
-      <span id="sheetTitle">Replies</span>
-      <button type="button" id="sheetClose" aria-label="Close">×</button>
-    </header>
-    <div class="sheet-body" id="sheetBody">
-      <div class="sheet-post" id="sheetPost"></div>
-      <div class="sheet-replies" id="sheetReplies"></div>
-    </div>
-    <form class="sheet-composer" id="sheetComposer">
-      <input type="text" id="sheetInput" placeholder="Write a reply…" maxlength="500" autocomplete="off">
-      <button type="submit" id="sheetSend" disabled>
-        <svg viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
-      </button>
-    </form>
-  </div>
+<!-- Lightbox -->
+<div class="desk-lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="View image" hidden>
+  <button class="desk-lightbox-close" id="lightboxClose" type="button" aria-label="Close image viewer">
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M6 6L18 18M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+    </svg>
+  </button>
+  <img id="lightboxImage" src="" alt="">
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
-<script src="auth.js?v=23"></script>
-<script src="home.js?v=6"></script>
-<script src="nav.js?v=101"></script>
-
-<script>
-/* Topbar scroll behaviour */
-(function () {
-  var topbar = document.querySelector('.topbar');
-  if (!topbar) return;
-
-  function getScrollY() {
-    return Math.max(
-      window.scrollY || 0,
-      window.pageYOffset || 0,
-      document.documentElement ? document.documentElement.scrollTop : 0,
-      document.body ? document.body.scrollTop : 0
-    );
-  }
-
-  var lastY = getScrollY();
-  var ticking = false;
-  var HIDE_AFTER = 24;
-  var SHOW_AFTER = 2;
-
-  function update() {
-    var y = getScrollY();
-    var dy = y - lastY;
-
-    if (dy > SHOW_AFTER && y > HIDE_AFTER) {
-      topbar.classList.add('is-hidden');
-      topbar.classList.remove('is-visible');
-    } else if (dy < -SHOW_AFTER) {
-      topbar.classList.remove('is-hidden');
-      topbar.classList.add('is-visible');
-    }
-
-    if (y <= 4) {
-      topbar.classList.remove('is-hidden');
-      topbar.classList.add('is-visible');
-    }
-
-    lastY = y;
-    ticking = false;
-  }
-
-  function onScroll() {
-    if (ticking) return;
-    ticking = true;
-    requestAnimationFrame(update);
-  }
-
-  window.addEventListener('scroll', onScroll, { passive: true });
-  document.addEventListener('scroll', onScroll, { passive: true, capture: true });
-})();
-
-/* Search icon → Explore */
-(function () {
-  var searchBtn = document.getElementById('searchButton');
-  if (!searchBtn) return;
-  searchBtn.addEventListener('click', function () {
-    location.href = '/explore.html';
-  });
-})();
-
-/* Avatar → your own profile */
-(function () {
-  var avatarBtn = document.getElementById('avatarButton');
-  if (!avatarBtn) return;
-
-  avatarBtn.addEventListener('click', async function (e) {
-    e.preventDefault();
-
-    try {
-      var desk = await AUTH.currentDesk();
-      if (desk && desk.username) {
-        location.href = '/profile.html?u=' + encodeURIComponent(desk.username);
-      } else {
-        location.href = '/profile.html';
-      }
-    } catch (err) {
-      location.href = '/profile.html';
-    }
-  });
-})();
-</script>
+<script src="auth.js?v=9"></script>
+<script src="desk-render.js?v=4"></script>
+<script src="profile.js?v=3"></script>
 
 </body>
 </html>
