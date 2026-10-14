@@ -195,3 +195,200 @@ body.stm-nav-page a { font-weight: 600 !important; }
     height: 19px !important;
   }
                          }
+/* =========================================================
+   STMDESKLY v2 — Bottom navigation
+   Floating pill. Force-outlined icons. Centered on every screen.
+   ========================================================= */
+
+nav.stm-nav {
+  position: fixed !important;
+  top: auto !important;
+  bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+  left: 50% !important;
+  right: auto !important;
+  transform: translateX(-50%) !important;
+  z-index: 9999 !important;
+
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  align-items: stretch !important;
+  gap: 2px !important;
+
+  width: calc(100% - 24px) !important;
+  max-width: 440px !important;
+  margin: 0 !important;
+  padding: 5px !important;
+
+  border-radius: 20px !important;
+  border: 1px solid rgba(23, 43, 58, 0.06) !important;
+
+  background: linear-gradient(
+    180deg,
+    rgba(255, 254, 251, 0.96) 0%,
+    rgba(247, 246, 241, 0.92) 100%
+  ) !important;
+
+  box-shadow:
+    0 1px 2px rgba(23, 43, 58, 0.04),
+    0 14px 34px rgba(23, 43, 58, 0.12) !important;
+
+  backdrop-filter: blur(20px) saturate(1.4) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(1.4) !important;
+}
+
+nav.stm-nav * { box-sizing: border-box !important; }
+
+/* Force every icon in the nav to be an outline */
+nav.stm-nav svg {
+  display: block !important;
+  fill: none !important;
+  stroke: currentColor !important;
+  stroke-width: 2 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
+
+nav.stm-nav svg path,
+nav.stm-nav svg circle,
+nav.stm-nav svg rect,
+nav.stm-nav svg line,
+nav.stm-nav svg polyline,
+nav.stm-nav svg polygon {
+  fill: none !important;
+  stroke: currentColor !important;
+}
+
+a.stm-nav__item {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 3px !important;
+
+  min-height: 48px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+
+  margin: 0 !important;
+  padding: 5px 4px !important;
+
+  color: #6B7A82 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 14px !important;
+
+  font-family: inherit !important;
+  font-size: 9.5px !important;
+  font-weight: 700 !important;
+  line-height: 1.1 !important;
+  letter-spacing: -0.005em !important;
+  text-decoration: none !important;
+  text-transform: none !important;
+
+  transition: color 160ms ease, background 180ms ease !important;
+}
+
+a.stm-nav__item:hover { color: #172B3A !important; }
+
+a.stm-nav__item .stm-nav__icon {
+  position: relative !important;
+  display: inline-grid !important;
+  place-items: center !important;
+
+  width: 32px !important;
+  height: 22px !important;
+
+  border-radius: 999px !important;
+  background: transparent !important;
+
+  transition: background 180ms ease, color 180ms ease !important;
+}
+
+a.stm-nav__item svg {
+  width: 20px !important;
+  height: 20px !important;
+  max-width: 20px !important;
+  max-height: 20px !important;
+  min-width: 20px !important;
+  min-height: 20px !important;
+  flex: 0 0 20px !important;
+}
+
+a.stm-nav__label {
+  display: block !important;
+  font-size: 9.5px !important;
+  font-weight: 700 !important;
+  line-height: 1.1 !important;
+  letter-spacing: -0.005em !important;
+  color: inherit !important;
+  white-space: nowrap !important;
+}
+
+/* ---------- Active state ---------- */
+
+a.stm-nav__item.is-current { color: #2F6D70 !important; }
+
+a.stm-nav__item.is-current .stm-nav__icon {
+  background: #DCEBE3 !important;
+  color: #2F6D70 !important;
+}
+
+a.stm-nav__item.is-current svg {
+  stroke-width: 2.4 !important;
+}
+
+a.stm-nav__item.is-current .stm-nav__label {
+  color: #2F6D70 !important;
+  font-weight: 800 !important;
+}
+
+/* Unread dot */
+a.stm-nav__item .stm-nav__dot {
+  position: absolute !important;
+  top: -2px !important;
+  right: 0px !important;
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50% !important;
+  background: #C75D5D !important;
+  border: 2px solid #FFFEFB !important;
+  box-shadow: 0 0 0 1px rgba(23, 43, 58, 0.04) !important;
+}
+
+/* Room for the floating nav */
+body.stm-nav-page {
+  padding-bottom: calc(102px + env(safe-area-inset-bottom)) !important;
+}
+
+/* Bolder type on signed-in pages */
+body.stm-nav-page h1,
+body.stm-nav-page h2,
+body.stm-nav-page h3 {
+  font-weight: 800 !important;
+  letter-spacing: -0.03em !important;
+}
+
+body.stm-nav-page p,
+body.stm-nav-page li { font-weight: 500 !important; }
+
+body.stm-nav-page label { font-weight: 700 !important; }
+
+body.stm-nav-page button,
+body.stm-nav-page .btn { font-weight: 700 !important; }
+
+body.stm-nav-page a { font-weight: 600 !important; }
+
+/* ---------- Small phones ---------- */
+
+@media (max-width: 370px) {
+  nav.stm-nav {
+    width: calc(100% - 16px) !important;
+    padding: 4px !important;
+  }
+
+  a.stm-nav__item .stm-nav__label { font-size: 9px !important; }
+  a.stm-nav__item svg {
+    width: 19px !important;
+    height: 19px !important;
+  }
+}
