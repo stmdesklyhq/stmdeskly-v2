@@ -1,7 +1,7 @@
 /* =========================================================
    STMDESKLY v2 — Single chat
    Tap-to-record voice notes with IndexedDB persistence,
-   reliable progress bar, scroll-to-bottom button.
+   wall-clock progress bar, scroll-to-bottom button.
    ========================================================= */
 (function () {
   'use strict';
@@ -115,6 +115,12 @@
   const audioEl = new Audio();
   audioEl.preload = 'metadata';
   let playingMsgId = null;
+
+  // Wall-clock playback tracking (bypasses broken currentTime on Android)
+  let playStartedAt = 0;   // Date.now() when playback began (or resumed)
+  let playStartOffset = 0; // seconds already elapsed at play/resume
+  let playTotalDur = 0;    // seconds, from data-duration
+  let progressRaf = null;
 
   /* =========================================================
      IndexedDB — persist failed voice notes across reloads
@@ -276,7 +282,6 @@
   }
 
   function pinToBottomAfterImages() {
-    // Re-pin while images load
     const imgs = chatLog.querySelectorAll('img');
     for (let i = 0; i < imgs.length; i++) {
       const img = imgs[i];
@@ -528,6 +533,7 @@
 
     chatLog.innerHTML = html;
 
+    // If we were playing, restore UI state and repaint
     if (playingMsgId) {
       const player = chatLog.querySelector('.chat-audio[data-id="' + playingMsgId + '"]');
       if (player) {
@@ -824,7 +830,7 @@
   }
 
   /* =========================================================
-     Pending replies from service worker (IndexedDB stmdeskly-sw)
+     Pending replies from service worker
      ========================================================= */
 
   async function flushPendingReplies() {
@@ -1417,7 +1423,6 @@
     let idx = allMessages.findIndex(function (m) { return m.id === tempId; });
 
     if (idx === -1) {
-      // Lost during a refresh — re-add so the user sees the failure
       allMessages.push(temp);
       idx = allMessages.length - 1;
     }
@@ -1426,7 +1431,6 @@
       allMessages[idx].__pending = false;
       allMessages[idx].__failed = true;
 
-      // Persist so it survives a page reload
       saveFailedVoice({
         id: tempId,
         threadId: thread.id,
@@ -1494,10 +1498,79 @@
   }
 
   /* =========================================================
-     VOICE PLAYBACK
+     VOICE PLAYBACK — wall-clock driven progress
      ========================================================= */
 
+  function stopProgressLoop() {
+    if (progressRaf) {
+      cancelAnimationFrame(progressRaf);
+      progressRaf = null;
+    }
+  }
+
+  function startProgressLoop() {
+    stopProgressLoop();
+    const tick = function () {
+      if (!playingMsgId) { progressRaf = null; return; }
+      paintAudioProgress();
+      progressRaf = requestAnimationFrame(tick);
+    };
+    progressRaf = requestAnimationFrame(tick);
+  }
+
+  // Wall-clock elapsed since playback started
+  function getElapsedSeconds() {
+    return playStartOffset + (Date.now() - playStartedAt) / 1000;
+  }
+
+  function paintAudioProgress() {
+    if (!playingMsgId) return;
+    const el = chatLog.querySelector('.chat-audio[data-id="' + playingMsgId + '"]');
+    if (!el) return;
+    const fill = el.querySelector('.chat-audio-track-fill');
+    const dot  = el.querySelector('.chat-audio-dot');
+    const timeEl = el.querySelector('.chat-audio-time');
+
+    const dur = playTotalDur || parseFloat(el.dataset.duration) || 0;
+    if (!dur) return;
+
+    let cur = getElapsedSeconds();
+    if (cur > dur) cur = dur;
+
+    const pct = Math.min(100, (cur / dur) * 100);
+
+    if (fill) fill.style.width = pct + '%';
+    if (dot)  dot.style.left  = pct + '%';
+    if (timeEl) timeEl.textContent = fmtDur(cur);
+
+    // Auto-finish when we've reached the end
+    if (cur >= dur - 0.05) {
+      finishPlayback();
+    }
+  }
+
+  function finishPlayback() {
+    if (!playingMsgId) return;
+    const el = chatLog.querySelector('.chat-audio[data-id="' + playingMsgId + '"]');
+    if (el) {
+      el.classList.remove('is-playing');
+      const fill = el.querySelector('.chat-audio-track-fill');
+      const dot  = el.querySelector('.chat-audio-dot');
+      const timeEl = el.querySelector('.chat-audio-time');
+      if (fill) fill.style.width = '0%';
+      if (dot)  dot.style.left = '0%';
+      if (timeEl) timeEl.textContent = fmtDur(parseFloat(el.dataset.duration) || 0);
+    }
+    playingMsgId = null;
+    playStartOffset = 0;
+    playStartedAt = 0;
+    playTotalDur = 0;
+    stopProgressLoop();
+    try { audioEl.pause(); audioEl.removeAttribute('src'); audioEl.load(); } catch (e) {}
+  }
+
   function stopAudio() {
+    stopProgressLoop();
     try { audioEl.pause(); } catch (e) {}
     audioEl.removeAttribute('src');
     try { audioEl.load(); } catch (e) {}
@@ -1514,26 +1587,9 @@
       }
     }
     playingMsgId = null;
-  }
-
-  function paintAudioProgress() {
-    if (!playingMsgId) return;
-    const el = chatLog.querySelector('.chat-audio[data-id="' + playingMsgId + '"]');
-    if (!el) return;
-    const fill = el.querySelector('.chat-audio-track-fill');
-    const dot  = el.querySelector('.chat-audio-dot');
-    const timeEl = el.querySelector('.chat-audio-time');
-
-    const dur = isFinite(audioEl.duration) && audioEl.duration > 0
-      ? audioEl.duration
-      : (parseFloat(el.dataset.duration) || 0);
-
-    const cur = audioEl.currentTime || 0;
-    const pct = dur ? Math.min(100, (cur / dur) * 100) : 0;
-
-    if (fill) fill.style.width = pct + '%';
-    if (dot)  dot.style.left  = pct + '%';
-    if (timeEl) timeEl.textContent = fmtDur(cur);
+    playStartOffset = 0;
+    playStartedAt = 0;
+    playTotalDur = 0;
   }
 
   function toggleAudioPlayback(msgId) {
@@ -1549,7 +1605,13 @@
     const src = el.dataset.src;
     if (!src) return;
 
+    const dur = parseFloat(el.dataset.duration) || 0;
+
     playingMsgId = msgId;
+    playStartedAt = Date.now();
+    playStartOffset = 0;
+    playTotalDur = dur;
+
     el.classList.add('is-playing');
 
     const fill = el.querySelector('.chat-audio-track-fill');
@@ -1557,7 +1619,7 @@
     const timeEl = el.querySelector('.chat-audio-time');
     if (fill) fill.style.width = '0%';
     if (dot)  dot.style.left = '0%';
-    if (timeEl) timeEl.textContent = fmtDur(parseFloat(el.dataset.duration) || 0);
+    if (timeEl) timeEl.textContent = fmtDur(0);
 
     audioEl.src = src;
     const p = audioEl.play();
@@ -1567,23 +1629,14 @@
         flashToast('Cannot play: ' + (err && err.name ? err.name : 'unknown'));
       });
     }
+
+    startProgressLoop();
   }
 
-  audioEl.addEventListener('timeupdate', paintAudioProgress);
-  audioEl.addEventListener('loadedmetadata', paintAudioProgress);
+  // Safety net: if the audio element somehow ends before the wall clock,
+  // or after, end playback cleanly.
   audioEl.addEventListener('ended', function () {
-    if (!playingMsgId) return;
-    const el = chatLog.querySelector('.chat-audio[data-id="' + playingMsgId + '"]');
-    if (el) {
-      el.classList.remove('is-playing');
-      const fill = el.querySelector('.chat-audio-track-fill');
-      const dot  = el.querySelector('.chat-audio-dot');
-      const timeEl = el.querySelector('.chat-audio-time');
-      if (fill) fill.style.width = '0%';
-      if (dot)  dot.style.left = '0%';
-      if (timeEl) timeEl.textContent = fmtDur(parseFloat(el.dataset.duration) || 0);
-    }
-    playingMsgId = null;
+    finishPlayback();
   });
 
   /* =========================================================
@@ -2021,12 +2074,10 @@
 
       chatLog.hidden = false;
 
-      // Restore any failed voice notes from IndexedDB
       const failedVoice = await loadFailedVoice(thread.id);
 
       await refreshMessages();
 
-      // Merge in failed voice notes after the first refresh
       if (failedVoice.length) {
         let added = 0;
         for (let i = 0; i < failedVoice.length; i++) {
