@@ -938,17 +938,31 @@
       return { ok: false, reason: 'bad-subscription' };
     }
 
+    // Clear any stale row for this endpoint, then insert fresh.
+    // Avoids needing an UPDATE policy on this table.
+    await sb.from('push_subscriptions').delete().eq('endpoint', json.endpoint);
+
     const save = await sb
       .from('push_subscriptions')
-      .upsert({
+      .insert({
         user_id: user.id,
         endpoint: json.endpoint,
         p256dh: json.keys.p256dh,
         auth: json.keys.auth,
         user_agent: navigator.userAgent || null,
-      }, { onConflict: 'endpoint' });
+      });
 
-    if (save.error) return { ok: false, reason: 'save-failed', error: save.error };
+    if (save.error) {
+      return {
+        ok: false,
+        reason: 'save-failed',
+        error: {
+          message: (save.error.message || 'unknown') +
+            ' [' + (save.error.code || '') + ']'
+        }
+      };
+    }
+
     return { ok: true, endpoint: json.endpoint };
   }
 
