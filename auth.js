@@ -1026,6 +1026,77 @@
   }
 
   /* =========================================================
+     QUICK REPLIES
+     ========================================================= */
+
+  async function getQuickReplies() {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: true, data: [] };
+
+    const res = await sb.from('quick_replies')
+      .select('id, body, sort_order, created_at')
+      .eq('user_id', user.id)
+      .order('sort_order', { ascending: true })
+      .order('created_at', { ascending: true });
+
+    if (res.error) return { ok: false, error: res.error };
+    return { ok: true, data: res.data || [] };
+  }
+
+  async function createQuickReply(body, sortOrder) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    const clean = String(body || '').trim();
+    if (!clean) return { ok: false, error: { message: 'Empty reply' } };
+    if (clean.length > 500) return { ok: false, error: { message: 'Too long (max 500)' } };
+
+    const res = await sb.from('quick_replies').insert({
+      user_id: user.id,
+      body: clean,
+      sort_order: sortOrder || 0
+    }).select('id, body, sort_order, created_at').single();
+
+    if (res.error) return { ok: false, error: res.error };
+    return { ok: true, data: res.data };
+  }
+
+  async function updateQuickReply(id, body) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    const clean = String(body || '').trim();
+    if (!clean) return { ok: false, error: { message: 'Empty reply' } };
+    if (clean.length > 500) return { ok: false, error: { message: 'Too long (max 500)' } };
+
+    const res = await sb.from('quick_replies')
+      .update({ body: clean })
+      .eq('id', id)
+      .eq('user_id', user.id)
+      .select('id, body, sort_order, created_at')
+      .single();
+
+    if (res.error) return { ok: false, error: res.error };
+    return { ok: true, data: res.data };
+  }
+
+  async function deleteQuickReply(id) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    const res = await sb.from('quick_replies')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', user.id);
+    if (res.error) return { ok: false, error: res.error };
+    return { ok: true };
+  }
+
+  /* =========================================================
      PUSH NOTIFICATIONS
      ========================================================= */
 
@@ -1232,6 +1303,12 @@
     isBlocked: isBlocked,
     getBlockedUsers: getBlockedUsers,
     reportUser: reportUser,
+
+    // Quick replies
+    getQuickReplies: getQuickReplies,
+    createQuickReply: createQuickReply,
+    updateQuickReply: updateQuickReply,
+    deleteQuickReply: deleteQuickReply,
 
     // Push
     registerServiceWorker: registerServiceWorker,
