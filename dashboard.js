@@ -1,6 +1,6 @@
 /* =========================================================
    STMDESKLY v2 — Dashboard
-   Loads the user's Desk, wires copy / publish / logout / push.
+   Loads the user's Desk, wires copy / publish / logout / push / away.
    Depends on: config.js, auth.js
    ========================================================= */
 (function () {
@@ -27,10 +27,20 @@
   const notifBody       = $('notifBody');
   const notifButton     = $('notifButton');
 
+  const awayStrip       = $('awayStrip');
+  const awayTitle       = $('awayTitle');
+  const awayBody        = $('awayBody');
+  const awayButton      = $('awayButton');
+  const awayEditor      = $('awayEditor');
+  const awayMessage     = $('awayMessage');
+  const awayCancel      = $('awayCancel');
+  const awaySave        = $('awaySave');
+
   let desk = null;
   let deskUrl = '';
   let publishing = false;
   let copyTimer = null;
+  let awayEnabled = false;
 
   function firstName(full) {
     const parts = String(full || '').trim().split(/\s+/).filter(Boolean);
@@ -153,6 +163,31 @@
     notifButton.disabled = false;
   }
 
+  /* ---------- Away mode ---------- */
+
+  async function paintAway() {
+    if (!awayStrip) return;
+    const s = await AUTH.getAwaySettings();
+
+    awayEnabled = !!s.enabled;
+
+    awayStrip.classList.toggle('is-on', awayEnabled);
+
+    if (awayEnabled) {
+      awayTitle.textContent = 'Away mode is ON';
+      awayBody.textContent = s.message
+        ? 'Auto-replying: "' + s.message + '"'
+        : 'Auto-replying with the default message.';
+      awayButton.textContent = 'Turn off';
+    } else {
+      awayTitle.textContent = 'Away mode';
+      awayBody.textContent = 'Auto-reply once when someone messages you. Off for now.';
+      awayButton.textContent = 'Turn on';
+    }
+
+    awayEditor.hidden = true;
+  }
+
   /* ---------- Events ---------- */
 
   if (copyButton) {
@@ -218,6 +253,41 @@
     });
   }
 
+  if (awayButton) {
+    awayButton.addEventListener('click', async function () {
+      if (awayEnabled) {
+        const res = await AUTH.setAwaySettings(false, '');
+        if (!res.ok) { alert('Could not turn off away mode.'); return; }
+        await paintAway();
+        return;
+      }
+
+      const s = await AUTH.getAwaySettings();
+      awayMessage.value = s.message || '';
+      awayEditor.hidden = false;
+      awayMessage.focus();
+    });
+  }
+
+  if (awayCancel) {
+    awayCancel.addEventListener('click', function () {
+      awayEditor.hidden = true;
+    });
+  }
+
+  if (awaySave) {
+    awaySave.addEventListener('click', async function () {
+      awaySave.disabled = true;
+      const res = await AUTH.setAwaySettings(true, awayMessage.value);
+      awaySave.disabled = false;
+      if (!res.ok) {
+        alert((res.error && res.error.message) || 'Could not save.');
+        return;
+      }
+      await paintAway();
+    });
+  }
+
   /* ---------- Boot ---------- */
 
   (async function boot() {
@@ -233,6 +303,8 @@
         hide.forEach(function (el) { el.hidden = true; });
       }
       if (notifStrip) notifStrip.hidden = true;
+      if (awayStrip) awayStrip.hidden = true;
+      if (awayEditor) awayEditor.hidden = true;
       return;
     }
 
@@ -247,5 +319,6 @@
     paintLink();
 
     await paintNotif();
+    await paintAway();
   })();
 })();
