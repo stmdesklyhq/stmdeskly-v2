@@ -155,9 +155,14 @@
 
           <!-- Turnstile widget -->
           <div class="cf-turnstile"
+               id="turnstileWidget"
                data-sitekey="0x4AAAAAAFVDiwAnKoWmrKoj"
                data-theme="light"
                data-size="flexible"
+               data-callback="onTurnstileSuccess"
+               data-error-callback="onTurnstileError"
+               data-expired-callback="onTurnstileExpired"
+               data-timeout-callback="onTurnstileTimeout"
                style="margin-bottom: 16px;"></div>
 
           <!-- Honeypot — hidden from humans, bots fill it -->
@@ -251,6 +256,30 @@
   <script src="auth.js?v=4"></script>
 
   <script>
+    /* Turnstile state — set by callbacks injected via data-attributes */
+    window.__turnstile = {
+      token: '',
+      widgetId: null,
+      lastError: ''
+    };
+
+    window.onTurnstileSuccess = function (token) {
+      window.__turnstile.token = token || '';
+      window.__turnstile.lastError = '';
+    };
+    window.onTurnstileError = function (code) {
+      window.__turnstile.lastError = 'error-' + (code || 'unknown');
+      window.__turnstile.token = '';
+    };
+    window.onTurnstileExpired = function () {
+      window.__turnstile.lastError = 'expired';
+      window.__turnstile.token = '';
+    };
+    window.onTurnstileTimeout = function () {
+      window.__turnstile.lastError = 'timeout';
+      window.__turnstile.token = '';
+    };
+
     (function () {
       'use strict';
 
@@ -285,19 +314,37 @@
         if (field) field.style.display = 'none';
       }
 
-      // Bot protection — shared by both flows.
-      // Returns true if allowed, false if blocked.
-      async function passesBotCheck() {
+      /* Read the Turnstile token — try several sources. */
+      function readTurnstileToken() {
+        // 1. Callback-captured token
+        if (window.__turnstile.token) return window.__turnstile.token;
+
+        // 2. Official API
+        try {
+          if (window.turnstile && typeof window.turnstile.getResponse === 'function') {
+            const t = window.turnstile.getResponse();
+            if (t) return t;
+          }
+        } catch (e) {}
+
+        // 3. Hidden input
+        const el = document.querySelector('[name="cf-turnstile-response"]');
+        if (el && el.value) return el.value;
+
+        return '';
+      }
+
+      /* Bot protection — returns {ok, reason, details}. */
+      async function checkBot() {
         const honeypot = document.getElementById('website_url');
         if (honeypot && honeypot.value) {
-          showError('Something went wrong. Please try again.');
-          return false;
+          return { ok: false, reason: 'honeypot' };
         }
 
-        const tokenEl = document.querySelector('[name="cf-turnstile-response"]');
-        if (!tokenEl || !tokenEl.value) {
-          showError('Please complete the verification.');
-          return false;
+        const token = readTurnstileToken();
+        if (!token) {
+          const why = window.__turnstile.lastError;
+          return { ok: false, reason: 'no-token', details: why };
         }
 
         try {
@@ -306,19 +353,60 @@
             {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ token: tokenEl.value }),
+              body: JSON.stringify({ token: token }),
             }
           );
-          const data = await res.json();
-          if (!data.success) {
-            showError('Verification failed. Please try again.');
-            return false;
+
+          let data = null;
+          try { data = await res.json(); } catch (e) {}
+
+          if (!res.ok) {
+            return {
+              ok: false,
+              reason: 'server',
+              details: 'HTTP ' + res.status + (data && data.error ? ' — ' + data.error : '')
+            };
           }
-          return true;
+
+          if (!data || data.success !== true) {
+            const codes = (data && data['error-codes']) ? data['error-codes'].join(', ') : 'unknown';
+            return { ok: false, reason: 'cloudflare', details: codes };
+          }
+
+          return { ok: true };
         } catch (err) {
-          showError('Verification failed. Please try again.');
-          return false;
+          return {
+            ok: false,
+            reason: 'network',
+            details: (err && err.message) ? err.message : 'network error'
+          };
         }
+      }
+
+      async function passesBotCheck() {
+        const r = await checkBot();
+        if (r.ok) return true;
+
+        if (r.reason === 'honeypot') {
+          showError('Something went wrong. Please try again.');
+        } else if (r.reason === 'no-token') {
+          if (r.details === 'expired') {
+            showError('Verification expired. Tap the box above to try again.');
+          } else if (r.details === 'timeout') {
+            showError('Verification timed out. Tap the box above to retry.');
+          } else if (r.details) {
+            showError('Verification error (' + r.details + '). Tap the box above to retry.');
+          } else {
+            showError('Please complete the verification.');
+          }
+        } else if (r.reason === 'cloudflare') {
+          showError('Verification failed: ' + r.details);
+        } else if (r.reason === 'server') {
+          showError('Verification server error: ' + r.details);
+        } else {
+          showError('Verification failed (' + (r.details || 'unknown') + ').');
+        }
+        return false;
       }
 
       // Check the current session.
