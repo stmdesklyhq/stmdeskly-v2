@@ -884,7 +884,7 @@
 
   function getPushPermission() {
     if (!('Notification' in window)) return 'unsupported';
-    return Notification.permission; // 'default' | 'granted' | 'denied'
+    return Notification.permission;
   }
 
   function urlBase64ToUint8Array(base64String) {
@@ -956,17 +956,13 @@
     const sub = await getCurrentSubscription();
     if (sub) {
       try { await sub.unsubscribe(); } catch (e) {}
-
-      const endpoint = sub.endpoint;
-      await sb.from('push_subscriptions').delete().eq('endpoint', endpoint);
+      await sb.from('push_subscriptions').delete().eq('endpoint', sub.endpoint);
     }
-
     const userRes = await sb.auth.getUser();
     const user = userRes.data.user;
     if (user) {
       await sb.from('push_subscriptions').delete().eq('user_id', user.id);
     }
-
     return { ok: true };
   }
 
