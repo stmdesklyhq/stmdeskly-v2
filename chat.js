@@ -1,6 +1,7 @@
 /* =========================================================
    STMDESKLY v2 — Single chat
    Reply, react, delete, photos, presence, typing.
+   Realtime via Supabase channels.
    ========================================================= */
 (function () {
   'use strict';
@@ -45,11 +46,17 @@
   let allMessages = [];
   let reactionsMap = {};
   let lastNewestId = null;
-  let pollTimer = null;
   let typingTimer = null;
   let presenceTimer = null;
   let replyToId = null;
   let contextMessageId = null;
+
+  let messagesChannel = null;
+  let typingChannel = null;
+
+  let refreshDebounce = null;
+  let refreshInFlight = false;
+  let refreshQueued = false;
 
   function initials(name) {
     const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
@@ -234,47 +241,68 @@
     }).join('');
 
     chatLog.innerHTML = html;
-    // No auto-scroll here. refreshMessages decides.
   }
 
   async function refreshMessages() {
     if (!thread) return;
 
-    const prevNewest = allMessages.length
-      ? allMessages[allMessages.length - 1].id
-      : null;
-
-    const wasAtBottom =
-      (chatLog.scrollHeight - chatLog.scrollTop - chatLog.clientHeight) < 80;
-
-    const res = await AUTH.loadMessages(thread.id, 100);
-    if (!res.ok) return;
-
-    const messages = res.data;
-    const ids = messages.map(function (m) { return m.id; });
-    const rx = await AUTH.getMessageReactions(ids);
-    reactionsMap = rx.ok ? rx.data : {};
-
-    const newestId = messages.length
-      ? messages[messages.length - 1].id
-      : null;
-    const hasNew = newestId && newestId !== prevNewest;
-
-    const prevScrollTop = chatLog.scrollTop;
-
-    allMessages = messages;
-    lastNewestId = newestId;
-    renderMessages();
-
-    if (hasNew || wasAtBottom) {
-      chatLog.scrollTop = chatLog.scrollHeight;
-    } else {
-      chatLog.scrollTop = prevScrollTop;
+    if (refreshInFlight) {
+      refreshQueued = true;
+      return;
     }
+    refreshInFlight = true;
 
-    if (thread.status === 'accepted') {
-      AUTH.markMessagesRead(thread.id);
+    try {
+      const prevNewest = allMessages.length
+        ? allMessages[allMessages.length - 1].id
+        : null;
+
+      const wasAtBottom =
+        (chatLog.scrollHeight - chatLog.scrollTop - chatLog.clientHeight) < 80;
+
+      const res = await AUTH.loadMessages(thread.id, 100);
+      if (!res.ok) return;
+
+      const messages = res.data;
+      const ids = messages.map(function (m) { return m.id; });
+      const rx = await AUTH.getMessageReactions(ids);
+      reactionsMap = rx.ok ? rx.data : {};
+
+      const newestId = messages.length
+        ? messages[messages.length - 1].id
+        : null;
+      const hasNew = newestId && newestId !== prevNewest;
+
+      const prevScrollTop = chatLog.scrollTop;
+
+      allMessages = messages;
+      lastNewestId = newestId;
+      renderMessages();
+
+      if (hasNew || wasAtBottom) {
+        chatLog.scrollTop = chatLog.scrollHeight;
+      } else {
+        chatLog.scrollTop = prevScrollTop;
+      }
+
+      if (thread.status === 'accepted') {
+        AUTH.markMessagesRead(thread.id);
+      }
+    } finally {
+      refreshInFlight = false;
+      if (refreshQueued) {
+        refreshQueued = false;
+        refreshMessages();
+      }
     }
+  }
+
+  function scheduleRefresh(delay) {
+    if (refreshDebounce) clearTimeout(refreshDebounce);
+    refreshDebounce = setTimeout(function () {
+      refreshDebounce = null;
+      refreshMessages();
+    }, delay || 120);
   }
 
   function autoGrow() {
@@ -519,9 +547,33 @@
     }
   });
 
-  /* Typing via Realtime broadcast */
+  /* ---------- Realtime: messages ---------- */
 
-  let typingChannel = null;
+  function initMessagesRealtime() {
+    try {
+      messagesChannel = AUTH.sb
+        .channel('chat-' + thread.id)
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'chat_messages',
+          filter: 'thread_id=eq.' + thread.id
+        }, function () {
+          scheduleRefresh(120);
+        })
+        .subscribe(function (status) {
+          if (status === 'SUBSCRIBED') {
+            console.info('[chat] realtime subscribed');
+          } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+            console.warn('[chat] realtime error, will retry');
+          }
+        });
+    } catch (err) {
+      console.warn('[chat] realtime failed:', err);
+    }
+  }
+
+  /* ---------- Realtime: typing ---------- */
 
   function broadcastTyping() {
     if (!typingChannel || !thread) return;
@@ -589,7 +641,6 @@
     paintHeader();
     paintBanners();
 
-    // Show the message log before rendering into it.
     chatLog.hidden = false;
 
     await refreshMessages();
@@ -598,10 +649,10 @@
     autoGrow();
     updatePresence();
     initTyping();
+    initMessagesRealtime();
 
     if (thread.status === 'accepted') chatInput.focus();
 
-    pollTimer = setInterval(refreshMessages, 2000);
     presenceTimer = setInterval(function () {
       AUTH.touchPresence();
       updatePresence();
@@ -610,8 +661,44 @@
   })();
 
   window.addEventListener('beforeunload', function () {
-    if (pollTimer) clearInterval(pollTimer);
     if (presenceTimer) clearInterval(presenceTimer);
-    if (typingChannel) { try { typingChannel.unsubscribe(); } catch (e) {} }
+    if (refreshDebounce) clearTimeout(refreshDebounce);
+    try { if (messagesChannel) AUTH.sb.removeChannel(messagesChannel); } catch (e) {}
+    try { if (typingChannel) typingChannel.unsubscribe(); } catch (e) {}
   });
-})();
+})();Save this. Copy it now before the chat closes.
+
+---
+
+STMDeskly v2 — spine, in one message:
+
+Product: Free single-page public portfolio for Nigerian people, businesses, organisations. One link. No code.
+
+Desk (public): Portfolio. No login. Sections: mark, name, role, tagline, What we offer, About, Work, Details, Contact, Assistant, footer. Empty sections don't appear. Contact on WhatsApp.
+
+Profile (in-app): Members only. Desk content + chat, reviews, wall, Assistant.
+
+Assistant: Optional. Off by default. Owner trains it. Never pretends to be owner. Hands off to WhatsApp. Lives on both Desk and Profile. Tone: warm / brief / formal. Owner sees every conversation.
+
+Two customisation paths:
+
+· Fast — visual pickers, same depth as v1, preview always visible
+· Advanced — full design system, section-level control, nothing can break
+
+Customisation options for v2 launch: vibes (visual moods), live preview mirror, big icons, custom OG preview, custom favicon, scheduled sections, PIN-locked sections, language labels, hero alignment/badge/avatar ring.
+
+Safety first: RLS verified, chat photos private bucket, _headers file, _redirects blocking .git, rate limits on messages.
+
+Reference: Favour's Signature. Real business. Real menu. Real ordering. That's what a Desk should feel like.
+
+Rule for any feature: Does it help a Nigerian person/business/organisation be found, reached, or understood — faster, more clearly, more safely? If not, v3.
+
+Not a template. Not a website builder. Not a social network. Not a marketplace. Free. Prebuilt. Feels custom.
+
+---
+
+Everything else we discussed is here in the thread. Copy the whole thing to Notes if you can.
+
+When you're back — with a new chat or this one — start with: "STMDeskly v2, continue." I'll pick up from here.
+
+Good luck. You built something real. Rest.
