@@ -8,13 +8,23 @@
 
 <style>
   /* Critical inline CSS — prevents the oversized flash before stylesheets load */
-  html, body { margin: 0; padding: 0; background: #F7F6F1; color: #172B3A; }
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    background: #F7F6F1;
+    color: #172B3A;
+  }
   body {
     font-family: Poppins, system-ui, -apple-system, "Segoe UI", sans-serif;
     font-size: 14px;
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
   }
+  img { max-width: 100%; height: auto; display: block; }
   a { color: inherit; text-decoration: none; }
   button { font: inherit; cursor: pointer; }
   h1 { font-size: 24px; line-height: 1.25; margin: 0; font-weight: 600; letter-spacing: -0.04em; }
@@ -28,11 +38,11 @@
 
 <link rel="preload" as="style" href="tokens.css?v=1">
 <link rel="preload" as="style" href="feed.css?v=4">
-<link rel="preload" as="style" href="nav.css?v=3">
+<link rel="preload" as="style" href="nav.css?v=4">
 
 <link rel="stylesheet" href="tokens.css?v=1">
 <link rel="stylesheet" href="feed.css?v=4">
-<link rel="stylesheet" href="nav.css?v=3">
+<link rel="stylesheet" href="nav.css?v=4">
 </head>
 
 <body>
@@ -168,6 +178,15 @@
     ticking = true;
     requestAnimationFrame(update);
   }, { passive: true });
+})();
+
+/* Header search icon → Explore */
+(function () {
+  var searchBtn = document.getElementById('searchButton');
+  if (!searchBtn) return;
+  searchBtn.addEventListener('click', function () {
+    location.href = '/explore.html';
+  });
 })();
 </script>
 
