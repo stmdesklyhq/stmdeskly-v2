@@ -1,6 +1,7 @@
 /* =========================================================
    STMDESKLY v2 — In-app Profile
    Same content as the public Desk + quicknav + recent posts.
+   No ?u= → shows your own profile.
    ========================================================= */
 (function () {
   'use strict';
@@ -244,9 +245,28 @@
     sb = AUTH.sb;
 
     const params = new URLSearchParams(location.search);
-    const username = (params.get('u') || '').trim().toLowerCase();
+    let username = (params.get('u') || '').trim().toLowerCase();
 
-    if (!username) return showMissing();
+    // No ?u= → load your own profile.
+    // Try desk row first, fall back to user metadata.
+    if (!username) {
+      let ownUsername = '';
+
+      // 1. From the desks row
+      try {
+        const own = await AUTH.currentDesk();
+        if (own && own.username) ownUsername = String(own.username).toLowerCase();
+      } catch (e) {}
+
+      // 2. From user metadata
+      if (!ownUsername) {
+        const meta = user.user_metadata || {};
+        if (meta.username) ownUsername = String(meta.username).toLowerCase();
+      }
+
+      if (!ownUsername) return showMissing();
+      username = ownUsername;
+    }
 
     const res = await sb.from('desks').select('*').eq('username', username).maybeSingle();
     if (res.error || !res.data) return showMissing();
