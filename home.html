@@ -14,7 +14,7 @@
     padding: 0;
     width: 100%;
     max-width: 100%;
-    overflow-x: hidden;
+    overflow-x: clip;   /* clip, not hidden — keeps window scroll working */
     background: #F7F6F1;
     color: #172B3A;
   }
@@ -148,26 +148,35 @@
   var topbar = document.querySelector('.topbar');
   if (!topbar) return;
 
-  var lastY = Math.max(0, window.scrollY || window.pageYOffset || 0);
+  /* Read scroll position from every possible source.
+     overflow-x: clip on html/body can move the scroll to documentElement,
+     so window.scrollY alone isn't reliable across browsers. */
+  function getScrollY() {
+    return Math.max(
+      window.scrollY || 0,
+      window.pageYOffset || 0,
+      document.documentElement ? document.documentElement.scrollTop : 0,
+      document.body ? document.body.scrollTop : 0
+    );
+  }
+
+  var lastY = getScrollY();
   var ticking = false;
-  var HIDE_AFTER = 24;   // must scroll down this many px before it hides
+  var HIDE_AFTER = 24;   // scroll down this many px before hiding
   var SHOW_AFTER = 2;    // tiny scroll up brings it back
 
   function update() {
-    var y = Math.max(0, window.scrollY || window.pageYOffset || 0);
+    var y = getScrollY();
     var dy = y - lastY;
 
     if (dy > SHOW_AFTER && y > HIDE_AFTER) {
-      // scrolling down → hide
       topbar.classList.add('is-hidden');
       topbar.classList.remove('is-visible');
     } else if (dy < -SHOW_AFTER) {
-      // scrolling up → show immediately
       topbar.classList.remove('is-hidden');
       topbar.classList.add('is-visible');
     }
 
-    // At the very top — always visible
     if (y <= 4) {
       topbar.classList.remove('is-hidden');
       topbar.classList.add('is-visible');
@@ -177,11 +186,15 @@
     ticking = false;
   }
 
-  window.addEventListener('scroll', function () {
+  function onScroll() {
     if (ticking) return;
     ticking = true;
     requestAnimationFrame(update);
-  }, { passive: true });
+  }
+
+  /* Listen on both window and document (capture) — catches every scroll source */
+  window.addEventListener('scroll', onScroll, { passive: true });
+  document.addEventListener('scroll', onScroll, { passive: true, capture: true });
 })();
 
 /* Header search icon → Explore */
