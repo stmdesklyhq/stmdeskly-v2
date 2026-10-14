@@ -1,7 +1,8 @@
 /* =========================================================
    STMDESKLY v2 — Single chat
-   Reply, react, delete, photos, presence, typing, delivery,
-   mute, block, report, quick replies, search, star, voice notes.
+   Tap-to-record voice notes. Reply, react, delete, photos,
+   presence, typing, delivery, mute, block, report, quick
+   replies, search, star.
    ========================================================= */
 (function () {
   'use strict';
@@ -38,9 +39,9 @@
   const composerInner   = $('composerInner');
   const chatRecorder    = $('chatRecorder');
   const recCancel       = $('recCancel');
+  const recSend         = $('recSend');
   const recTimer        = $('recTimer');
   const recWave         = $('recWave');
-  const recHint         = $('recHint');
   const replyBar        = $('replyBar');
   const replyName       = $('replyName');
   const replyPreview    = $('replyPreview');
@@ -105,10 +106,6 @@
   const REC_WAVE_BARS = 26;
 
   let recState = null;
-  let recHoldTimer = null;
-  let recStartY = 0;
-  let recStartX = 0;
-  let recWillCancel = false;
 
   /* ---------- Audio playback state ---------- */
   const audioEl = new Audio();
@@ -520,6 +517,8 @@
       allMessages[idx].__pending = false;
       allMessages[idx].__failed = true;
       renderMessages();
+      var msg = res.error && (res.error.message || res.error.error_description) || 'unknown error';
+      flashToast('Send failed: ' + msg);
       return;
     }
 
@@ -558,11 +557,54 @@
     const m = findMessageById(messageId);
     if (!m || !m.__failed) return;
 
+    if (m.audio_url && String(m.audio_url).indexOf('blob:') === 0) {
+      retryVoiceMessage(messageId);
+      return;
+    }
+
     m.__failed = false;
     m.__pending = true;
     renderMessages();
 
     actuallySend(m.id, m.body, m.reply_to_id);
+  }
+
+  async function retryVoiceMessage(messageId) {
+    const m = findMessageById(messageId);
+    if (!m || !m.__failed) return;
+    if (!m.__blob) {
+      flashToast('Cannot retry — recording lost');
+      return;
+    }
+
+    m.__failed = false;
+    m.__pending = true;
+    renderMessages();
+
+    const res = await AUTH.sendVoiceMessage(thread.id, m.__blob, m.audio_duration);
+
+    let idx = -1;
+    for (let i = 0; i < allMessages.length; i++) {
+      if (allMessages[i].id === messageId) { idx = i; break; }
+    }
+    if (idx === -1) return;
+
+    if (!res.ok) {
+      allMessages[idx].__pending = false;
+      allMessages[idx].__failed = true;
+      renderMessages();
+      var msg = res.error && (res.error.message || res.error.error_description) || 'unknown error';
+      flashToast('Voice failed: ' + msg);
+      return;
+    }
+
+    const oldUrl = allMessages[idx].audio_url;
+    allMessages[idx] = res.message;
+    renderMessages();
+    chatLog.scrollTop = chatLog.scrollHeight;
+    if (oldUrl && String(oldUrl).indexOf('blob:') === 0) {
+      try { URL.revokeObjectURL(oldUrl); } catch (e) {}
+    }
   }
 
   function startReply(messageId) {
@@ -980,7 +1022,7 @@
   }
 
   /* =========================================================
-     VOICE RECORDING
+     VOICE RECORDING — tap to start
      ========================================================= */
 
   function micSupported() {
@@ -1028,7 +1070,7 @@
     paintRecWave(new Array(REC_WAVE_BARS).fill(0));
   }
 
-  function beginRecordingNow() {
+  function startRecording() {
     if (!thread || recState) return;
     if (blockedState.me || blockedState.them) {
       alert('Cannot record while blocked.');
@@ -1084,7 +1126,6 @@
         startedAt: startedAt,
         localLevels: localLevels,
         tickId: null,
-        stopReason: null,
         cancelled: false
       };
       recState = state;
@@ -1105,16 +1146,15 @@
         if (state.cancelled) return;
 
         if (durationSec < REC_MIN_SECONDS) {
-          flashRecHint('Too short');
-          return;
-        }
-        if (durationSec > REC_MAX_SECONDS + 1) {
-          flashRecHint('Too long');
+          flashToast('Too short');
           return;
         }
 
         const blob = new Blob(chunks, { type: (recorder.mimeType || mime || 'audio/webm') });
-        if (!blob.size) return;
+        if (!blob.size) {
+          flashToast('Empty recording');
+          return;
+        }
 
         sendVoiceBlob(blob, durationSec);
       };
@@ -1130,7 +1170,6 @@
       }
 
       showRecorder();
-      recWillCancel = false;
       updateRecTimer(0);
       paintRecWave(localLevels);
 
@@ -1149,7 +1188,6 @@
         }
 
         if (elapsed >= REC_MAX_SECONDS) {
-          state.stopReason = 'max';
           try { recorder.stop(); } catch (e) {}
         }
       }, 100);
@@ -1168,12 +1206,15 @@
   }
 
   async function sendVoiceBlob(blob, durationSec) {
+    const tempId = 'temp-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+    const objectUrl = URL.createObjectURL(blob);
+
     const temp = {
-      id: 'temp-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+      id: tempId,
       sender_id: me.id,
       body: null,
       photo_url: null,
-      audio_url: URL.createObjectURL(blob),
+      audio_url: objectUrl,
       audio_duration: Math.max(1, Math.round(durationSec)),
       read_at: null,
       delivered_at: null,
@@ -1182,7 +1223,8 @@
       deleted_at: null,
       deleted_for: null,
       is_auto: false,
-      __pending: true
+      __pending: true,
+      __blob: blob
     };
     allMessages.push(temp);
     renderMessages();
@@ -1192,36 +1234,35 @@
 
     let idx = -1;
     for (let i = 0; i < allMessages.length; i++) {
-      if (allMessages[i].id === temp.id) { idx = i; break; }
+      if (allMessages[i].id === tempId) { idx = i; break; }
     }
     if (idx === -1) return;
-
-    try { URL.revokeObjectURL(temp.audio_url); } catch (e) {}
 
     if (!res.ok) {
       allMessages[idx].__pending = false;
       allMessages[idx].__failed = true;
+      // Keep the object URL and blob so the user can retry
       renderMessages();
+      var msg = res.error && (res.error.message || res.error.error_description) || 'unknown error';
+      flashToast('Voice failed: ' + msg);
       return;
     }
 
     allMessages[idx] = res.message;
     renderMessages();
     chatLog.scrollTop = chatLog.scrollHeight;
+    try { URL.revokeObjectURL(objectUrl); } catch (e) {}
   }
 
   function showRecorder() {
     if (composerInner) composerInner.hidden = true;
     if (chatRecorder) chatRecorder.hidden = false;
-    if (recHint) recHint.textContent = 'Slide to cancel';
-    if (chatRecorder) chatRecorder.classList.remove('is-armed');
     resetRecWave();
   }
 
   function hideRecorder() {
     if (chatRecorder) chatRecorder.hidden = true;
     if (composerInner) composerInner.hidden = false;
-    if (chatRecorder) chatRecorder.classList.remove('is-armed');
   }
 
   function updateRecTimer(sec) {
@@ -1230,74 +1271,15 @@
     recTimer.textContent = fmtDur(total);
   }
 
-  function flashRecHint(msg) {
-    if (!recHint) return;
-    const original = 'Slide to cancel';
-    recHint.textContent = msg;
-    setTimeout(function () { recHint.textContent = original; }, 1200);
-  }
-
-  function armCancel() {
-    if (recWillCancel) return;
-    recWillCancel = true;
-    if (chatRecorder) chatRecorder.classList.add('is-armed');
-    if (recHint) recHint.textContent = 'Release to cancel';
-  }
-
-  function disarmCancel() {
-    if (!recWillCancel) return;
-    recWillCancel = false;
-    if (chatRecorder) chatRecorder.classList.remove('is-armed');
-    if (recHint) recHint.textContent = 'Slide to cancel';
-  }
-
   function cancelRecording() {
     if (!recState) return;
     recState.cancelled = true;
     try { recState.recorder.stop(); } catch (e) {}
   }
 
-  function endRecordingSend() {
+  function finishRecordingAndSend() {
     if (!recState) return;
-    if (recWillCancel) {
-      recState.cancelled = true;
-    }
     try { recState.recorder.stop(); } catch (e) {}
-  }
-
-  function onRecPressStart(clientX, clientY) {
-    if (!thread || !micSupported()) {
-      if (!micSupported()) alert('Voice notes are not supported on this browser.');
-      return;
-    }
-    recStartX = clientX;
-    recStartY = clientY;
-    recWillCancel = false;
-
-    if (recHoldTimer) clearTimeout(recHoldTimer);
-    recHoldTimer = setTimeout(function () {
-      recHoldTimer = null;
-      beginRecordingNow();
-    }, 120);
-  }
-
-  function onRecPressMove(clientX) {
-    if (!recState) return;
-    const dx = recStartX - clientX;
-    if (dx > 60) armCancel();
-    else if (dx < 30) disarmCancel();
-  }
-
-  function onRecPressEnd() {
-    if (recHoldTimer) {
-      clearTimeout(recHoldTimer);
-      recHoldTimer = null;
-      flashToast('Hold to record');
-      return;
-    }
-    if (recState) {
-      endRecordingSend();
-    }
   }
 
   let toastEl = null;
@@ -1305,7 +1287,7 @@
   function flashToast(msg) {
     if (!toastEl) {
       toastEl = document.createElement('div');
-      toastEl.style.cssText = 'position:fixed;left:50%;bottom:calc(100px + env(safe-area-inset-bottom));transform:translateX(-50%);background:rgba(23,43,58,.92);color:#fff;padding:9px 16px;border-radius:999px;font-size:12.5px;font-weight:600;z-index:220;pointer-events:none;opacity:0;transition:opacity .2s ease;';
+      toastEl.style.cssText = 'position:fixed;left:50%;bottom:calc(100px + env(safe-area-inset-bottom));transform:translateX(-50%);max-width:90vw;background:rgba(23,43,58,.94);color:#fff;padding:10px 18px;border-radius:14px;font-size:12.5px;font-weight:600;z-index:220;pointer-events:none;opacity:0;transition:opacity .2s ease;text-align:center;line-height:1.4;';
       document.body.appendChild(toastEl);
     }
     toastEl.textContent = msg;
@@ -1313,7 +1295,7 @@
     if (toastTimer) clearTimeout(toastTimer);
     toastTimer = setTimeout(function () {
       if (toastEl) toastEl.style.opacity = '0';
-    }, 1400);
+    }, 2600);
   }
 
   /* =========================================================
@@ -1377,9 +1359,9 @@
     audioEl.src = src;
     const p = audioEl.play();
     if (p && p.catch) {
-      p.catch(function () {
+      p.catch(function (err) {
         stopAudio();
-        flashToast('Could not play');
+        flashToast('Cannot play: ' + (err && err.name ? err.name : 'unknown'));
       });
     }
   }
@@ -1559,35 +1541,21 @@
     attachBtn.disabled = true;
     const res = await AUTH.sendPhotoMessage(thread.id, file);
     attachBtn.disabled = false;
-    if (!res.ok) { alert('Could not send photo. Try again.'); return; }
+    if (!res.ok) {
+      var msg = res.error && (res.error.message || res.error.error_description) || 'unknown error';
+      alert('Could not send photo: ' + msg);
+      return;
+    }
     await refreshMessages();
     chatLog.scrollTop = chatLog.scrollHeight;
   });
 
-  /* ---------- Mic button: hold to record ---------- */
+  /* ---------- Mic button: tap to start recording ---------- */
 
   if (micBtn) {
-    micBtn.addEventListener('contextmenu', function (e) { e.preventDefault(); });
-
-    micBtn.addEventListener('pointerdown', function (e) {
-      if (recState) return;
+    micBtn.addEventListener('click', function (e) {
       e.preventDefault();
-      try { micBtn.setPointerCapture(e.pointerId); } catch (err) {}
-      onRecPressStart(e.clientX, e.clientY);
-    });
-
-    micBtn.addEventListener('pointermove', function (e) {
-      if (!recState) return;
-      onRecPressMove(e.clientX);
-    });
-
-    micBtn.addEventListener('pointerup', function (e) {
-      onRecPressEnd();
-    });
-
-    micBtn.addEventListener('pointercancel', function () {
-      if (recState) endRecordingSend();
-      if (recHoldTimer) { clearTimeout(recHoldTimer); recHoldTimer = null; }
+      startRecording();
     });
   }
 
@@ -1595,6 +1563,13 @@
     recCancel.addEventListener('click', function (e) {
       e.preventDefault();
       cancelRecording();
+    });
+  }
+
+  if (recSend) {
+    recSend.addEventListener('click', function (e) {
+      e.preventDefault();
+      finishRecordingAndSend();
     });
   }
 
@@ -1788,7 +1763,6 @@
       if (threadId) {
         const res = await AUTH.loadThread(threadId);
         if (!res.ok) {
-          alert('loadThread failed: ' + JSON.stringify(res.error || res));
           chatMissing.hidden = false;
           return;
         }
@@ -1797,13 +1771,11 @@
       } else if (toUserId) {
         const res = await AUTH.startThread(toUserId);
         if (!res.ok) {
-          alert('startThread failed: ' + JSON.stringify(res.error || res));
           chatMissing.hidden = false;
           return;
         }
         const full = await AUTH.loadThread(res.thread.id);
         if (!full.ok) {
-          alert('loadThread after start failed: ' + JSON.stringify(full.error || full));
           chatMissing.hidden = false;
           return;
         }
