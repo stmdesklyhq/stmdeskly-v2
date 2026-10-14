@@ -1,6 +1,6 @@
 /* =========================================================
    STMDESKLY v2 — Dashboard
-   Loads the user's Desk, wires copy / publish / logout.
+   Loads the user's Desk, wires copy / publish / logout / push.
    Depends on: config.js, auth.js
    ========================================================= */
 (function () {
@@ -21,6 +21,11 @@
   const seeDeskButton   = $('seeDeskButton');
   const logoutButton    = $('logoutButton');
   const emptyState      = $('emptyState');
+
+  const notifStrip      = $('notifStrip');
+  const notifTitle      = $('notifTitle');
+  const notifBody       = $('notifBody');
+  const notifButton     = $('notifButton');
 
   let desk = null;
   let deskUrl = '';
@@ -108,7 +113,48 @@
     paintPublishStrip();
   }
 
+  /* ---------- Push notifications ---------- */
+
+  async function paintNotif() {
+    if (!notifStrip) return;
+
+    const state = await AUTH.getPushState();
+
+    if (!state.supported) {
+      notifStrip.hidden = true;
+      return;
+    }
+
+    notifStrip.hidden = false;
+    notifStrip.classList.remove('is-on', 'is-off');
+
+    if (state.permission === 'denied') {
+      notifStrip.classList.add('is-off');
+      notifTitle.textContent = 'Notifications blocked';
+      notifBody.textContent = 'You blocked notifications for this site. Enable them in your browser settings to get messages.';
+      notifButton.hidden = true;
+      return;
+    }
+
+    if (state.subscribed) {
+      notifStrip.classList.add('is-on');
+      notifTitle.textContent = 'Notifications on';
+      notifBody.textContent = 'You get a buzz when someone messages you on this device.';
+      notifButton.hidden = false;
+      notifButton.textContent = 'Turn off';
+      notifButton.disabled = false;
+      return;
+    }
+
+    notifTitle.textContent = 'Get notified';
+    notifBody.textContent = 'Tap to get a buzz when someone messages you on this device.';
+    notifButton.hidden = false;
+    notifButton.textContent = 'Enable';
+    notifButton.disabled = false;
+  }
+
   /* ---------- Events ---------- */
+
   if (copyButton) {
     copyButton.addEventListener('click', async function () {
       if (!deskUrl) return;
@@ -133,24 +179,60 @@
     });
   }
 
+  if (notifButton) {
+    notifButton.addEventListener('click', async function () {
+      notifButton.disabled = true;
+
+      const state = await AUTH.getPushState();
+
+      if (state.subscribed) {
+        notifButton.textContent = 'Turning off\u2026';
+        await AUTH.disablePush();
+      } else {
+        notifButton.textContent = 'Enabling\u2026';
+        const res = await AUTH.enablePush();
+
+        if (!res.ok) {
+          notifButton.disabled = false;
+          notifButton.textContent = 'Enable';
+
+          if (res.reason === 'denied') {
+            alert('Notifications were blocked. You can re-enable them in your browser settings.');
+          } else if (res.reason === 'unsupported') {
+            alert('This browser does not support push notifications.');
+          } else if (res.reason === 'no-vapid-key') {
+            alert('Push is not configured yet. Try again later.');
+          } else {
+            alert('Could not enable notifications. Try again.');
+          }
+
+          await paintNotif();
+          return;
+        }
+      }
+
+      await paintNotif();
+    });
+  }
+
   /* ---------- Boot ---------- */
+
   (async function boot() {
     const user = await AUTH.currentUser();
     if (!user) { location.replace('/login.html'); return; }
 
     const row = await AUTH.currentDesk();
     if (!row) {
-      // No Desk yet — show empty state
       if (emptyState) emptyState.hidden = false;
       const main = document.querySelector('main');
       if (main) {
         const hide = main.querySelectorAll('.intro, .publish-strip, .link-card, .main-actions');
         hide.forEach(function (el) { el.hidden = true; });
       }
+      if (notifStrip) notifStrip.hidden = true;
       return;
     }
 
-    // Fetch the full desk row (currentDesk only returns id/username/name)
     const res = await AUTH.sb.from('desks').select('*').eq('id', row.id).maybeSingle();
     if (res.error || !res.data) { location.replace('/'); return; }
 
@@ -160,5 +242,7 @@
     paintGreeting();
     paintPublishStrip();
     paintLink();
+
+    await paintNotif();
   })();
 })();
