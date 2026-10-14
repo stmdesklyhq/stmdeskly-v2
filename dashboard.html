@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
@@ -8,138 +8,55 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=10">
-<link rel="stylesheet" href="dashboard.css?v=3">
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="dashboard.css?v=2">
 </head>
 <body class="page-dashboard">
 <div class="dashboard-shell">
-
 <header class="topbar">
-  <a class="brand" href="/home.html" aria-label="Back to home">
-    <span>STMDeskly</span>
-  </a>
-  <button class="logout" id="logoutButton" type="button">Log out</button>
+<a class="brand" href="/" aria-label="STMDeskly home"><svg viewBox="0 0 36 36" aria-hidden="true"><rect x="2" y="2" width="32" height="32" rx="11" fill="currentColor"/><path d="M11 12.5h14M11 18h9M11 23.5h12" stroke="#FFFEFB" stroke-width="2.3" stroke-linecap="round"/><circle cx="25" cy="18" r="2" fill="#B9DED1"/></svg><span>STMDeskly</span></a>
+<button class="logout" id="logoutButton" type="button">Log out</button>
 </header>
-
 <main>
-<section class="intro">
-  <p class="eyebrow">YOUR WORKSPACE</p>
-  <h1 id="greeting">Hi there.</h1>
-  <p>Here's your Desk.</p>
-</section>
+<section class="intro"><p class="eyebrow">YOUR WORKSPACE</p><h1 id="greeting">Hi there.</h1><p>Here's your Desk.</p></section>
 
 <section class="publish-strip unpublished" id="publishStrip" aria-live="polite">
-  <span class="status-icon" aria-hidden="true">
-    <svg viewBox="0 0 24 24" fill="none">
-      <rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.8"/>
-      <path d="M8 10V7.5a4 4 0 0 1 8 0V10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-    </svg>
-  </span>
-  <div class="status-copy">
-    <span class="status-label" id="publishLabel">NOT PUBLISHED</span>
-    <h2 id="publishTitle">Only you can see this Desk.</h2>
-    <p id="publishDescription">Publish when you're ready for people to visit.</p>
-  </div>
-  <button class="status-action" id="publishButton" type="button">Publish my Desk</button>
+<span class="status-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="5" y="10" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 10V7.5a4 4 0 0 1 8 0V10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+<div class="status-copy"><span class="status-label" id="publishLabel">NOT PUBLISHED</span><h2 id="publishTitle">Only you can see this Desk.</h2><p id="publishDescription">Publish when you're ready for people to visit.</p></div>
+<button class="status-action" id="publishButton" type="button">Publish my Desk</button>
+</section>
+
+<section class="notif-strip" id="notifStrip" hidden>
+<span class="notif-icon" aria-hidden="true">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+<path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/>
+<path d="M10 21h4"/>
+</svg>
+</span>
+<div class="notif-copy">
+<strong id="notifTitle">Get notified</strong>
+<small id="notifBody">Tap to get a buzz when someone messages you.</small>
+</div>
+<button class="notif-action" id="notifButton" type="button">Enable</button>
 </section>
 
 <section class="link-card" aria-labelledby="linkHeading">
-  <div class="card-heading">
-    <div>
-      <p class="card-kicker">YOUR SPACE, READY TO SHARE</p>
-      <h2 id="linkHeading">Your Desk link</h2>
-    </div>
-    <span class="link-icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none">
-        <path d="M10 13.8a4.2 4.2 0 0 0 6.1.2l3-3a4.3 4.3 0 0 0-6.1-6.1l-1.7 1.7M14 10.2a4.2 4.2 0 0 0-6.1-.2l-3 3A4.3 4.3 0 0 0 11 19.1l1.7-1.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-      </svg>
-    </span>
-  </div>
-  <div class="url-row">
-    <p class="desk-url" id="deskUrl">stmdeskly.com/u/yourname</p>
-    <span class="copied" id="copyFeedback" role="status" aria-live="polite">
-      <svg viewBox="0 0 20 20" fill="none">
-        <path d="m4 10 4 4 8-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>Copied
-    </span>
-  </div>
-  <div class="link-actions">
-    <button class="button primary" id="copyButton" type="button">
-      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <rect x="8" y="8" width="11" height="12" rx="2" stroke="currentColor" stroke-width="1.8"/>
-        <path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-      </svg>Copy link
-    </button>
-    <a class="button outline" id="openDeskButton" href="#" target="_blank" rel="noopener noreferrer">
-      Open Desk
-      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-        <path d="M14 4h6v6M20 4l-9 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-        <path d="M18 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-      </svg>
-    </a>
-  </div>
+<div class="card-heading"><div><p class="card-kicker">YOUR SPACE, READY TO SHARE</p><h2 id="linkHeading">Your Desk link</h2></div><span class="link-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M10 13.8a4.2 4.2 0 0 0 6.1.2l3-3a4.3 4.3 0 0 0-6.1-6.1l-1.7 1.7M14 10.2a4.2 4.2 0 0 0-6.1-.2l-3 3A4.3 4.3 0 0 0 11 19.1l1.7-1.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span></div>
+<div class="url-row"><p class="desk-url" id="deskUrl">stmdeskly.com/u/yourname</p><span class="copied" id="copyFeedback" role="status" aria-live="polite"><svg viewBox="0 0 20 20" fill="none"><path d="m4 10 4 4 8-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Copied</span></div>
+<div class="link-actions"><button class="button primary" id="copyButton" type="button"><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="8" y="8" width="11" height="12" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>Copy link</button><a class="button outline" id="openDeskButton" href="#" target="_blank" rel="noopener noreferrer">Open Desk <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M14 4h6v6M20 4l-9 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M18 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></a></div>
 </section>
-
 <section class="main-actions" aria-label="Desk actions">
-  <a class="action-card edit-action" href="/edit.html" id="editDeskButton">
-    <span class="action-icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none">
-        <path d="m14 5 5 5M4 20l4.2-.9L19 8.3a2.1 2.1 0 0 0-3-3L5.2 16.1 4 20Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </span>
-    <span class="action-text">
-      <strong>Edit my Desk</strong>
-      <small>Make it feel more like you.</small>
-    </span>
-    <svg class="arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </a>
-  <a class="action-card" href="#" id="seeDeskButton" target="_blank" rel="noopener noreferrer">
-    <span class="action-icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none">
-        <path d="M2.5 12s3.3-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.3 6.5-9.5 6.5S2.5 12 2.5 12Z" stroke="currentColor" stroke-width="1.8"/>
-        <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/>
-      </svg>
-    </span>
-    <span class="action-text">
-      <strong>See my Desk</strong>
-      <small>Take a look at your page.</small>
-    </span>
-    <svg class="arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </a>
+<a class="action-card edit-action" href="/edit.html" id="editDeskButton"><span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="m14 5 5 5M4 20l4.2-.9L19 8.3a2.1 2.1 0 0 0-3-3L5.2 16.1 4 20Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="action-text"><strong>Edit my Desk</strong><small>Make it feel more like you.</small></span><svg class="arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+<a class="action-card" href="#" id="seeDeskButton" target="_blank" rel="noopener noreferrer"><span class="action-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M2.5 12s3.3-6.5 9.5-6.5 9.5 6.5 9.5 6.5-3.3 6.5-9.5 6.5S2.5 12 2.5 12Z" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/></svg></span><span class="action-text"><strong>See my Desk</strong><small>Take a look at your page.</small></span><svg class="arrow" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
 </section>
-
-<section class="empty-state" id="emptyState" hidden>
-  <span class="empty-icon" aria-hidden="true">
-    <svg viewBox="0 0 24 24" fill="none">
-      <rect x="4" y="3" width="16" height="18" rx="3" stroke="currentColor" stroke-width="1.8"/>
-      <path d="M8 8h8M8 12h5M8 16h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
-    </svg>
-  </span>
-  <h2>Your Desk is waiting.</h2>
-  <p>Set up your page and give people a place to find you.</p>
-  <a class="button primary" href="/edit.html">Create my Desk</a>
-</section>
+<section class="empty-state" id="emptyState" hidden><span class="empty-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><rect x="4" y="3" width="16" height="18" rx="3" stroke="currentColor" stroke-width="1.8"/><path d="M8 8h8M8 12h5M8 16h8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><h2>Your Desk is waiting.</h2><p>Set up your page and give people a place to find you.</p><a class="button primary" href="/edit.html">Create my Desk</a></section>
 </main>
-
-<footer class="dashboard-footer">
-  <span>Made with <strong>STMDeskly</strong></span>
-  <nav aria-label="Footer">
-    <a href="/terms.html">Terms</a>
-    <a href="/#how-it-works">How it works</a>
-  </nav>
+<footer class="dashboard-footer"><span>Made with <strong>STMDeskly</strong></span><nav aria-label="Footer"><a href="/terms.html">Terms</a><a href="/#how-it-works">How it works</a></nav>
 </footer>
-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
-<script src="auth.js?v=10"></script>
-<script src="dashboard.js?v=3"></script>
-<script src="nav.js?v=99"></script>
-
-</body>
-</html>
+<script src="auth.js?v=13"></script>
+<script src="dashboard.js?v=2"></script>
+</body></html>
