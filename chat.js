@@ -1,6 +1,7 @@
 /* =========================================================
    STMDESKLY v2 — Single chat
    Reply, react, delete, photos, presence, typing, delivery.
+   Realtime via Supabase channels.
    ========================================================= */
 (function () {
   'use strict';
@@ -456,6 +457,51 @@
     contextMessageId = null;
   }
 
+  /* ---------- Inline reply from notification ---------- */
+
+  async function flushPendingReplies() {
+    try {
+      const db = await new Promise((resolve, reject) => {
+        const req = indexedDB.open('stmdeskly-sw', 1);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+
+      if (!db.objectStoreNames.contains('pending-replies')) {
+        db.close();
+        return;
+      }
+
+      const tx = db.transaction('pending-replies', 'readwrite');
+      const store = tx.objectStore('pending-replies');
+
+      const all = await new Promise((resolve) => {
+        const req = store.getAll();
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => resolve([]);
+      });
+
+      let sent = 0;
+      for (const item of all) {
+        if (item.threadId !== thread.id) continue;
+        const res = await AUTH.sendMessage(thread.id, item.body);
+        if (res.ok) {
+          sent++;
+          store.delete(item.id);
+        }
+      }
+
+      db.close();
+
+      if (sent > 0) {
+        await refreshMessages();
+        chatLog.scrollTop = chatLog.scrollHeight;
+      }
+    } catch (e) {
+      console.warn('[chat] pending replies failed:', e);
+    }
+  }
+
   /* Events */
 
   chatLog.addEventListener('contextmenu', function (e) {
@@ -754,6 +800,8 @@
       updatePresence();
       initTyping();
       initMessagesRealtime();
+
+      await flushPendingReplies();
 
       if (thread.status === 'accepted') chatInput.focus();
 
