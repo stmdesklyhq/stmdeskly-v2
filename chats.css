@@ -431,3 +431,14 @@
 .chat-row-right .chat-row-count {
   margin-left: 0;
 }
+.chat-row-muted {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  color: var(--muted, #718087);
+  margin-top: 2px;
+}
+.chat-row-muted svg {
+  width: 12px;
+  height: 12px;
+}
