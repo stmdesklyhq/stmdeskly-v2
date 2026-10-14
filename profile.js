@@ -1,6 +1,7 @@
 /* =========================================================
-   STMDESKLY v2 — In-app Profile
-   Public view. No login needed to read. ?u= read FIRST.
+   STMDESKLY v2 — Profile
+   Public. Anyone with a link sees the profile.
+   No login required to view. Login only for chat.
    ========================================================= */
 (function () {
   'use strict';
@@ -180,7 +181,6 @@
     if (pillAbout)   pillAbout.hidden   = !hasAbout;
     if (pillContact) pillContact.hidden = !hasContact;
 
-    /* Chat pill — only show if a signed-in viewer is looking at someone else */
     if (chatPill) {
       const isMe = currentUser && currentUser.id === desk.user_id;
       const canChat = !!currentUser && !isMe;
@@ -219,8 +219,6 @@
     missingEl.hidden = false;
   }
 
-  /* ---------- Back button ---------- */
-
   if (backBtn) {
     backBtn.addEventListener('click', function () {
       if (window.history.length > 1) history.back();
@@ -229,18 +227,13 @@
   }
 
   /* =========================================================
-     BOOT
-     Order matters:
-       1. Read ?u= (or /u/:username) from the URL
-       2. Load the public desk row
-       3. THEN check auth (for owner features only)
+     BOOT — read URL first, load profile, check auth LAST
      ========================================================= */
 
   (async function boot() {
     try {
       sb = AUTH.sb;
 
-      /* 1. Username from URL */
       const params = new URLSearchParams(location.search);
       let username = (params.get('u') || '').trim().toLowerCase();
 
@@ -249,32 +242,33 @@
         if (m) username = decodeURIComponent(m[1]).toLowerCase();
       }
 
-      /* 2. Get user (may be null — this is fine) */
-      try {
-        currentUser = await AUTH.currentUser();
-      } catch (e) {
-        currentUser = null;
-      }
-
-      /* 3. If no username in URL, fall back to the viewer's own username */
-      if (!username && currentUser) {
+      /* Load the desk row FIRST. Public data. No auth needed. */
+      if (!username) {
+        /* No ?u= in URL. Try to figure out who the viewer is. */
         try {
-          const own = await AUTH.currentDesk();
-          if (own && own.username) username = String(own.username).toLowerCase();
-        } catch (e) {}
+          currentUser = await AUTH.currentUser();
+        } catch (e) {
+          currentUser = null;
+        }
+
+        if (currentUser) {
+          try {
+            const own = await AUTH.currentDesk();
+            if (own && own.username) username = String(own.username).toLowerCase();
+          } catch (e) {}
+          if (!username) {
+            const meta = currentUser.user_metadata || {};
+            if (meta.username) username = String(meta.username).toLowerCase();
+          }
+        }
+
         if (!username) {
-          const meta = currentUser.user_metadata || {};
-          if (meta.username) username = String(meta.username).toLowerCase();
+          /* No ?u=, no logged-in user, nothing to show */
+          showMissing();
+          return;
         }
       }
 
-      /* 4. Still nothing? Then there's nothing to show */
-      if (!username) {
-        location.replace('/home');
-        return;
-      }
-
-      /* 5. Load the public desk row */
       const res = await sb
         .from('desks')
         .select('*')
@@ -288,7 +282,13 @@
 
       desk = res.data;
 
-      /* 6. Render */
+      /* Now check auth — only for owner features */
+      try {
+        currentUser = await AUTH.currentUser();
+      } catch (e) {
+        currentUser = null;
+      }
+
       renderProfile();
       loadRecentPosts();
 
