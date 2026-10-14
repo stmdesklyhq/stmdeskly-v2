@@ -55,7 +55,7 @@
       <svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
       <i></i>
     </button>
-    <a class="avatar-button" href="/dashboard.html" id="avatarButton" aria-label="Your profile">
+    <a class="avatar-button" href="/profile.html" aria-label="Your profile">
       <span class="avatar" id="userAvatar">·</span>
     </a>
   </div>
@@ -196,40 +196,6 @@
   searchBtn.addEventListener('click', function () {
     location.href = '/explore.html';
   });
-})();
-
-/* Resolve the topbar avatar href ONCE on load.
-   Falls back to /dashboard.html if no username is available.
-   Never touches marketing. */
-(async function resolveAvatarHref() {
-  var avatarBtn = document.getElementById('avatarButton');
-  if (!avatarBtn) return;
-
-  var target = '/dashboard.html'; // safe default
-
-  try {
-    if (window.AUTH && typeof AUTH.currentDesk === 'function') {
-      var desk = await AUTH.currentDesk();
-      if (desk && desk.username) {
-        target = '/profile.html?u=' + encodeURIComponent(desk.username);
-      }
-    }
-  } catch (e) {}
-
-  if (target === '/dashboard.html') {
-    try {
-      if (window.AUTH && typeof AUTH.currentUser === 'function') {
-        var me = await AUTH.currentUser();
-        var meta = me && me.user_metadata;
-        var username = meta && meta.username;
-        if (username) {
-          target = '/profile.html?u=' + encodeURIComponent(username);
-        }
-      }
-    } catch (e) {}
-  }
-
-  avatarBtn.setAttribute('href', target);
 })();
 </script>
 
