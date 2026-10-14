@@ -1,6 +1,6 @@
 /* =========================================================
    STMDESKLY v2 — Chats inbox
-   Pin, archive, mark unread, mute, all five tabs.
+   Pin, archive, mark unread, mute, four tabs.
    ========================================================= */
 (function () {
   'use strict';
@@ -265,10 +265,15 @@
   function render() {
     const filtered = applyFilters(allRows);
 
+    /* Clear any existing rows */
     listEl.querySelectorAll('.chat-row').forEach(n => n.remove());
+
+    /* Always reset empty state to hidden first */
+    emptyEl.hidden = true;
 
     if (!filtered.length) {
       emptyEl.hidden = false;
+
       if (currentQuery) {
         emptyTitle.textContent = 'No chats found';
         emptyBody.textContent = 'Try a different word.';
@@ -287,8 +292,6 @@
       }
       return;
     }
-
-    emptyEl.hidden = true;
 
     const frag = document.createDocumentFragment();
     filtered.forEach(r => {
@@ -469,7 +472,7 @@
     await refresh();
   }
 
-  /* ---------- Long press on rows ---------- */
+  /* ---------- Long press ---------- */
 
   let rowTouchTimer = null;
   let rowTouchStart = null;
@@ -509,14 +512,14 @@
     if (data) openActionSheet(threadId, data.other);
   });
 
-  tabsEl.addEventListener('click', e => {
+  tabsEl.addEventListener('click', function (e) {
     const tab = e.target.closest('.chats-tab');
     if (!tab) return;
     const t = tab.dataset.tab;
     if (t === currentTab) return;
 
     currentTab = t;
-    tabsEl.querySelectorAll('.chats-tab').forEach(c => {
+    tabsEl.querySelectorAll('.chats-tab').forEach(function (c) {
       const on = c.dataset.tab === t;
       c.classList.toggle('is-current', on);
       c.setAttribute('aria-pressed', String(on));
@@ -525,7 +528,7 @@
   });
 
   if (searchEl) {
-    searchEl.addEventListener('input', () => {
+    searchEl.addEventListener('input', function () {
       currentQuery = searchEl.value.trim();
       if (clearEl) clearEl.hidden = !currentQuery;
       render();
@@ -533,7 +536,7 @@
   }
 
   if (clearEl) {
-    clearEl.addEventListener('click', () => {
+    clearEl.addEventListener('click', function () {
       searchEl.value = '';
       currentQuery = '';
       clearEl.hidden = true;
