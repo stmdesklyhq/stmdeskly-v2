@@ -33,11 +33,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <link rel="preload" as="style" href="tokens.css?v=1">
-<link rel="preload" as="style" href="settings.css?v=2">
+<link rel="preload" as="style" href="settings.css?v=3">
 <link rel="preload" as="style" href="nav.css?v=4">
 
 <link rel="stylesheet" href="tokens.css?v=1">
-<link rel="stylesheet" href="settings.css?v=2">
+<link rel="stylesheet" href="settings.css?v=3">
 <link rel="stylesheet" href="nav.css?v=4">
 </head>
 
@@ -56,6 +56,48 @@
 </header>
 
 <main>
+
+  <!-- Your Desk — edit hero -->
+  <section class="settings-section">
+    <p class="settings-eyebrow">Your Desk</p>
+
+    <a class="settings-desk-hero" href="/edit.html">
+      <span class="settings-desk-hero-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+          <path d="m14 5 5 5M4 20l4.2-.9L19 8.3a2.1 2.1 0 0 0-3-3L5.2 16.1 4 20Z"/>
+        </svg>
+      </span>
+      <span class="settings-desk-hero-copy">
+        <span class="settings-desk-hero-kicker">Make it yours</span>
+        <strong>Edit your Desk</strong>
+        <small>Photos, bio, services, appearance — all in one place.</small>
+      </span>
+      <svg class="settings-desk-hero-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 18l6-6-6-6"/>
+      </svg>
+    </a>
+
+    <div class="settings-list">
+      <a class="settings-row is-link" href="/dashboard.html">
+        <div class="settings-row-copy">
+          <span class="settings-label">Desk status &amp; link</span>
+          <span class="settings-help">Publish state, copy your link.</span>
+        </div>
+        <svg class="settings-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 18l6-6-6-6"/>
+        </svg>
+      </a>
+      <a class="settings-row is-link" href="#" id="seeDeskButton" target="_blank" rel="noopener noreferrer">
+        <div class="settings-row-copy">
+          <span class="settings-label">See my Desk</span>
+          <span class="settings-help">Take a look at your page.</span>
+        </div>
+        <svg class="settings-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 18l6-6-6-6"/>
+        </svg>
+      </a>
+    </div>
+  </section>
 
   <!-- Account -->
   <section class="settings-section">
@@ -191,7 +233,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
 <script src="auth.js?v=23"></script>
-<script src="settings.js?v=2"></script>
+<script src="settings.js?v=3"></script>
 <script src="nav.js?v=101"></script>
 
 <script>
