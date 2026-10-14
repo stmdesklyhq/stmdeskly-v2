@@ -141,18 +141,30 @@
   /* ---------- Quick actions ---------- */
 
   function paintQuickActions() {
+    const isMe = currentUser && desk && currentUser.id === desk.user_id;
     const actions = [];
 
+    /* 1. In-app chat — only if logged in and not viewing self */
+    if (currentUser && !isMe) {
+      actions.push({
+        label: 'Chat',
+        href: '/chat.html?to=' + encodeURIComponent(desk.user_id),
+        icon: '<svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>'
+      });
+    }
+
+    /* 2. WhatsApp — proper glyph */
     if (desk.whatsapp) {
       const num = digitsOnly(desk.whatsapp);
       actions.push({
         label: 'WhatsApp',
         href: 'https://wa.me/' + num,
         accent: true,
-        icon: '<svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>'
+        icon: '<svg viewBox="0 0 24 24"><path d="M20.5 3.5a11 11 0 0 0-17.3 13.9L2 22l4.4-1.2a11 11 0 0 0 14.1-17.3z"/><path d="M16.8 14.1c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1-.2.2-.6.8-.8 1-.2.2-.3.2-.5.1-.2-.1-1-.4-1.9-1.2-.7-.6-1.2-1.4-1.3-1.6-.2-.2 0-.4.1-.5.1-.1.3-.3.4-.5.1-.2.2-.3.2-.5s0-.4-.1-.5c-.1-.1-.5-1.3-.7-1.8-.2-.5-.4-.4-.5-.4h-.5c-.1 0-.4.1-.6.3-.2.2-.8.8-.8 1.9 0 1.1.8 2.2.9 2.4.1.2 1.6 2.4 3.8 3.4.5.2 1 .4 1.3.5.5.2 1 .2 1.4.1.4-.1 1.3-.5 1.5-1.1.2-.5.2-1 .1-1.1-.1-.1-.2-.2-.4-.2z"/></svg>'
       });
     }
 
+    /* 3. Website */
     if (desk.website) {
       const url = /^https?:\/\//i.test(desk.website) ? desk.website : ('https://' + desk.website);
       actions.push({
@@ -162,6 +174,7 @@
       });
     }
 
+    /* 4. Email */
     if (desk.email) {
       actions.push({
         label: 'Email',
@@ -170,6 +183,7 @@
       });
     }
 
+    /* 5. Phone */
     if (desk.phone) {
       actions.push({
         label: 'Phone',
@@ -301,7 +315,7 @@
         label: 'Message on WhatsApp',
         href: 'https://wa.me/' + num,
         primary: true,
-        icon: '<svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>'
+        icon: '<svg viewBox="0 0 24 24"><path d="M20.5 3.5a11 11 0 0 0-17.3 13.9L2 22l4.4-1.2a11 11 0 0 0 14.1-17.3z"/><path d="M16.8 14.1c-.2-.1-1.4-.7-1.6-.8-.2-.1-.4-.1-.5.1-.2.2-.6.8-.8 1-.2.2-.3.2-.5.1-.2-.1-1-.4-1.9-1.2-.7-.6-1.2-1.4-1.3-1.6-.2-.2 0-.4.1-.5.1-.1.3-.3.4-.5.1-.2.2-.3.2-.5s0-.4-.1-.5c-.1-.1-.5-1.3-.7-1.8-.2-.5-.4-.4-.5-.4h-.5c-.1 0-.4.1-.6.3-.2.2-.8.8-.8 1.9 0 1.1.8 2.2.9 2.4.1.2 1.6 2.4 3.8 3.4.5.2 1 .4 1.3.5.5.2 1 .2 1.4.1.4-.1 1.3-.5 1.5-1.1.2-.5.2-1 .1-1.1-.1-.1-.2-.2-.4-.2z"/></svg>'
       });
     }
 
