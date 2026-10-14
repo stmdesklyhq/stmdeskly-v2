@@ -143,28 +143,32 @@
 <script src="nav.js?v=101"></script>
 
 <script>
-/* Topbar scroll behaviour — vanish on scroll down, return on scroll up */
+/* Topbar scroll behaviour — hide on scroll down, show on ANY scroll up */
 (function () {
   var topbar = document.querySelector('.topbar');
   if (!topbar) return;
 
-  var lastY = window.scrollY || window.pageYOffset || 0;
+  var lastY = Math.max(0, window.scrollY || window.pageYOffset || 0);
   var ticking = false;
-  var THRESHOLD = 6;
+  var HIDE_AFTER = 24;   // must scroll down this many px before it hides
+  var SHOW_AFTER = 2;    // tiny scroll up brings it back
 
   function update() {
-    var y = window.scrollY || window.pageYOffset || 0;
+    var y = Math.max(0, window.scrollY || window.pageYOffset || 0);
     var dy = y - lastY;
 
-    if (Math.abs(dy) < THRESHOLD) {
-      ticking = false;
-      return;
-    }
-
-    if (dy > 0 && y > 60) {
+    if (dy > SHOW_AFTER && y > HIDE_AFTER) {
+      // scrolling down → hide
       topbar.classList.add('is-hidden');
       topbar.classList.remove('is-visible');
-    } else {
+    } else if (dy < -SHOW_AFTER) {
+      // scrolling up → show immediately
+      topbar.classList.remove('is-hidden');
+      topbar.classList.add('is-visible');
+    }
+
+    // At the very top — always visible
+    if (y <= 4) {
       topbar.classList.remove('is-hidden');
       topbar.classList.add('is-visible');
     }
