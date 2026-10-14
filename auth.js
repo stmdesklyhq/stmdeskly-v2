@@ -616,7 +616,7 @@
 
     const res = await sb
       .from('chat_messages')
-      .select('id, sender_id, body, photo_url, read_at, delivered_at, created_at, reply_to_id, deleted_at, deleted_for')
+      .select('id, sender_id, body, photo_url, read_at, delivered_at, created_at, reply_to_id, deleted_at, deleted_for, is_auto')
       .eq('thread_id', threadId)
       .order('created_at', { ascending: true })
       .limit(limit);
@@ -641,7 +641,7 @@
     const res = await sb
       .from('chat_messages')
       .insert({ thread_id: threadId, sender_id: user.id, body: body })
-      .select('id, sender_id, body, photo_url, read_at, delivered_at, created_at, reply_to_id, deleted_at, deleted_for')
+      .select('id, sender_id, body, photo_url, read_at, delivered_at, created_at, reply_to_id, deleted_at, deleted_for, is_auto')
       .single();
 
     if (res.error) return { ok: false, error: res.error };
@@ -658,7 +658,7 @@
       sender_id: user.id,
       body: body,
       reply_to_id: replyToId
-    }).select('id, sender_id, body, photo_url, read_at, delivered_at, created_at, reply_to_id, deleted_at, deleted_for').single();
+    }).select('id, sender_id, body, photo_url, read_at, delivered_at, created_at, reply_to_id, deleted_at, deleted_for, is_auto').single();
 
     if (res.error) return { ok: false, error: res.error };
     return { ok: true, message: res.data };
@@ -689,7 +689,7 @@
         thread_id: threadId,
         sender_id: user.id,
         photo_url: pub.data.publicUrl
-      }).select('id, sender_id, body, photo_url, read_at, delivered_at, created_at, reply_to_id, deleted_at, deleted_for').single();
+      }).select('id, sender_id, body, photo_url, read_at, delivered_at, created_at, reply_to_id, deleted_at, deleted_for, is_auto').single();
 
       if (ins.error) return { ok: false, error: ins.error };
       return { ok: true, message: ins.data };
@@ -1097,6 +1097,49 @@
   }
 
   /* =========================================================
+     AWAY AUTO-REPLY
+     ========================================================= */
+
+  async function getAwaySettings() {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, enabled: false, message: '' };
+
+    const res = await sb.from('desks')
+      .select('away_enabled, away_message')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (res.error) return { ok: false, enabled: false, message: '' };
+    return {
+      ok: true,
+      enabled: !!(res.data && res.data.away_enabled),
+      message: (res.data && res.data.away_message) || ''
+    };
+  }
+
+  async function setAwaySettings(enabled, message) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    const clean = String(message || '').trim();
+    if (clean.length > 300) {
+      return { ok: false, error: { message: 'Message too long (max 300)' } };
+    }
+
+    const res = await sb.from('desks')
+      .update({
+        away_enabled: !!enabled,
+        away_message: clean || null
+      })
+      .eq('user_id', user.id);
+
+    if (res.error) return { ok: false, error: res.error };
+    return { ok: true };
+  }
+
+  /* =========================================================
      PUSH NOTIFICATIONS
      ========================================================= */
 
@@ -1309,6 +1352,10 @@
     createQuickReply: createQuickReply,
     updateQuickReply: updateQuickReply,
     deleteQuickReply: deleteQuickReply,
+
+    // Away
+    getAwaySettings: getAwaySettings,
+    setAwaySettings: setAwaySettings,
 
     // Push
     registerServiceWorker: registerServiceWorker,
