@@ -1140,6 +1140,184 @@
   }
 
   /* =========================================================
+     BATCH 3 — stars, archives, pins, forced unread
+     ========================================================= */
+
+  async function toggleStarMessage(messageId) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    const existing = await sb.from('chat_stars')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('message_id', messageId)
+      .maybeSingle();
+
+    if (existing.data) {
+      await sb.from('chat_stars').delete().eq('id', existing.data.id);
+      return { ok: true, starred: false };
+    }
+
+    const ins = await sb.from('chat_stars').insert({
+      user_id: user.id,
+      message_id: messageId
+    });
+    if (ins.error && ins.error.code !== '23505') {
+      return { ok: false, error: ins.error };
+    }
+    return { ok: true, starred: true };
+  }
+
+  async function getStarredMessages() {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: true, data: [] };
+
+    const res = await sb.from('chat_stars')
+      .select('id, message_id, created_at')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+
+    if (res.error) return { ok: false, error: res.error };
+    if (!res.data || !res.data.length) return { ok: true, data: [] };
+
+    const messageIds = res.data.map(function (s) { return s.message_id; });
+
+    const msgRes = await sb.from('chat_messages')
+      .select('id, thread_id, sender_id, body, photo_url, created_at, deleted_at, is_auto')
+      .in('id', messageIds);
+
+    if (msgRes.error) return { ok: false, error: msgRes.error };
+
+    const msgMap = {};
+    (msgRes.data || []).forEach(function (m) { msgMap[m.id] = m; });
+
+    const rows = res.data.map(function (s) {
+      const m = msgMap[s.message_id];
+      if (!m) return null;
+      return {
+        star_id: s.id,
+        starred_at: s.created_at,
+        message: m
+      };
+    }).filter(Boolean);
+
+    return { ok: true, data: rows };
+  }
+
+  async function archiveThread(threadId) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    const res = await sb.from('chat_archives').insert({
+      user_id: user.id,
+      thread_id: threadId
+    });
+    if (res.error && res.error.code !== '23505') return { ok: false, error: res.error };
+    return { ok: true };
+  }
+
+  async function unarchiveThread(threadId) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    const res = await sb.from('chat_archives')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('thread_id', threadId);
+    if (res.error) return { ok: false, error: res.error };
+    return { ok: true };
+  }
+
+  async function getArchivedThreads() {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: true, data: [] };
+
+    const res = await sb.from('chat_archives').select('thread_id').eq('user_id', user.id);
+    if (res.error) return { ok: false, error: res.error };
+    return { ok: true, data: (res.data || []).map(function (r) { return r.thread_id; }) };
+  }
+
+  async function pinThread(threadId) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    const res = await sb.from('chat_pins').insert({
+      user_id: user.id,
+      thread_id: threadId
+    });
+    if (res.error && res.error.code !== '23505') return { ok: false, error: res.error };
+    return { ok: true };
+  }
+
+  async function unpinThread(threadId) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    const res = await sb.from('chat_pins')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('thread_id', threadId);
+    if (res.error) return { ok: false, error: res.error };
+    return { ok: true };
+  }
+
+  async function getPinnedThreads() {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: true, data: [] };
+
+    const res = await sb.from('chat_pins')
+      .select('thread_id, created_at')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: true });
+    if (res.error) return { ok: false, error: res.error };
+    return { ok: true, data: res.data || [] };
+  }
+
+  async function markThreadUnread(threadId) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    const res = await sb.from('chat_forced_unread').insert({
+      user_id: user.id,
+      thread_id: threadId
+    });
+    if (res.error && res.error.code !== '23505') return { ok: false, error: res.error };
+    return { ok: true };
+  }
+
+  async function clearThreadUnread(threadId) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    const res = await sb.from('chat_forced_unread')
+      .delete()
+      .eq('user_id', user.id)
+      .eq('thread_id', threadId);
+    if (res.error) return { ok: false, error: res.error };
+    return { ok: true };
+  }
+
+  async function getForcedUnreadThreads() {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: true, data: [] };
+
+    const res = await sb.from('chat_forced_unread').select('thread_id').eq('user_id', user.id);
+    if (res.error) return { ok: false, error: res.error };
+    return { ok: true, data: (res.data || []).map(function (r) { return r.thread_id; }) };
+  }
+
+  /* =========================================================
      PUSH NOTIFICATIONS
      ========================================================= */
 
@@ -1280,7 +1458,6 @@
   window.AUTH = {
     sb: sb,
 
-    // Auth
     pwStrength: pwStrength,
     pwBreached: pwBreached,
     checkUsername: checkUsername,
@@ -1296,27 +1473,23 @@
     sendPasswordReset: sendPasswordReset,
     updatePassword: updatePassword,
 
-    // Editor
     updateDesk: updateDesk,
     uploadAvatar: uploadAvatar,
     uploadCover: uploadCover,
     uploadPhoto: uploadPhoto,
     removePhoto: removePhoto,
 
-    // Feed
     createPost: createPost,
     uploadPostPhoto: uploadPostPhoto,
     toggleReaction: toggleReaction,
     getPostReactions: getPostReactions,
     deletePost: deletePost,
 
-    // Post replies
     getPostReplies: getPostReplies,
     createReply: createReply,
     getReplyCounts: getReplyCounts,
     deleteReply: deleteReply,
 
-    // Chat — threads + messages
     startThread: startThread,
     loadThread: loadThread,
     loadMessages: loadMessages,
@@ -1328,7 +1501,6 @@
     markMessagesRead: markMessagesRead,
     markMessagesDelivered: markMessagesDelivered,
 
-    // Chat — reactions, delete, presence
     toggleMessageReaction: toggleMessageReaction,
     getMessageReactions: getMessageReactions,
     deleteMessageForMe: deleteMessageForMe,
@@ -1336,7 +1508,6 @@
     touchPresence: touchPresence,
     getPresence: getPresence,
 
-    // Safety
     muteThread: muteThread,
     unmuteThread: unmuteThread,
     isThreadMuted: isThreadMuted,
@@ -1347,17 +1518,26 @@
     getBlockedUsers: getBlockedUsers,
     reportUser: reportUser,
 
-    // Quick replies
     getQuickReplies: getQuickReplies,
     createQuickReply: createQuickReply,
     updateQuickReply: updateQuickReply,
     deleteQuickReply: deleteQuickReply,
 
-    // Away
     getAwaySettings: getAwaySettings,
     setAwaySettings: setAwaySettings,
 
-    // Push
+    toggleStarMessage: toggleStarMessage,
+    getStarredMessages: getStarredMessages,
+    archiveThread: archiveThread,
+    unarchiveThread: unarchiveThread,
+    getArchivedThreads: getArchivedThreads,
+    pinThread: pinThread,
+    unpinThread: unpinThread,
+    getPinnedThreads: getPinnedThreads,
+    markThreadUnread: markThreadUnread,
+    clearThreadUnread: clearThreadUnread,
+    getForcedUnreadThreads: getForcedUnreadThreads,
+
     registerServiceWorker: registerServiceWorker,
     isPushSupported: isPushSupported,
     getPushPermission: getPushPermission,
