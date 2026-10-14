@@ -1,7 +1,6 @@
 /* =========================================================
    STMDESKLY v2 — Single chat
-   Reply, react, delete, photos, presence, typing.
-   Realtime via Supabase channels.
+   Reply, react, delete, photos, presence, typing, delivery.
    ========================================================= */
 (function () {
   'use strict';
@@ -81,6 +80,17 @@
     return hh + ':' + mm + (h < 12 ? 'am' : 'pm');
   }
 
+  function timeAgo(iso) {
+    if (!iso) return 'a while ago';
+    const then = new Date(iso).getTime();
+    const diff = Math.max(0, Math.floor((Date.now() - then) / 1000));
+    if (diff < 60) return 'just now';
+    if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+    if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+    if (diff < 604800) return Math.floor(diff / 86400) + 'd ago';
+    return 'a while ago';
+  }
+
   function dayLabel(iso) {
     const d = new Date(iso);
     const now = new Date();
@@ -109,9 +119,23 @@
   }
 
   async function updatePresence() {
-    if (!other) return;
+    if (!other || !chatStatus) return;
     const p = await AUTH.getPresence(other.user_id);
     chatPresence.hidden = !p.online;
+
+    const role = other.role || '';
+    let presenceText;
+    if (p.online) {
+      presenceText = 'Active now';
+    } else if (p.lastSeen) {
+      presenceText = 'Active ' + timeAgo(p.lastSeen);
+    } else {
+      presenceText = 'Away';
+    }
+
+    chatStatus.textContent = role ? (role + ' · ' + presenceText) : presenceText;
+    chatStatus.classList.toggle('is-online', p.online);
+    chatStatus.classList.toggle('is-away', !p.online);
   }
 
   function paintBanners() {
@@ -166,6 +190,33 @@
     '</div>';
   }
 
+  function tickHtml(m) {
+    if (m.__failed) {
+      return '<span class="tick failed" title="Tap to retry">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' +
+          '<circle cx="12" cy="12" r="9"/>' +
+          '<path d="M12 8v5"/>' +
+          '<circle cx="12" cy="16.5" r="0.6" fill="currentColor"/>' +
+        '</svg>' +
+      '</span>';
+    }
+    if (m.__pending) {
+      return '<span class="tick pending">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+          '<circle cx="12" cy="12" r="9"/>' +
+          '<path d="M12 7v5l3 2"/>' +
+        '</svg>' +
+      '</span>';
+    }
+    const read = !!m.read_at;
+    return '<span class="tick' + (read ? ' read' : '') + '">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">' +
+        '<path d="m1 12 5 5L17 6"/>' +
+        (read ? '<path d="m8 12 5 5L24 6" transform="translate(-5 0)"/>' : '') +
+      '</svg>' +
+    '</span>';
+  }
+
   function renderMessages() {
     if (!allMessages.length) {
       chatLog.innerHTML = '<div class="chat-intro">Say hi 👋 — this is the start of your chat.</div>';
@@ -210,27 +261,18 @@
 
       const bodyCls = m.deleted_at ? ' chat-bubble deleted' : '';
       const photoCls = hasPhoto ? ' has-photo' : '';
+      const stateCls = m.__failed ? ' is-failed' : (m.__pending ? ' is-pending' : '');
 
       const time = timeShort(m.created_at);
-      let tick = '';
-      if (mine && !m.deleted_at) {
-        const read = !!m.read_at;
-        tick = '<span class="tick' + (read ? ' read' : '') + '">' +
-          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">' +
-            '<path d="m1 12 5 5L17 6"/>' +
-            (read ? '<path d="m8 12 5 5L24 6" transform="translate(-5 0)"/>' : '') +
-          '</svg>' +
-        '</span>';
-      }
-
+      const tick = (mine && !m.deleted_at) ? tickHtml(m) : '';
       const meta = m.deleted_at ? '' :
         '<div class="chat-bubble-meta"><span>' + esc(time) + '</span>' + tick + '</div>';
 
-      const reactionsHtml = reactionsHtmlFor(m.id);
+      const reactionsHtml = m.__pending || m.__failed ? '' : reactionsHtmlFor(m.id);
 
       return divider +
         '<div class="' + wrapCls + '">' +
-          '<div class="chat-bubble ' + cls + bodyCls + photoCls + '" data-id="' + esc(m.id) + '" data-sender="' + esc(m.sender_id) + '">' +
+          '<div class="chat-bubble ' + cls + bodyCls + photoCls + stateCls + '" data-id="' + esc(m.id) + '" data-sender="' + esc(m.sender_id) + '">' +
             replyHtml +
             photoHtml +
             body +
@@ -264,6 +306,12 @@
       if (!res.ok) return;
 
       const messages = res.data;
+
+      // Preserve any local pending/failed messages that haven't been sent yet
+      const localOnly = allMessages.filter(function (m) {
+        return m.__pending || m.__failed;
+      });
+
       const ids = messages.map(function (m) { return m.id; });
       const rx = await AUTH.getMessageReactions(ids);
       reactionsMap = rx.ok ? rx.data : {};
@@ -275,7 +323,7 @@
 
       const prevScrollTop = chatLog.scrollTop;
 
-      allMessages = messages;
+      allMessages = messages.concat(localOnly);
       lastNewestId = newestId;
       renderMessages();
 
@@ -311,28 +359,76 @@
     sendBtn.disabled = !chatInput.value.trim();
   }
 
+  function makeTempMessage(body, replyId) {
+    return {
+      id: 'temp-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+      sender_id: me.id,
+      body: body,
+      photo_url: null,
+      read_at: null,
+      created_at: new Date().toISOString(),
+      reply_to_id: replyId || null,
+      deleted_at: null,
+      deleted_for: null,
+      __pending: true
+    };
+  }
+
+  async function actuallySend(tempId, body, replyId) {
+    let res;
+    try {
+      res = replyId
+        ? await AUTH.sendReply(thread.id, body, replyId)
+        : await AUTH.sendMessage(thread.id, body);
+    } catch (err) {
+      res = { ok: false, error: err };
+    }
+
+    const idx = allMessages.findIndex(function (m) { return m.id === tempId; });
+    if (idx === -1) return;
+
+    if (!res.ok) {
+      allMessages[idx].__pending = false;
+      allMessages[idx].__failed = true;
+      renderMessages();
+      return;
+    }
+
+    allMessages[idx] = res.message;
+    renderMessages();
+    chatLog.scrollTop = chatLog.scrollHeight;
+  }
+
   async function handleSend(e) {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     if (!thread) return;
+
     const body = chatInput.value.trim();
     if (!body) return;
 
-    sendBtn.disabled = true;
-    chatInput.disabled = true;
+    const savedReplyId = replyToId;
+    const temp = makeTempMessage(body, savedReplyId);
 
-    const res = replyToId
-      ? await AUTH.sendReply(thread.id, body, replyToId)
-      : await AUTH.sendMessage(thread.id, body);
+    allMessages.push(temp);
+    renderMessages();
+    chatLog.scrollTop = chatLog.scrollHeight;
 
-    chatInput.disabled = false;
     chatInput.value = '';
     cancelReply();
     autoGrow();
 
-    if (!res.ok) { alert('Could not send message. Try again.'); return; }
-    await refreshMessages();
-    chatLog.scrollTop = chatLog.scrollHeight;
-    chatInput.focus();
+    actuallySend(temp.id, body, savedReplyId);
+  }
+
+  function retryMessage(messageId) {
+    const m = findMessageById(messageId);
+    if (!m || !m.__failed) return;
+
+    m.__failed = false;
+    m.__pending = true;
+    renderMessages();
+
+    actuallySend(m.id, m.body, m.reply_to_id);
   }
 
   function startReply(messageId) {
@@ -354,7 +450,7 @@
 
   function openContext(messageId) {
     const m = findMessageById(messageId);
-    if (!m || m.deleted_at) return;
+    if (!m || m.deleted_at || m.__pending) return;
     contextMessageId = messageId;
 
     contextEmojis.innerHTML = REACTION_EMOJIS.map(function (emoji) {
@@ -364,7 +460,8 @@
     const deleteAllBtn = contextMenu.querySelector('[data-action="delete-all"]');
     const mine = m.sender_id === me.id;
     const within24 = (Date.now() - new Date(m.created_at).getTime()) < 24 * 60 * 60 * 1000;
-    deleteAllBtn.hidden = !(mine && within24);
+    const sendable = !m.__failed && !m.id.startsWith('temp-');
+    deleteAllBtn.hidden = !(mine && within24 && sendable);
 
     contextMenu.hidden = false;
   }
@@ -418,8 +515,17 @@
       lightbox.hidden = false;
       return;
     }
+
     const reactChip = e.target.closest('.chat-reaction-chip');
-    if (reactChip) toggleReaction(reactChip.dataset.message, reactChip.dataset.emoji);
+    if (reactChip) {
+      toggleReaction(reactChip.dataset.message, reactChip.dataset.emoji);
+      return;
+    }
+
+    const failedBubble = e.target.closest('.chat-bubble.is-failed');
+    if (failedBubble) {
+      retryMessage(failedBubble.dataset.id);
+    }
   });
 
   contextEmojis.addEventListener('click', function (e) {
@@ -483,7 +589,7 @@
   chatInput.addEventListener('keydown', function (e) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      chatComposer.requestSubmit();
+      handleSend(e);
     }
   });
 
@@ -606,8 +712,8 @@
     chatStatus.classList.add('is-typing');
     if (typingHideTimer) clearTimeout(typingHideTimer);
     typingHideTimer = setTimeout(function () {
-      chatStatus.textContent = other.role || '';
       chatStatus.classList.remove('is-typing');
+      updatePresence();
     }, 3000);
   }
 
