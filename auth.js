@@ -735,12 +735,15 @@
     const user = userRes.data.user;
     if (!user) return { ok: false };
 
-    try {
-      await sb.rpc('mark_thread_read', { p_thread_id: threadId });
-      return { ok: true };
-    } catch (err) {
-      return { ok: false, error: err };
-    }
+    const res = await sb
+      .from('chat_messages')
+      .update({ read_at: new Date().toISOString() })
+      .eq('thread_id', threadId)
+      .is('read_at', null)
+      .neq('sender_id', user.id);
+
+    if (res.error) return { ok: false, error: res.error };
+    return { ok: true };
   }
 
   /* =========================================================
