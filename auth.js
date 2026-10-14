@@ -18,6 +18,8 @@
     },
   });
 
+  const MSG_COLS = 'id, sender_id, body, photo_url, audio_url, audio_duration, read_at, delivered_at, created_at, reply_to_id, deleted_at, deleted_for, is_auto';
+
   /* ---------- Rate limit ---------- */
   const RL_KEY = 'stm_rl';
   function rlGet() {
@@ -609,8 +611,6 @@
     return { ok: true, thread: thread, other: other, me: user };
   }
 
-  const MSG_COLS = 'id, sender_id, body, photo_url, audio_url, audio_duration, read_at, delivered_at, created_at, reply_to_id, deleted_at, deleted_for, is_auto';
-
   async function loadMessages(threadId, limit) {
     limit = limit || 100;
     const userRes = await sb.auth.getUser();
@@ -700,61 +700,42 @@
     }
   }
 
-  function pickAudioMime() {
-    if (typeof MediaRecorder === 'undefined') return null;
-    const candidates = [
-      'audio/webm;codecs=opus',
-      'audio/webm',
-      'audio/ogg;codecs=opus',
-      'audio/mp4',
-    ];
-    for (let i = 0; i < candidates.length; i++) {
-      try {
-        if (MediaRecorder.isTypeSupported(candidates[i])) return candidates[i];
-      } catch (e) {}
-    }
-    return '';
-  }
-
-  function audioExtFor(mime) {
-    if (!mime) return 'webm';
-    if (mime.indexOf('mp4') !== -1) return 'm4a';
-    if (mime.indexOf('ogg') !== -1) return 'ogg';
-    return 'webm';
-  }
-
-  async function sendVoiceMessage(threadId, blob, durationSeconds) {
+  async function sendVoiceMessage(threadId, blob, durationSec) {
     const userRes = await sb.auth.getUser();
     const user = userRes.data.user;
     if (!user) return { ok: false, error: { message: 'Not signed in' } };
 
-    if (!blob || !blob.size) return { ok: false, error: { message: 'Empty recording' } };
-
-    const dur = Math.max(1, Math.round(Number(durationSeconds) || 0));
-    if (dur > 300) return { ok: false, error: { message: 'Recording too long' } };
-
     try {
+      if (!blob || !blob.size) return { ok: false, error: { message: 'Empty recording' } };
+
       const id = (window.crypto && crypto.randomUUID)
         ? crypto.randomUUID()
         : String(Date.now()) + Math.random().toString(36).slice(2, 9);
 
-      const mime = blob.type || 'audio/webm';
-      const ext = audioExtFor(mime);
-      const path = user.id + '/chat/' + threadId + '/voice-' + id + '.' + ext;
+      const type = blob.type || 'audio/webm';
+      let ext = 'webm';
+      if (type.indexOf('mp4') !== -1) ext = 'm4a';
+      else if (type.indexOf('ogg') !== -1) ext = 'ogg';
+      else if (type.indexOf('webm') !== -1) ext = 'webm';
+      else if (type.indexOf('mpeg') !== -1) ext = 'mp3';
+
+      const path = user.id + '/voice/' + threadId + '/' + id + '.' + ext;
 
       const up = await sb.storage.from('desk-photos').upload(path, blob, {
-        contentType: mime,
+        contentType: type,
         upsert: false
       });
       if (up.error) return { ok: false, error: up.error };
 
       const pub = sb.storage.from('desk-photos').getPublicUrl(path);
 
+      const duration = Math.max(1, Math.round(Number(durationSec) || 1));
+
       const ins = await sb.from('chat_messages').insert({
         thread_id: threadId,
         sender_id: user.id,
         audio_url: pub.data.publicUrl,
-        audio_duration: dur
+        audio_duration: duration
       }).select(MSG_COLS).single();
 
       if (ins.error) return { ok: false, error: ins.error };
@@ -928,8 +909,7 @@
       deleted_at: new Date().toISOString(),
       body: null,
       photo_url: null,
-      audio_url: null,
-      audio_duration: null
+      audio_url: null
     }).eq('id', messageId);
 
     if (res.error) return { ok: false, error: res.error };
@@ -1208,7 +1188,7 @@
   }
 
   /* =========================================================
-     STARS / ARCHIVES / PINS / FORCED UNREAD
+     BATCH 3 — stars, archives, pins, forced unread
      ========================================================= */
 
   async function toggleStarMessage(messageId) {
