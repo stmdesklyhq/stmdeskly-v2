@@ -710,3 +710,37 @@
   width: 0;
   height: 0;
 }
+/* =========================================================
+   DELIVERY STATES
+   ========================================================= */
+
+.chat-bubble-meta .tick.pending svg {
+  color: rgba(255, 255, 255, 0.55);
+  animation: tick-spin 1.2s linear infinite;
+}
+.chat-bubble-meta .tick.failed svg {
+  color: #FFB4A8;
+}
+@keyframes tick-spin {
+  to { transform: rotate(360deg); }
+}
+
+.chat-bubble.me.is-failed {
+  background: #B3261E;
+  cursor: pointer;
+}
+.chat-bubble.me.is-failed:active {
+  transform: scale(0.97);
+}
+
+.chat-bubble.me.is-pending {
+  opacity: 0.85;
+}
+
+/* Presence text in the header */
+.chat-status.is-online { color: #42B870; font-weight: 700; }
+.chat-status.is-away   { color: var(--muted, #718087); }
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-bubble-meta .tick.pending svg { animation: none; }
+}
