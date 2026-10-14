@@ -30,10 +30,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <link rel="preload" as="style" href="tokens.css?v=1">
-<link rel="preload" as="style" href="chat.css?v=20">
+<link rel="preload" as="style" href="chat.css?v=21">
 
 <link rel="stylesheet" href="tokens.css?v=1">
-<link rel="stylesheet" href="chat.css?v=20">
+<link rel="stylesheet" href="chat.css?v=21">
 </head>
 
 <body class="page-chat">
@@ -158,11 +158,14 @@
 </div>
 
 <div class="chat-cancelled" id="cancelledBar" hidden>
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="12" cy="12" r="9"/>
-    <path d="M6 18 18 6"/>
-  </svg>
-  <span id="cancelledText">This request was cancelled.</span>
+  <div class="chat-cancelled-copy">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="9"/>
+      <path d="M6 18 18 6"/>
+    </svg>
+    <span id="cancelledText">This request was cancelled.</span>
+  </div>
+  <button type="button" class="chat-cancelled-reopen" id="reopenRequestBtn">Send again</button>
 </div>
 
 <div class="chat-missing" id="chatMissing" hidden>
@@ -332,8 +335,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
-<script src="auth.js?v=23"></script>
-<script src="chat.js?v=18"></script>
+<script src="auth.js?v=24"></script>
+<script src="chat.js?v=19"></script>
 
 </body>
-   </html>
+       </html>
