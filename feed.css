@@ -962,3 +962,35 @@ body,
     gap: 16px;
   }
 }
+/* =========================================================
+   APPEND — Base avatar shape (circles everywhere)
+   ========================================================= */
+
+.avatar {
+  display: grid !important;
+  place-items: center !important;
+  flex: none !important;
+  border-radius: 999px !important;
+  background: var(--mint, #DCEBE3) !important;
+  color: var(--teal, #2F6D70) !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+  overflow: hidden !important;
+}
+
+.post-avatar,
+.composer-avatar {
+  border-radius: 999px !important;
+}
+
+.post-avatar {
+  width: 38px !important;
+  height: 38px !important;
+  font-size: 12px !important;
+}
+
+.composer-avatar {
+  width: 36px !important;
+  height: 36px !important;
+  font-size: 12px !important;
+}
