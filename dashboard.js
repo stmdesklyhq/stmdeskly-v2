@@ -203,7 +203,10 @@
           } else if (res.reason === 'no-vapid-key') {
             alert('Push is not configured yet. Try again later.');
           } else {
-            alert('Could not enable notifications. Try again.');
+            var detail = '';
+            if (res.reason) detail += 'reason=' + res.reason;
+            if (res.error && res.error.message) detail += ' | ' + res.error.message;
+            alert('Could not enable notifications.\n\n' + detail);
           }
 
           await paintNotif();
