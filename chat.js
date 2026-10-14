@@ -3,6 +3,7 @@
    Tap-to-record voice notes with IndexedDB persistence,
    wall-clock progress bar, scroll-to-bottom button.
    Cancel request support for pending threads.
+   Defensive against missing banner elements.
    ========================================================= */
 (function () {
   'use strict';
@@ -342,12 +343,12 @@
       blockedBanner.hidden = false;
       blockedBannerText.textContent = 'You blocked ' + (other.name || 'this user') + '.';
       blockedUnblock.hidden = false;
-      chatComposer.hidden = true;
+      if (chatComposer) chatComposer.hidden = true;
     } else if (blockedState.them) {
       blockedBanner.hidden = false;
       blockedBannerText.textContent = 'You cannot reply to this conversation.';
       blockedUnblock.hidden = true;
-      chatComposer.hidden = true;
+      if (chatComposer) chatComposer.hidden = true;
     } else {
       blockedBanner.hidden = true;
     }
@@ -377,26 +378,29 @@
     if (!thread) return;
     const isRecipient = thread.initiated_by && thread.initiated_by !== me.id;
 
+    function hide(el) { if (el) el.hidden = true; }
+    function show(el) { if (el) el.hidden = false; }
+
     if (thread.status === 'pending') {
       if (isRecipient) {
-        acceptBar.hidden = false;
-        pendingBar.hidden = true;
-        cancelledBar.hidden = true;
-        chatComposer.hidden = true;
+        show(acceptBar);
+        hide(pendingBar);
+        hide(cancelledBar);
+        hide(chatComposer);
       } else {
-        acceptBar.hidden = true;
-        pendingBar.hidden = false;
-        cancelledBar.hidden = true;
-        chatComposer.hidden = true;
+        hide(acceptBar);
+        show(pendingBar);
+        hide(cancelledBar);
+        hide(chatComposer);
       }
       return;
     }
 
     if (thread.status === 'cancelled') {
-      acceptBar.hidden = true;
-      pendingBar.hidden = true;
-      cancelledBar.hidden = false;
-      chatComposer.hidden = true;
+      hide(acceptBar);
+      hide(pendingBar);
+      show(cancelledBar);
+      hide(chatComposer);
 
       if (cancelledText) {
         cancelledText.textContent = isRecipient
@@ -407,17 +411,18 @@
     }
 
     if (thread.status === 'accepted') {
-      acceptBar.hidden = true;
-      pendingBar.hidden = true;
-      cancelledBar.hidden = true;
-      chatComposer.hidden = false;
+      hide(acceptBar);
+      hide(pendingBar);
+      hide(cancelledBar);
+      show(chatComposer);
     } else {
-      acceptBar.hidden = true;
-      pendingBar.hidden = true;
-      cancelledBar.hidden = true;
-      pendingBar.innerHTML = '<span>This conversation is closed.</span>';
-      pendingBar.hidden = false;
-      chatComposer.hidden = true;
+      hide(acceptBar);
+      hide(cancelledBar);
+      hide(chatComposer);
+      if (pendingBar) {
+        pendingBar.innerHTML = '<span>This conversation is closed.</span>';
+        pendingBar.hidden = false;
+      }
     }
 
     paintBlockedBanner();
@@ -952,7 +957,7 @@
       blockedState.me = false;
       paintBlockMenu();
       paintBlockedBanner();
-      if (thread.status === 'accepted') chatComposer.hidden = false;
+      if (thread.status === 'accepted' && chatComposer) chatComposer.hidden = false;
       return;
     }
 
@@ -963,7 +968,7 @@
     blockedState.me = true;
     paintBlockMenu();
     paintBlockedBanner();
-    chatComposer.hidden = true;
+    if (chatComposer) chatComposer.hidden = true;
   }
 
   /* =========================================================
@@ -1741,56 +1746,60 @@
     }
   });
 
-  contextEmojis.addEventListener('click', function (e) {
-    const btn = e.target.closest('button[data-emoji]');
-    if (!btn) return;
-    if (!contextMessageId) return;
-    toggleReaction(contextMessageId, btn.dataset.emoji);
-    closeContext();
-  });
-
-  contextMenu.addEventListener('click', async function (e) {
-    const item = e.target.closest('.chat-context-item');
-    if (!item) return;
-    const action = item.dataset.action;
-    const msgId = contextMessageId;
-    if (!msgId) return;
-    const msg = findMessageById(msgId);
-    if (!msg) { closeContext(); return; }
-
-    if (action === 'reply') { startReply(msgId); closeContext(); return; }
-
-    if (action === 'star') {
-      await toggleStarFromContext(msgId);
-      return;
-    }
-
-    if (action === 'copy') {
-      try { await navigator.clipboard.writeText(msg.body || ''); closeContext(); }
-      catch (err) { prompt('Copy:', msg.body || ''); closeContext(); }
-      return;
-    }
-
-    if (action === 'delete-me') {
+  if (contextEmojis) {
+    contextEmojis.addEventListener('click', function (e) {
+      const btn = e.target.closest('button[data-emoji]');
+      if (!btn) return;
+      if (!contextMessageId) return;
+      toggleReaction(contextMessageId, btn.dataset.emoji);
       closeContext();
-      await AUTH.deleteMessageForMe(msgId);
-      if (msg.__failed || String(msg.id).indexOf('temp-') === 0) {
-        deleteFailedVoice(msgId);
+    });
+  }
+
+  if (contextMenu) {
+    contextMenu.addEventListener('click', async function (e) {
+      const item = e.target.closest('.chat-context-item');
+      if (!item) return;
+      const action = item.dataset.action;
+      const msgId = contextMessageId;
+      if (!msgId) return;
+      const msg = findMessageById(msgId);
+      if (!msg) { closeContext(); return; }
+
+      if (action === 'reply') { startReply(msgId); closeContext(); return; }
+
+      if (action === 'star') {
+        await toggleStarFromContext(msgId);
+        return;
       }
-      await refreshMessages();
-      return;
-    }
 
-    if (action === 'delete-all') {
-      if (!confirm('Delete this message for everyone?')) { closeContext(); return; }
-      closeContext();
-      const res = await AUTH.deleteMessageForEveryone(msgId);
-      if (!res.ok) { alert('Could not delete. Try again.'); return; }
-      if (playingMsgId === msgId) stopAudio();
-      await refreshMessages();
-      return;
-    }
-  });
+      if (action === 'copy') {
+        try { await navigator.clipboard.writeText(msg.body || ''); closeContext(); }
+        catch (err) { prompt('Copy:', msg.body || ''); closeContext(); }
+        return;
+      }
+
+      if (action === 'delete-me') {
+        closeContext();
+        await AUTH.deleteMessageForMe(msgId);
+        if (msg.__failed || String(msg.id).indexOf('temp-') === 0) {
+          deleteFailedVoice(msgId);
+        }
+        await refreshMessages();
+        return;
+      }
+
+      if (action === 'delete-all') {
+        if (!confirm('Delete this message for everyone?')) { closeContext(); return; }
+        closeContext();
+        const res = await AUTH.deleteMessageForEveryone(msgId);
+        if (!res.ok) { alert('Could not delete. Try again.'); return; }
+        if (playingMsgId === msgId) stopAudio();
+        await refreshMessages();
+        return;
+      }
+    });
+  }
 
   async function toggleReaction(messageId, emoji) {
     const res = await AUTH.toggleMessageReaction(messageId, emoji);
@@ -1799,7 +1808,7 @@
   }
 
   document.addEventListener('click', function (e) {
-    if (contextMenu.hidden) return;
+    if (!contextMenu || contextMenu.hidden) return;
     if (!contextMenu.contains(e.target) && !e.target.closest('.chat-bubble')) closeContext();
   });
 
@@ -1861,45 +1870,53 @@
     });
   }
 
-  lightboxClose.addEventListener('click', function () {
-    lightbox.hidden = true;
-    lightboxImg.src = '';
-  });
-  lightbox.addEventListener('click', function (e) {
-    if (e.target === lightbox) { lightbox.hidden = true; lightboxImg.src = ''; }
-  });
+  if (lightboxClose) {
+    lightboxClose.addEventListener('click', function () {
+      lightbox.hidden = true;
+      lightboxImg.src = '';
+    });
+  }
+  if (lightbox) {
+    lightbox.addEventListener('click', function (e) {
+      if (e.target === lightbox) { lightbox.hidden = true; lightboxImg.src = ''; }
+    });
+  }
 
-  acceptBtn.addEventListener('click', async function () {
-    if (thread && thread.status !== 'pending') {
-      alert('This request is no longer pending.');
-      return;
-    }
-    acceptBtn.disabled = true;
-    declineBtn.disabled = true;
-    const res = await AUTH.acceptThread(thread.id);
-    acceptBtn.disabled = false;
-    declineBtn.disabled = false;
-    if (!res.ok) { alert('Could not accept. Try again.'); return; }
-    thread.status = 'accepted';
-    paintBanners();
-    autoGrow();
-    chatInput.focus();
-  });
+  if (acceptBtn) {
+    acceptBtn.addEventListener('click', async function () {
+      if (thread && thread.status !== 'pending') {
+        alert('This request is no longer pending.');
+        return;
+      }
+      acceptBtn.disabled = true;
+      if (declineBtn) declineBtn.disabled = true;
+      const res = await AUTH.acceptThread(thread.id);
+      acceptBtn.disabled = false;
+      if (declineBtn) declineBtn.disabled = false;
+      if (!res.ok) { alert('Could not accept. Try again.'); return; }
+      thread.status = 'accepted';
+      paintBanners();
+      autoGrow();
+      chatInput.focus();
+    });
+  }
 
-  declineBtn.addEventListener('click', async function () {
-    if (thread && thread.status !== 'pending') {
-      alert('This request is no longer pending.');
-      return;
-    }
-    acceptBtn.disabled = true;
-    declineBtn.disabled = true;
-    const res = await AUTH.declineThread(thread.id);
-    acceptBtn.disabled = false;
-    declineBtn.disabled = false;
-    if (!res.ok) { alert('Could not decline. Try again.'); return; }
-    thread.status = 'declined';
-    paintBanners();
-  });
+  if (declineBtn) {
+    declineBtn.addEventListener('click', async function () {
+      if (thread && thread.status !== 'pending') {
+        alert('This request is no longer pending.');
+        return;
+      }
+      if (acceptBtn) acceptBtn.disabled = true;
+      declineBtn.disabled = true;
+      const res = await AUTH.declineThread(thread.id);
+      if (acceptBtn) acceptBtn.disabled = false;
+      declineBtn.disabled = false;
+      if (!res.ok) { alert('Could not decline. Try again.'); return; }
+      thread.status = 'declined';
+      paintBanners();
+    });
+  }
 
   if (cancelRequestBtn) {
     cancelRequestBtn.addEventListener('click', async function () {
@@ -1993,13 +2010,16 @@
     });
   }
 
-  chatMenu.addEventListener('click', function (e) {
-    e.stopPropagation();
-    chatMenuPanel.hidden = !chatMenuPanel.hidden;
-  });
+  if (chatMenu) {
+    chatMenu.addEventListener('click', function (e) {
+      e.stopPropagation();
+      if (chatMenuPanel) chatMenuPanel.hidden = !chatMenuPanel.hidden;
+    });
+  }
 
   document.addEventListener('click', function (e) {
-    if (!chatMenuPanel.hidden && !chatMenuPanel.contains(e.target) && e.target !== chatMenu) {
+    if (!chatMenuPanel || chatMenuPanel.hidden) return;
+    if (!chatMenuPanel.contains(e.target) && e.target !== chatMenu) {
       chatMenuPanel.hidden = true;
     }
   });
@@ -2084,7 +2104,7 @@
       if (threadId) {
         const res = await AUTH.loadThread(threadId);
         if (!res.ok) {
-          chatMissing.hidden = false;
+          if (chatMissing) chatMissing.hidden = false;
           return;
         }
         thread = res.thread;
@@ -2092,18 +2112,18 @@
       } else if (toUserId) {
         const res = await AUTH.startThread(toUserId);
         if (!res.ok) {
-          chatMissing.hidden = false;
+          if (chatMissing) chatMissing.hidden = false;
           return;
         }
         const full = await AUTH.loadThread(res.thread.id);
         if (!full.ok) {
-          chatMissing.hidden = false;
+          if (chatMissing) chatMissing.hidden = false;
           return;
         }
         thread = full.thread;
         other = full.other;
       } else {
-        chatMissing.hidden = false;
+        if (chatMissing) chatMissing.hidden = false;
         return;
       }
 
@@ -2120,7 +2140,7 @@
       paintBlockMenu();
       paintBanners();
 
-      chatLog.hidden = false;
+      if (chatLog) chatLog.hidden = false;
 
       const failedVoice = await loadFailedVoice(thread.id);
 
