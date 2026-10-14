@@ -878,3 +878,58 @@
 .chat-blocked-unblock:hover {
   background: var(--teal, #2F6D70);
 }
+/* =========================================================
+   MENU ITEM RESET — force buttons to match links
+   ========================================================= */
+
+.chat-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 14px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--navy, #172B3A);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 160ms ease;
+  box-shadow: none;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.chat-menu-item:hover {
+  background: rgba(23, 43, 58, 0.05);
+}
+
+.chat-menu-item:active {
+  background: rgba(23, 43, 58, 0.08);
+}
+
+.chat-menu-item:focus-visible {
+  outline: 2px solid var(--teal, #2F6D70);
+  outline-offset: -2px;
+}
+
+.chat-menu-item svg {
+  width: 18px;
+  height: 18px;
+  color: var(--teal, #2F6D70);
+  flex-shrink: 0;
+}
+
+.chat-menu-item.danger {
+  color: #B3261E;
+}
+
+.chat-menu-item.danger svg {
+  color: #B3261E;
+}
