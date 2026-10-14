@@ -6,11 +6,31 @@
 <meta name="theme-color" content="#F7F6F1">
 <title>Home — STMDeskly</title>
 
+<style>
+  /* Critical inline CSS — prevents the oversized flash before stylesheets load */
+  html, body { margin: 0; padding: 0; background: #F7F6F1; color: #172B3A; }
+  body {
+    font-family: Poppins, system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; cursor: pointer; }
+  h1 { font-size: 24px; line-height: 1.25; margin: 0; font-weight: 600; letter-spacing: -0.04em; }
+  .app-shell { width: 100%; max-width: 620px; margin: 0 auto; padding: 0 18px 112px; }
+  .topbar { min-height: 52px; display: flex; align-items: center; justify-content: space-between; }
+</style>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="tokens.css?v=4">
+<link rel="preload" as="style" href="tokens.css?v=1">
+<link rel="preload" as="style" href="feed.css?v=3">
+<link rel="preload" as="style" href="nav.css?v=3">
+
+<link rel="stylesheet" href="tokens.css?v=1">
 <link rel="stylesheet" href="feed.css?v=3">
 <link rel="stylesheet" href="nav.css?v=3">
 </head>
