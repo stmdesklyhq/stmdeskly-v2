@@ -1,5 +1,6 @@
 /* =========================================================
    STMDESKLY v2 — Home (feed)
+   Avatar links are plain <a href>. Nothing intercepts them.
    ========================================================= */
 (function () {
   'use strict';
@@ -396,8 +397,15 @@
     }
   }
 
+  /* ---------- Post actions ---------- */
+
   if (feedEl) {
     feedEl.addEventListener('click', async function (e) {
+      /* Do NOT touch avatar or author links — let the browser navigate */
+      if (e.target.closest('.post-avatar') || e.target.closest('.post-author-link')) {
+        return;
+      }
+
       const btn = e.target.closest('.post-action, .post-menu');
       if (!btn) return;
 
