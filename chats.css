@@ -976,3 +976,58 @@
   .chats-title { font-size: 23px; }
   .chats-new { width: 38px; height: 38px; flex-basis: 38px; }
 }
+/* =========================================================
+   CHATS TABS — hard reset for old rules
+   ========================================================= */
+
+.chats-tabs .chats-tab,
+.chats-tabs .chats-tab.is-current,
+.chats-tabs .chats-tab.active {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 0 14px !important;
+  min-height: 0 !important;
+  height: auto !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: var(--muted, #718087) !important;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.2;
+  white-space: nowrap;
+  cursor: pointer;
+  position: relative;
+  box-shadow: none !important;
+  text-transform: none;
+}
+
+.chats-tabs .chats-tab.is-current,
+.chats-tabs .chats-tab.active {
+  color: var(--navy, #172B3A) !important;
+}
+
+.chats-tabs .chats-tab::before {
+  content: none !important;
+  display: none !important;
+}
+
+.chats-tabs .chats-tab.is-current::after,
+.chats-tabs .chats-tab.active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2.5px;
+  border-radius: 999px;
+  background: var(--teal, #2F6D70);
+  display: block !important;
+}
+
+.chats-tabs .chats-tab-badge {
+  background: var(--teal, #2F6D70) !important;
+  color: #FFFEFB !important;
+}
