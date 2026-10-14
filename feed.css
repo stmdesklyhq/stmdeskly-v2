@@ -862,3 +862,83 @@ body {
 .welcome > p:last-child {
   font-size: 12px;
 }
+/* =========================================================
+   APPEND — Floating topbar
+   Lifted off the page with a mint-to-paper gradient,
+   rounded pill shape, soft shadow, backdrop blur.
+   ========================================================= */
+
+.topbar {
+  position: sticky;
+  top: 8px;
+  z-index: var(--z-sticky, 10);
+
+  height: 52px;
+  margin: 8px 0 var(--space-4);
+  padding: 0 6px 0 18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+
+  border-radius: 18px;
+  border: 1px solid rgba(23, 43, 58, 0.06);
+  border-bottom: 1px solid rgba(23, 43, 58, 0.06);
+
+  background: linear-gradient(
+    135deg,
+    rgba(220, 235, 227, 0.92) 0%,
+    rgba(255, 254, 251, 0.96) 55%,
+    rgba(255, 254, 251, 0.96) 100%
+  );
+
+  box-shadow:
+    0 1px 2px rgba(23, 43, 58, 0.03),
+    0 8px 22px rgba(23, 43, 58, 0.07);
+
+  backdrop-filter: blur(18px) saturate(1.35);
+  -webkit-backdrop-filter: blur(18px) saturate(1.35);
+}
+
+/* Wordmark sits inside the pill — slightly smaller, still bold */
+.wordmark {
+  font-size: 18px;
+  font-weight: var(--fw-bold, 700);
+  letter-spacing: -0.05em;
+  color: var(--text-primary, #172B3A);
+}
+
+/* Icons get a touch tighter inside the pill */
+.top-actions {
+  gap: 0;
+}
+
+.icon-button,
+.avatar-button {
+  width: 36px;
+  height: 36px;
+}
+
+.icon-button svg {
+  width: 19px;
+  height: 19px;
+}
+
+.avatar-button .avatar {
+  width: 30px;
+  height: 30px;
+  font-size: 11px;
+}
+
+/* Slightly lifted hover on the pill's internal buttons */
+.icon-button:hover,
+.avatar-button:hover {
+  background: rgba(23, 43, 58, 0.06);
+}
+
+/* Since the topbar now has its own margin, the welcome section
+   doesn't need extra padding on top to compensate */
+.welcome {
+  padding-top: 0;
+}
