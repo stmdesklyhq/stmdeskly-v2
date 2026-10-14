@@ -102,15 +102,12 @@
 
     if (!mRes.error && mRes.data) {
       mRes.data.forEach(m => {
-        // Newest message overall
         if (!lastByThread[m.thread_id]) {
           lastByThread[m.thread_id] = m;
         }
-        // Newest incoming (not from me)
         if (m.sender_id !== me.id && !lastIncomingByThread[m.thread_id]) {
           lastIncomingByThread[m.thread_id] = m;
         }
-        // Count unread from others
         if (!m.read_at && m.sender_id !== me.id) {
           unreadByThread[m.thread_id] = (unreadByThread[m.thread_id] || 0) + 1;
         }
@@ -185,7 +182,6 @@
         ? 'Wants to chat with you.'
         : 'Waiting for them to accept.';
     } else if (isUnread && row.lastIncoming) {
-      // Show the actual unread message, not your own reply
       const lm = row.lastIncoming;
       const who = other.name ? esc(String(other.name).split(/\s+/)[0]) : 'Them';
       const body = lm.body ? esc(lm.body) : '📷 Photo';
@@ -203,7 +199,6 @@
       (isPending ? ' is-pending' : '') +
       (isUnread ? ' is-unread' : '');
 
-    // Unread count badge on the right column
     const rightBadge = isUnread
       ? '<span class="chat-row-count">' +
           (row.unread > 9 ? '9+' : String(row.unread)) +
@@ -293,6 +288,8 @@
       loadingEl.hidden = true;
       paintCounts();
       render();
+
+      AUTH.markMessagesDelivered();
     } catch (err) {
       console.warn('refresh:', err);
       loadingEl.hidden = true;
