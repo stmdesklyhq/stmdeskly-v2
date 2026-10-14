@@ -1,5 +1,6 @@
 /* =========================================================
    STMDESKLY v2 — Chats inbox
+   Pin, archive, mark unread, mute, all five tabs.
    ========================================================= */
 (function () {
   'use strict';
@@ -24,6 +25,13 @@
   let currentTab = 'all';
   let currentQuery = '';
   let mutedThreadIds = new Set();
+  let pinnedThreadIds = new Set();
+  let archivedThreadIds = new Set();
+  let forcedUnreadThreadIds = new Set();
+
+  let actionSheet = null;
+  let actionThreadId = null;
+  let actionOther = null;
 
   function initials(name) {
     const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
@@ -63,14 +71,9 @@
     return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
   }
 
-  /* ---------- Load ---------- */
-
   async function loadThreads() {
     const asA = await sb.from('chat_threads').select('*').eq('user_a', me.id);
     const asB = await sb.from('chat_threads').select('*').eq('user_b', me.id);
-
-    if (asA.error) console.warn('threadsA:', asA.error);
-    if (asB.error) console.warn('threadsB:', asB.error);
 
     const threads = [...(asA.data || []), ...(asB.data || [])]
       .sort((x, y) => new Date(y.last_message_at || 0) - new Date(x.last_message_at || 0));
@@ -103,12 +106,8 @@
 
     if (!mRes.error && mRes.data) {
       mRes.data.forEach(m => {
-        if (!lastByThread[m.thread_id]) {
-          lastByThread[m.thread_id] = m;
-        }
-        if (m.sender_id !== me.id && !lastIncomingByThread[m.thread_id]) {
-          lastIncomingByThread[m.thread_id] = m;
-        }
+        if (!lastByThread[m.thread_id]) lastByThread[m.thread_id] = m;
+        if (m.sender_id !== me.id && !lastIncomingByThread[m.thread_id]) lastIncomingByThread[m.thread_id] = m;
         if (!m.read_at && m.sender_id !== me.id) {
           unreadByThread[m.thread_id] = (unreadByThread[m.thread_id] || 0) + 1;
         }
@@ -118,24 +117,34 @@
     return threads.map(t => {
       const otherId = t.user_a === me.id ? t.user_b : t.user_a;
       const other = deskMap[otherId] || { name: 'Someone' };
+      const forced = forcedUnreadThreadIds.has(t.id);
+      const realUnread = unreadByThread[t.id] || 0;
+
       return {
         thread: t,
         other,
         lastMessage: lastByThread[t.id],
         lastIncoming: lastIncomingByThread[t.id],
-        unread: unreadByThread[t.id] || 0,
-        muted: mutedThreadIds.has(t.id)
+        unread: realUnread,
+        forcedUnread: forced,
+        muted: mutedThreadIds.has(t.id),
+        pinned: pinnedThreadIds.has(t.id),
+        archived: archivedThreadIds.has(t.id)
       };
     });
   }
 
-  /* ---------- Filter ---------- */
-
   function applyFilters(rows) {
     let out = rows;
 
+    if (currentTab === 'archived') {
+      out = out.filter(r => r.archived);
+    } else {
+      out = out.filter(r => !r.archived);
+    }
+
     if (currentTab === 'unread') {
-      out = out.filter(r => r.unread > 0);
+      out = out.filter(r => r.unread > 0 || r.forcedUnread);
     } else if (currentTab === 'requests') {
       out = out.filter(r => r.thread.status === 'pending');
     }
@@ -152,17 +161,23 @@
       });
     }
 
+    out.sort(function (a, b) {
+      if (a.pinned && !b.pinned) return -1;
+      if (b.pinned && !a.pinned) return 1;
+      const ta = new Date(a.thread.last_message_at || 0).getTime();
+      const tb = new Date(b.thread.last_message_at || 0).getTime();
+      return tb - ta;
+    });
+
     return out;
   }
-
-  /* ---------- Render ---------- */
 
   function rowHtml(row) {
     const other = row.other;
     const t = row.thread;
     const isPending = t.status === 'pending';
     const waitingOnMe = isPending && t.initiated_by && t.initiated_by !== me.id;
-    const isUnread = row.unread > 0 && !isPending;
+    const isUnread = (row.unread > 0 || row.forcedUnread) && !isPending;
 
     const avatarInner = other.avatar_url
       ? '<img src="' + esc(other.avatar_url) + '" alt="">'
@@ -179,11 +194,10 @@
       badge = waitingOnMe
         ? '<span class="chat-row-badge">Request</span>'
         : '<span class="chat-row-badge">Pending</span>';
-
       preview = waitingOnMe
         ? 'Wants to chat with you.'
         : 'Waiting for them to accept.';
-    } else if (isUnread && row.lastIncoming) {
+    } else if (row.unread > 0 && row.lastIncoming) {
       const lm = row.lastIncoming;
       const who = other.name ? esc(String(other.name).split(/\s+/)[0]) : 'Them';
       const body = lm.body ? esc(lm.body) : '📷 Photo';
@@ -200,165 +214,17 @@
     const cls = 'chat-row' +
       (isPending ? ' is-pending' : '') +
       (isUnread ? ' is-unread' : '') +
-      (row.muted ? ' is-muted' : '');
+      (row.muted ? ' is-muted' : '') +
+      (row.pinned ? ' is-pinned' : '');
 
-    const rightBadge = isUnread
-      ? '<span class="chat-row-count">' +
-          (row.unread > 9 ? '9+' : String(row.unread)) +
-        '</span>'
-      : '';
+    const rightBadge = (isUnread && row.unread > 0)
+      ? '<span class="chat-row-count">' + (row.unread > 9 ? '9+' : String(row.unread)) + '</span>'
+      : (isUnread && row.forcedUnread
+        ? '<span class="chat-row-count">•</span>'
+        : '');
 
     const muteMark = row.muted
       ? '<span class="chat-row-muted" aria-label="Muted">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
             '<path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/>' +
-            '<path d="M10 21h4"/>' +
-            '<line x1="3" y1="3" x2="21" y2="21"/>' +
-          '</svg>' +
-        '</span>'
-      : '';
-
-    return '<a class="' + cls + '" href="/chat.html?id=' + encodeURIComponent(t.id) + '">' +
-      '<span class="chat-row-avatar">' +
-        '<span class="chat-row-avatar-img">' + avatarInner + '</span>' +
-        dot +
-      '</span>' +
-      '<span class="chat-row-copy">' +
-        '<span class="chat-row-top">' +
-          '<span class="chat-row-name">' + esc(other.name || 'Someone') + '</span>' +
-          badge +
-        '</span>' +
-        '<span class="chat-row-preview">' + preview + '</span>' +
-      '</span>' +
-      '<span class="chat-row-right">' +
-        '<span class="chat-row-time">' + esc(timeShort(t.last_message_at)) + '</span>' +
-        muteMark +
-        rightBadge +
-      '</span>' +
-    '</a>';
-  }
-
-  function render() {
-    const filtered = applyFilters(allRows);
-
-    listEl.querySelectorAll('.chat-row').forEach(n => n.remove());
-
-    if (!filtered.length) {
-      emptyEl.hidden = false;
-      if (currentQuery) {
-        emptyTitle.textContent = 'No chats found';
-        emptyBody.textContent = 'Try a different word.';
-      } else if (currentTab === 'requests') {
-        emptyTitle.textContent = 'No requests';
-        emptyBody.textContent = 'When someone wants to chat, it lands here.';
-      } else if (currentTab === 'unread') {
-        emptyTitle.textContent = 'All caught up';
-        emptyBody.textContent = 'Nothing unread.';
-      } else {
-        emptyTitle.textContent = 'No chats yet';
-        emptyBody.textContent = 'Find someone on Explore and tap Chat on their profile.';
-      }
-      return;
-    }
-
-    emptyEl.hidden = true;
-
-    const frag = document.createDocumentFragment();
-    filtered.forEach(r => {
-      const wrap = document.createElement('div');
-      wrap.innerHTML = rowHtml(r);
-      frag.appendChild(wrap.firstChild);
-    });
-    listEl.appendChild(frag);
-  }
-
-  function paintCounts() {
-    const unread = allRows.filter(r =>
-      r.unread > 0 && r.thread.status !== 'pending' && !r.muted
-    ).length;
-    const requests = allRows.filter(r =>
-      r.thread.status === 'pending' && r.thread.initiated_by !== me.id
-    ).length;
-
-    if (unread > 0) {
-      tabCountUnread.hidden = false;
-      tabCountUnread.textContent = unread > 9 ? '9+' : String(unread);
-      totalEl.hidden = false;
-      totalEl.textContent = unread > 9 ? '9+' : String(unread);
-    } else {
-      tabCountUnread.hidden = true;
-      totalEl.hidden = true;
-    }
-
-    if (requests > 0) {
-      tabCountReqs.hidden = false;
-      tabCountReqs.textContent = requests > 9 ? '9+' : String(requests);
-    } else {
-      tabCountReqs.hidden = true;
-    }
-  }
-
-  async function refresh() {
-    try {
-      mutedThreadIds = new Set();
-      try {
-        const m = await AUTH.getMutedThreads();
-        if (m.ok) mutedThreadIds = new Set(m.data);
-      } catch (e) {}
-
-      allRows = await loadThreads();
-      loadingEl.hidden = true;
-      paintCounts();
-      render();
-
-      AUTH.markMessagesDelivered();
-    } catch (err) {
-      console.warn('refresh:', err);
-      loadingEl.hidden = true;
-      emptyEl.hidden = false;
-      emptyTitle.textContent = 'Could not load chats';
-      emptyBody.textContent = 'Pull down to try again.';
-    }
-  }
-
-  /* ---------- Events ---------- */
-
-  tabsEl.addEventListener('click', e => {
-    const tab = e.target.closest('.chats-tab');
-    if (!tab) return;
-    const t = tab.dataset.tab;
-    if (t === currentTab) return;
-
-    currentTab = t;
-    tabsEl.querySelectorAll('.chats-tab').forEach(c => {
-      const on = c.dataset.tab === t;
-      c.classList.toggle('is-current', on);
-      c.setAttribute('aria-pressed', String(on));
-    });
-    render();
-  });
-
-  searchEl.addEventListener('input', () => {
-    currentQuery = searchEl.value.trim();
-    clearEl.hidden = !currentQuery;
-    render();
-  });
-
-  clearEl.addEventListener('click', () => {
-    searchEl.value = '';
-    currentQuery = '';
-    clearEl.hidden = true;
-    render();
-  });
-
-  /* ---------- Boot ---------- */
-
-  (async function boot() {
-    me = await AUTH.currentUser();
-    if (!me) { location.replace('/login.html'); return; }
-    sb = AUTH.sb;
-    await refresh();
-
-    setInterval(refresh, 8000);
-  })();
-})();
+            '<path d="M10 21h4"/>'
