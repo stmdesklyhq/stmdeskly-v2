@@ -1,7 +1,7 @@
 /* =========================================================
    STMDESKLY v2 — Single chat
-   Reply, react, delete, photos, presence, typing, delivery.
-   Realtime via Supabase channels.
+   Reply, react, delete, photos, presence, typing, delivery,
+   mute, block, report.
    ========================================================= */
 (function () {
   'use strict';
@@ -12,11 +12,18 @@
   const chatAvatar      = $('chatAvatar');
   const chatPresence    = $('chatPresence');
   const chatName        = $('chatName');
+  const chatMuteIcon    = $('chatMuteIcon');
   const chatStatus      = $('chatStatus');
   const chatMenu        = $('chatMenu');
   const chatMenuPanel   = $('chatMenuPanel');
   const menuViewProfile = $('menuViewProfile');
   const menuOpenDesk    = $('menuOpenDesk');
+  const menuMute        = $('menuMute');
+  const menuMuteIcon    = $('menuMuteIcon');
+  const menuMuteLabel   = $('menuMuteLabel');
+  const menuReport      = $('menuReport');
+  const menuBlock       = $('menuBlock');
+  const menuBlockLabel  = $('menuBlockLabel');
   const acceptBar       = $('acceptBar');
   const acceptBtn       = $('acceptBtn');
   const declineBtn      = $('declineBtn');
@@ -37,6 +44,9 @@
   const lightbox        = $('chatLightbox');
   const lightboxImg     = $('chatLightboxImg');
   const lightboxClose   = $('chatLightboxClose');
+  const blockedBanner   = $('blockedBanner');
+  const blockedBannerText = $('blockedBannerText');
+  const blockedUnblock  = $('blockedUnblock');
 
   const REACTION_EMOJIS = ['👍', '❤️', '😂', '🔥', '🙏', '👏'];
 
@@ -57,6 +67,9 @@
   let refreshDebounce = null;
   let refreshInFlight = false;
   let refreshQueued = false;
+
+  let isMuted = false;
+  let blockedState = { me: false, them: false };
 
   function initials(name) {
     const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
@@ -111,12 +124,47 @@
       : esc(initials(other.name));
     chatName.textContent = other.name || 'Someone';
     chatStatus.textContent = other.role || '';
+    chatMuteIcon.hidden = !isMuted;
 
     const profileUrl = other.username ? '/profile.html?u=' + encodeURIComponent(other.username) : '#';
     const deskUrl    = other.username ? '/u/' + encodeURIComponent(other.username) : '#';
     chatHead.href = profileUrl;
     menuViewProfile.href = profileUrl;
     menuOpenDesk.href = deskUrl;
+  }
+
+  function paintMuteMenu() {
+    if (!menuMuteLabel || !menuMuteIcon) return;
+    if (isMuted) {
+      menuMuteLabel.textContent = 'Unmute notifications';
+      menuMuteIcon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/><path d="M3 3l18 18"/></svg>';
+    } else {
+      menuMuteLabel.textContent = 'Mute notifications';
+      menuMuteIcon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>';
+    }
+  }
+
+  function paintBlockMenu() {
+    if (!menuBlockLabel) return;
+    menuBlockLabel.textContent = blockedState.me ? 'Unblock' : 'Block';
+  }
+
+  function paintBlockedBanner() {
+    if (!blockedBanner) return;
+
+    if (blockedState.me) {
+      blockedBanner.hidden = false;
+      blockedBannerText.textContent = 'You blocked ' + (other.name || 'this user') + '.';
+      blockedUnblock.hidden = false;
+      chatComposer.hidden = true;
+    } else if (blockedState.them) {
+      blockedBanner.hidden = false;
+      blockedBannerText.textContent = 'You cannot reply to this conversation.';
+      blockedUnblock.hidden = true;
+      chatComposer.hidden = true;
+    } else {
+      blockedBanner.hidden = true;
+    }
   }
 
   async function updatePresence() {
@@ -160,13 +208,14 @@
       acceptBar.hidden = true;
       pendingBar.hidden = true;
       chatComposer.hidden = false;
-      return;
+    } else {
+      acceptBar.hidden = true;
+      pendingBar.hidden = false;
+      pendingBar.innerHTML = '<span>This conversation is closed.</span>';
+      chatComposer.hidden = true;
     }
 
-    acceptBar.hidden = true;
-    pendingBar.hidden = false;
-    pendingBar.innerHTML = '<span>This conversation is closed.</span>';
-    chatComposer.hidden = true;
+    paintBlockedBanner();
   }
 
   function findMessageById(id) {
@@ -314,7 +363,7 @@
         chatLog.scrollTop = prevScrollTop;
       }
 
-      if (thread.status === 'accepted') {
+      if (thread.status === 'accepted' && !blockedState.me && !blockedState.them) {
         AUTH.markMessagesDelivered(thread.id);
         AUTH.markMessagesRead(thread.id);
       }
@@ -389,6 +438,11 @@
     if (e && e.preventDefault) e.preventDefault();
     if (!thread) return;
 
+    if (blockedState.me || blockedState.them) {
+      alert(blockedState.me ? 'You blocked this user.' : 'You cannot reply to this conversation.');
+      return;
+    }
+
     const body = chatInput.value.trim();
     if (!body) return;
 
@@ -457,8 +511,6 @@
     contextMessageId = null;
   }
 
-  /* ---------- Inline reply from notification ---------- */
-
   async function flushPendingReplies() {
     try {
       const db = await new Promise((resolve, reject) => {
@@ -500,6 +552,73 @@
     } catch (e) {
       console.warn('[chat] pending replies failed:', e);
     }
+  }
+
+  /* ---------- Safety actions ---------- */
+
+  async function doMuteToggle() {
+    if (!thread) return;
+    if (isMuted) {
+      const res = await AUTH.unmuteThread(thread.id);
+      if (!res.ok) { alert('Could not unmute. Try again.'); return; }
+      isMuted = false;
+    } else {
+      const res = await AUTH.muteThread(thread.id);
+      if (!res.ok) { alert('Could not mute. Try again.'); return; }
+      isMuted = true;
+    }
+    chatMuteIcon.hidden = !isMuted;
+    paintMuteMenu();
+    chatMenuPanel.hidden = true;
+  }
+
+  async function doReport() {
+    chatMenuPanel.hidden = true;
+    if (!other) return;
+
+    const reasons = ['Spam', 'Harassment', 'Scam or fraud', 'Inappropriate content', 'Other'];
+    const choice = prompt(
+      'Report ' + (other.name || 'this user') + ':\n\n' +
+      reasons.map(function (r, i) { return (i + 1) + '. ' + r; }).join('\n') +
+      '\n\nType the number:'
+    );
+    if (!choice) return;
+
+    const idx = parseInt(choice, 10) - 1;
+    if (isNaN(idx) || idx < 0 || idx >= reasons.length) {
+      alert('Please pick a number from the list.');
+      return;
+    }
+
+    const notes = prompt('Add anything else (optional):') || '';
+
+    const res = await AUTH.reportUser(other.user_id, reasons[idx], notes, thread.id);
+    if (!res.ok) { alert('Could not send report. Try again.'); return; }
+    alert('Thanks. We will review this report.');
+  }
+
+  async function doBlockToggle() {
+    chatMenuPanel.hidden = true;
+    if (!other) return;
+
+    if (blockedState.me) {
+      const res = await AUTH.unblockUser(other.user_id);
+      if (!res.ok) { alert('Could not unblock. Try again.'); return; }
+      blockedState.me = false;
+      paintBlockMenu();
+      paintBlockedBanner();
+      if (thread.status === 'accepted') chatComposer.hidden = false;
+      return;
+    }
+
+    if (!confirm('Block ' + (other.name || 'this user') + '?\n\nThey won\'t be able to message you.')) return;
+
+    const res = await AUTH.blockUser(other.user_id);
+    if (!res.ok) { alert('Could not block. Try again.'); return; }
+    blockedState.me = true;
+    paintBlockMenu();
+    paintBlockedBanner();
+    chatComposer.hidden = true;
   }
 
   /* Events */
@@ -632,6 +751,10 @@
     const file = e.target.files && e.target.files[0];
     e.target.value = '';
     if (!file || !thread) return;
+    if (blockedState.me || blockedState.them) {
+      alert('Cannot send while blocked.');
+      return;
+    }
     if (file.size > 5 * 1024 * 1024) { alert('Max 5 MB.'); return; }
     attachBtn.disabled = true;
     const res = await AUTH.sendPhotoMessage(thread.id, file);
@@ -672,6 +795,14 @@
     thread.status = 'declined';
     paintBanners();
   });
+
+  if (menuMute)   menuMute.addEventListener('click', doMuteToggle);
+  if (menuReport) menuReport.addEventListener('click', doReport);
+  if (menuBlock)  menuBlock.addEventListener('click', doBlockToggle);
+
+  if (blockedUnblock) {
+    blockedUnblock.addEventListener('click', doBlockToggle);
+  }
 
   chatMenu.addEventListener('click', function (e) {
     e.stopPropagation();
@@ -788,7 +919,18 @@
         return;
       }
 
+      /* Load mute + block state */
+      try {
+        isMuted = await AUTH.isThreadMuted(thread.id);
+      } catch (e) { isMuted = false; }
+
+      try {
+        blockedState = await AUTH.isBlocked(other.user_id);
+      } catch (e) { blockedState = { me: false, them: false }; }
+
       paintHeader();
+      paintMuteMenu();
+      paintBlockMenu();
       paintBanners();
 
       chatLog.hidden = false;
@@ -803,7 +945,9 @@
 
       await flushPendingReplies();
 
-      if (thread.status === 'accepted') chatInput.focus();
+      if (thread.status === 'accepted' && !blockedState.me && !blockedState.them) {
+        chatInput.focus();
+      }
 
       presenceTimer = setInterval(function () {
         AUTH.touchPresence();
