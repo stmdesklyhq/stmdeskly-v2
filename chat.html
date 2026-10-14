@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <link rel="stylesheet" href="style.css?v=10">
-<link rel="stylesheet" href="chat.css?v=9">
+<link rel="stylesheet" href="chat.css?v=13">
 </head>
 
 <body class="page-chat">
@@ -142,6 +142,11 @@
   </div>
 
   <div class="chat-composer-inner">
+    <button type="button" class="chat-attach" id="quickBtn" aria-label="Quick replies">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>
+      </svg>
+    </button>
     <button type="button" class="chat-attach" id="attachBtn" aria-label="Attach photo">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <rect x="3" y="3" width="18" height="18" rx="4"/>
@@ -167,6 +172,40 @@
   </svg>
   <span id="blockedBannerText">You blocked this user.</span>
   <button type="button" class="chat-blocked-unblock" id="blockedUnblock">Unblock</button>
+</div>
+
+<div class="quick-sheet-overlay" id="quickOverlay" hidden>
+  <div class="quick-sheet">
+    <header class="quick-sheet-head">
+      <span>Quick replies</span>
+      <button type="button" id="quickClose" aria-label="Close">×</button>
+    </header>
+
+    <div class="quick-sheet-body" id="quickList"></div>
+
+    <div class="quick-sheet-footer">
+      <button type="button" class="quick-chip-action" id="quickDeskLink">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10 13.8a4.2 4.2 0 0 0 6.1.2l3-3a4.3 4.3 0 0 0-6.1-6.1l-1.7 1.7M14 10.2a4.2 4.2 0 0 0-6.1-.2l-3 3A4.3 4.3 0 0 0 11 19.1l1.7-1.7"/>
+        </svg>
+        Send my desk link
+      </button>
+      <button type="button" class="quick-chip-action" id="quickLocation">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/>
+          <circle cx="12" cy="10" r="2.5"/>
+        </svg>
+        Share my location
+      </button>
+    </div>
+
+    <button type="button" class="quick-sheet-add" id="quickAdd">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 5v14M5 12h14"/>
+      </svg>
+      Add a quick reply
+    </button>
+  </div>
 </div>
 
 <div class="chat-context" id="contextMenu" hidden>
@@ -196,8 +235,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
-<script src="auth.js?v=18"></script>
-<script src="chat.js?v=10"></script>
+<script src="auth.js?v=19"></script>
+<script src="chat.js?v=12"></script>
 
 </body>
-</html>
+          </html>
