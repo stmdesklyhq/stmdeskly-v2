@@ -9,10 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="dashboard.css?v=2">
-<link rel="icon" type="image/png" href="/assets/brand/favicon.png">
-<link rel="apple-touch-icon" href="/assets/brand/apple-touch-icon.png">
-<link rel="manifest" href="/assets/brand/manifest.json">
+<link rel="stylesheet" href="dashboard.css?v=3">
 </head>
 <body class="page-dashboard">
 <div class="dashboard-shell">
@@ -43,6 +40,29 @@
 <button class="notif-action" id="notifButton" type="button">Enable</button>
 </section>
 
+<section class="away-strip" id="awayStrip">
+<span class="away-icon" aria-hidden="true">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+<circle cx="12" cy="12" r="9"/>
+<path d="M12 7v5l3 2"/>
+</svg>
+</span>
+<div class="away-copy">
+<strong id="awayTitle">Away mode</strong>
+<small id="awayBody">Auto-reply once when someone messages you. Off for now.</small>
+</div>
+<button class="away-action" id="awayButton" type="button">Turn on</button>
+</section>
+
+<div class="away-editor" id="awayEditor" hidden>
+<label class="away-label" for="awayMessage">Your away message</label>
+<textarea class="away-input" id="awayMessage" rows="3" maxlength="300" placeholder="I'm away right now. I'll get back to you soon."></textarea>
+<div class="away-actions">
+<button type="button" class="away-btn ghost" id="awayCancel">Cancel</button>
+<button type="button" class="away-btn primary" id="awaySave">Save</button>
+</div>
+</div>
+
 <section class="link-card" aria-labelledby="linkHeading">
 <div class="card-heading"><div><p class="card-kicker">YOUR SPACE, READY TO SHARE</p><h2 id="linkHeading">Your Desk link</h2></div><span class="link-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M10 13.8a4.2 4.2 0 0 0 6.1.2l3-3a4.3 4.3 0 0 0-6.1-6.1l-1.7 1.7M14 10.2a4.2 4.2 0 0 0-6.1-.2l-3 3A4.3 4.3 0 0 0 11 19.1l1.7-1.7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span></div>
 <div class="url-row"><p class="desk-url" id="deskUrl">stmdeskly.com/u/yourname</p><span class="copied" id="copyFeedback" role="status" aria-live="polite"><svg viewBox="0 0 20 20" fill="none"><path d="m4 10 4 4 8-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Copied</span></div>
@@ -60,7 +80,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
-<script src="auth.js?v=13"></script>
-<script src="dashboard.js?v=2"></script>
-<script src="nav.js?v=9"></script>
+<script src="auth.js?v=20"></script>
+<script src="dashboard.js?v=3"></script>
+<script src="nav.js?v=99"></script>
 </body></html>
