@@ -1,6 +1,6 @@
 /* =========================================================
    STMDESKLY v2 — Settings
-   Account, notifications, away mode, safety, logout.
+   Account, notifications, away, desk editing entry.
    ========================================================= */
 (function () {
   'use strict';
@@ -10,6 +10,7 @@
   const emailValue    = $('emailValue');
   const nameValue     = $('nameValue');
   const usernameValue = $('usernameValue');
+  const seeDeskButton = $('seeDeskButton');
 
   const pushSwitch  = $('pushSwitch');
   const awaySwitch  = $('awaySwitch');
@@ -39,6 +40,10 @@
       (user.user_metadata && user.user_metadata.username) ||
       '—';
     if (usernameValue) usernameValue.textContent = '@' + username;
+
+    if (seeDeskButton && desk && desk.username) {
+      seeDeskButton.href = '/u/' + encodeURIComponent(desk.username);
+    }
   }
 
   /* ---------- Push ---------- */
