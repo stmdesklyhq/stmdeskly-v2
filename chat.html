@@ -11,7 +11,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <link rel="stylesheet" href="style.css?v=10">
-<link rel="stylesheet" href="chat.css?v=13">
+<link rel="stylesheet" href="chat.css?v=16">
 </head>
 
 <body class="page-chat">
@@ -45,6 +45,13 @@
     </span>
   </a>
 
+  <button class="chat-menu" id="chatSearchBtn" type="button" aria-label="Search messages">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="11" cy="11" r="7"/>
+      <path d="M21 21l-4.35-4.35"/>
+    </svg>
+  </button>
+
   <button class="chat-menu" id="chatMenu" type="button" aria-label="Menu">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <circle cx="12" cy="5" r="1"/>
@@ -70,6 +77,13 @@
     </svg>
     <span>Open their Desk</span>
   </a>
+
+  <button id="menuStarred" type="button" class="chat-menu-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.8l6.5-.9L12 3z"/>
+    </svg>
+    <span>Starred messages</span>
+  </button>
 
   <button id="menuMute" type="button" class="chat-menu-item">
     <span id="menuMuteIcon">
@@ -214,6 +228,12 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 17l-6-6 6-6"/><path d="M3 11h13a6 6 0 0 1 6 6v3"/></svg>
     <span>Reply</span>
   </button>
+  <button type="button" class="chat-context-item" data-action="star">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.8l6.5-.9L12 3z"/>
+    </svg>
+    <span id="starLabel">Star</span>
+  </button>
   <button type="button" class="chat-context-item" data-action="copy">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
     <span>Copy</span>
@@ -228,6 +248,23 @@
   </button>
 </div>
 
+<div class="search-overlay" id="searchOverlay" hidden>
+  <header class="search-head">
+    <button type="button" id="searchClose" aria-label="Close search">×</button>
+    <input type="search" id="searchInput" placeholder="Search in this chat…" autocomplete="off">
+    <span class="search-count" id="searchCount"></span>
+  </header>
+  <div class="search-results" id="searchResults"></div>
+</div>
+
+<div class="starred-overlay" id="starredOverlay" hidden>
+  <header class="starred-head">
+    <button type="button" id="starredClose" aria-label="Close">×</button>
+    <span>Starred messages</span>
+  </header>
+  <div class="starred-list" id="starredList"></div>
+</div>
+
 <div class="chat-lightbox" id="chatLightbox" hidden>
   <button type="button" class="chat-lightbox-close" id="chatLightboxClose" aria-label="Close">×</button>
   <img id="chatLightboxImg" src="" alt="">
@@ -235,8 +272,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
-<script src="auth.js?v=19"></script>
-<script src="chat.js?v=12"></script>
+<script src="auth.js?v=21"></script>
+<script src="chat.js?v=14"></script>
 
 </body>
-          </html>
+  </html>
