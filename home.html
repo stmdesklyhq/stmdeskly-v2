@@ -19,7 +19,7 @@
   button { font: inherit; cursor: pointer; }
   h1 { font-size: 24px; line-height: 1.25; margin: 0; font-weight: 600; letter-spacing: -0.04em; }
   .app-shell { width: 100%; max-width: 620px; margin: 0 auto; padding: 0 18px 112px; }
-  .topbar { min-height: 52px; display: flex; align-items: center; justify-content: space-between; }
+  .topbar { min-height: 52px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 </style>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -27,11 +27,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <link rel="preload" as="style" href="tokens.css?v=1">
-<link rel="preload" as="style" href="feed.css?v=3">
+<link rel="preload" as="style" href="feed.css?v=4">
 <link rel="preload" as="style" href="nav.css?v=3">
 
 <link rel="stylesheet" href="tokens.css?v=1">
-<link rel="stylesheet" href="feed.css?v=3">
+<link rel="stylesheet" href="feed.css?v=4">
 <link rel="stylesheet" href="nav.css?v=3">
 </head>
 
@@ -131,6 +131,45 @@
 <script src="auth.js?v=23"></script>
 <script src="home.js?v=6"></script>
 <script src="nav.js?v=101"></script>
+
+<script>
+/* Topbar scroll behaviour — vanish on scroll down, return on scroll up */
+(function () {
+  var topbar = document.querySelector('.topbar');
+  if (!topbar) return;
+
+  var lastY = window.scrollY || window.pageYOffset || 0;
+  var ticking = false;
+  var THRESHOLD = 6;
+
+  function update() {
+    var y = window.scrollY || window.pageYOffset || 0;
+    var dy = y - lastY;
+
+    if (Math.abs(dy) < THRESHOLD) {
+      ticking = false;
+      return;
+    }
+
+    if (dy > 0 && y > 60) {
+      topbar.classList.add('is-hidden');
+      topbar.classList.remove('is-visible');
+    } else {
+      topbar.classList.remove('is-hidden');
+      topbar.classList.add('is-visible');
+    }
+
+    lastY = y;
+    ticking = false;
+  }
+
+  window.addEventListener('scroll', function () {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(update);
+  }, { passive: true });
+})();
+</script>
 
 </body>
 </html>
