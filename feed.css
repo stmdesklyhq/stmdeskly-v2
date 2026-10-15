@@ -1676,3 +1676,133 @@ body,
   .topbar > .wordmark .wm-name.is-out { transform: translateX(0); }
   .topbar > .wordmark .wm-clock.is-in { transform: translate(0, -50%); }
 }
+
+/* =========================================================
+   APPEND — Expandable action pill
+   Small circle by default. Tap → expands left to a row of
+   three icons. Tap any icon → runs it and collapses.
+   ========================================================= */
+
+.topbar > .action-pill {
+  display: inline-flex;
+  align-items: center;
+  height: 48px;
+  padding: 6px;
+  border-radius: 16px;
+  border: 1px solid rgba(23, 43, 58, 0.06);
+  background: rgba(255, 254, 251, 0.82);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  box-shadow:
+    0 1px 2px rgba(23, 43, 58, 0.03),
+    0 8px 22px rgba(23, 43, 58, 0.07);
+  gap: 0;
+  transition: gap 260ms cubic-bezier(.2, .7, .2, 1);
+}
+
+.topbar > .action-pill[data-open="true"] {
+  gap: 4px;
+}
+
+/* Base button shape */
+.topbar > .action-pill .ap-btn {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-primary, #172B3A);
+  cursor: pointer;
+  transition:
+    background 140ms cubic-bezier(.2, .7, .2, 1),
+    width 280ms cubic-bezier(.2, .7, .2, 1),
+    opacity 200ms ease,
+    transform 280ms cubic-bezier(.2, .7, .2, 1),
+    margin 280ms cubic-bezier(.2, .7, .2, 1);
+}
+
+.topbar > .action-pill .ap-btn:hover {
+  background: rgba(23, 43, 58, 0.06);
+}
+
+.topbar > .action-pill .ap-btn svg {
+  display: block;
+  width: 19px;
+  height: 19px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Hidden state — icons collapse to nothing and slide right */
+.topbar > .action-pill .ap-bell,
+.topbar > .action-pill .ap-profile {
+  width: 0;
+  opacity: 0;
+  transform: translateX(6px);
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.topbar > .action-pill[data-open="true"] .ap-bell,
+.topbar > .action-pill[data-open="true"] .ap-profile {
+  width: 36px;
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: auto;
+}
+
+/* Bell dot */
+.topbar > .action-pill .ap-bell.notice i {
+  position: absolute;
+  right: 7px;
+  top: 7px;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #C75D5D;
+  box-shadow: 0 0 0 2px var(--bg-page, #F7F6F1);
+  pointer-events: none;
+}
+
+/* Avatar in pill */
+.topbar > .action-pill .ap-profile .avatar {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: var(--mint, #DCEBE3);
+  color: var(--teal, #2F6D70);
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0;
+  box-shadow: inset 0 0 0 1px rgba(23, 43, 58, 0.10);
+}
+
+/* Search icon toggles between magnifier and X when open */
+.topbar > .action-pill .ap-search .ico-close {
+  display: none;
+}
+.topbar > .action-pill[data-open="true"] .ap-search .ico-search {
+  display: none;
+}
+.topbar > .action-pill[data-open="true"] .ap-search .ico-close {
+  display: block;
+  stroke-width: 2.2;
+}
+
+/* Kill the old top-actions rules — they're gone */
+.topbar > .top-actions { display: none !important; }
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .topbar > .action-pill,
+  .topbar > .action-pill .ap-btn { transition: none !important; }
+}
