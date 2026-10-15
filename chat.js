@@ -1,6 +1,7 @@
 /* =========================================================
    STMDESKLY v2 — Single chat
-   Star indicator on bubbles. Pin messages. Draft mode.
+   Long messages collapse with a Read more toggle.
+   Star indicator, pins, draft mode, cancel/reopen.
    ========================================================= */
 (function () {
   'use strict';
@@ -91,6 +92,10 @@
 
   const REACTION_EMOJIS = ['👍', '❤️', '😂', '🔥', '🙏', '👏'];
 
+  /* Collapse threshold — roughly 8–10 lines on a phone */
+  const LONG_TEXT_CHARS = 400;
+  const LONG_TEXT_LINES = 6;
+
   let me = null;
   let thread = null;
   let other = null;
@@ -99,6 +104,7 @@
   let starredIds = new Set();
   let pinnedMessages = [];
   let pinnedMessageIds = new Set();
+  let expandedMessageIds = new Set();
   let lastNewestId = null;
   let typingTimer = null;
   let presenceTimer = null;
@@ -260,6 +266,13 @@
     if (m.photo_url) return '📷 Photo';
     if (m.audio_url) return '🎤 Voice note';
     return 'Message';
+  }
+
+  function isLongText(body) {
+    if (!body) return false;
+    if (body.length > LONG_TEXT_CHARS) return true;
+    const newlines = (body.match(/\n/g) || []).length;
+    return newlines > LONG_TEXT_LINES;
   }
 
   /* =========================================================
@@ -453,7 +466,7 @@
   }
 
   /* =========================================================
-     Pin strip / sheet
+     Pins
      ========================================================= */
 
   async function loadPins() {
@@ -626,13 +639,21 @@
       const hasPhoto = !!m.photo_url && !m.deleted_at;
       const hasAudio = !!m.audio_url && !m.deleted_at;
 
+      const isLongBody = !m.deleted_at && !hasPhoto && !hasAudio && !isAuto && isLongText(m.body);
+      const isExpanded = expandedMessageIds.has(m.id);
+
       let contentHtml;
+      let useFooter = false;
+
       if (m.deleted_at) {
         contentHtml = '<em>Message deleted</em>';
       } else if (hasPhoto) {
         contentHtml = '<img class="chat-bubble-photo" src="' + esc(m.photo_url) + '" alt="" data-src="' + esc(m.photo_url) + '">';
       } else if (hasAudio) {
         contentHtml = audioHtmlFor(m);
+      } else if (isLongBody) {
+        contentHtml = '<div class="chat-bubble-body' + (isExpanded ? '' : ' is-collapsed') + '">' + esc(m.body) + '</div>';
+        useFooter = true;
       } else {
         const autoChip = isAuto ? '<span class="auto-chip">Auto</span>' : '';
         contentHtml = autoChip + (m.body ? esc(m.body) : '');
@@ -655,8 +676,22 @@
 
       const time = timeShort(m.created_at);
       const dot = (mine && !m.deleted_at) ? dotHtml(m) : '';
-      const meta = m.deleted_at ? '' :
-        '<div class="chat-bubble-meta">' + starMark + '<span>' + esc(time) + '</span>' + dot + '</div>';
+
+      let metaHtml;
+      if (m.deleted_at) {
+        metaHtml = '';
+      } else if (useFooter) {
+        // Long message — meta goes into a footer row alongside the toggle
+        metaHtml =
+          '<div class="chat-bubble-bottom">' +
+            '<button type="button" class="chat-bubble-readmore" data-readmore="' + esc(m.id) + '">' +
+              (isExpanded ? 'Show less' : 'Read more') +
+            '</button>' +
+            '<div class="chat-bubble-meta">' + starMark + '<span>' + esc(time) + '</span>' + dot + '</div>' +
+          '</div>';
+      } else {
+        metaHtml = '<div class="chat-bubble-meta">' + starMark + '<span>' + esc(time) + '</span>' + dot + '</div>';
+      }
 
       const reactionsHtml = (m.__pending || m.__failed) ? '' : reactionsHtmlFor(m.id);
 
@@ -665,7 +700,7 @@
           '<div class="chat-bubble ' + cls + bodyCls + photoCls + audioCls + stateCls + '" data-id="' + esc(m.id) + '" data-sender="' + esc(m.sender_id) + '">' +
             replyHtml +
             contentHtml +
-            meta +
+            metaHtml +
           '</div>' +
           reactionsHtml +
         '</div>';
@@ -1877,7 +1912,8 @@
     const bubble = e.target.closest('.chat-bubble');
     const photo = e.target.closest('.chat-bubble-photo');
     const audioBtn = e.target.closest('.chat-audio-play');
-    if (photo || audioBtn || !bubble) return;
+    const readmore = e.target.closest('.chat-bubble-readmore');
+    if (photo || audioBtn || readmore || !bubble) return;
     touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
     touchTimer = setTimeout(function () {
       openContext(bubble.dataset.id);
@@ -1912,6 +1948,30 @@
   }
 
   chatLog.addEventListener('click', function (e) {
+    /* Read more / Show less toggle — must come first */
+    const readmoreBtn = e.target.closest('.chat-bubble-readmore');
+    if (readmoreBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      const id = readmoreBtn.dataset.readmore;
+      if (!id) return;
+
+      const wasExpanded = expandedMessageIds.has(id);
+      if (wasExpanded) expandedMessageIds.delete(id);
+      else expandedMessageIds.add(id);
+
+      // Preserve scroll — if user was near the bottom, stay there
+      const wasAtBottom = isAtBottom();
+      const scrollTop = chatLog.scrollTop;
+      renderMessages();
+      if (wasAtBottom) {
+        scrollToBottomNow();
+      } else {
+        chatLog.scrollTop = scrollTop;
+      }
+      return;
+    }
+
     const playBtn = e.target.closest('.chat-audio-play');
     if (playBtn) {
       const wrap = playBtn.closest('.chat-audio');
@@ -2432,7 +2492,6 @@
       if (thread.id) {
         const failedVoice = await loadFailedVoice(thread.id);
 
-        // Load pins + starred IDs alongside messages
         await loadPins();
         await loadStarredIds();
 
