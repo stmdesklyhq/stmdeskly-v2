@@ -551,8 +551,6 @@
     return a < b ? [a, b] : [b, a];
   }
 
-  /* Find an existing thread between the current user and otherUserId.
-     Returns { ok: true, thread: null } if none exists. */
   async function findThread(otherUserId) {
     const userRes = await sb.auth.getUser();
     const user = userRes.data.user;
@@ -576,7 +574,6 @@
     return { ok: true, thread: res.data || null };
   }
 
-  /* Get just the desk info of another user (for header / presence). */
   async function getDeskByUserId(userId) {
     const res = await sb
       .from('desks')
@@ -587,8 +584,6 @@
     return { ok: true, desk: res.data };
   }
 
-  /* Creates a thread if none exists. If one exists (any status), returns it.
-     Reopens cancelled/declined threads as pending. */
   async function startThread(otherUserId) {
     const userRes = await sb.auth.getUser();
     const user = userRes.data.user;
@@ -957,6 +952,102 @@
 
     if (res.error) return { ok: false, error: res.error };
     return { ok: true };
+  }
+
+  /* =========================================================
+     CHAT — message pins (per-thread)
+     ========================================================= */
+
+  async function pinMessage(threadId, messageId) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    const res = await sb.from('chat_message_pins').insert({
+      thread_id: threadId,
+      message_id: messageId,
+      pinned_by: user.id
+    });
+    if (res.error && res.error.code !== '23505') {
+      return { ok: false, error: res.error };
+    }
+    return { ok: true };
+  }
+
+  async function unpinMessage(messageId) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    const res = await sb.from('chat_message_pins')
+      .delete()
+      .eq('message_id', messageId);
+    if (res.error) return { ok: false, error: res.error };
+    return { ok: true };
+  }
+
+  async function getPinnedMessages(threadId) {
+    if (!threadId) return { ok: true, data: [] };
+
+    const res = await sb.from('chat_message_pins')
+      .select('message_id, pinned_by, created_at')
+      .eq('thread_id', threadId)
+      .order('created_at', { ascending: false });
+
+    if (res.error) return { ok: false, error: res.error };
+    if (!res.data || !res.data.length) return { ok: true, data: [] };
+
+    const ids = res.data.map(function (r) { return r.message_id; });
+
+    const msgRes = await sb.from('chat_messages')
+      .select(MSG_COLS)
+      .in('id', ids);
+
+    if (msgRes.error) return { ok: false, error: msgRes.error };
+
+    const map = {};
+    (msgRes.data || []).forEach(function (m) { map[m.id] = m; });
+
+    const rows = res.data.map(function (r) {
+      const m = map[r.message_id];
+      if (!m) return null;
+      return {
+        pinned_by: r.pinned_by,
+        pinned_at: r.created_at,
+        message: m
+      };
+    }).filter(Boolean);
+
+    return { ok: true, data: rows };
+  }
+
+  /* =========================================================
+     CHAT — starred message IDs for a single thread
+     ========================================================= */
+
+  async function getStarredMessageIds(threadId) {
+    if (!threadId) return { ok: true, data: [] };
+
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: true, data: [] };
+
+    const starRes = await sb.from('chat_stars')
+      .select('message_id')
+      .eq('user_id', user.id);
+
+    if (starRes.error) return { ok: false, error: starRes.error };
+
+    const allStarred = (starRes.data || []).map(function (r) { return r.message_id; });
+    if (!allStarred.length) return { ok: true, data: [] };
+
+    const msgRes = await sb.from('chat_messages')
+      .select('id')
+      .in('id', allStarred)
+      .eq('thread_id', threadId);
+
+    if (msgRes.error) return { ok: false, error: msgRes.error };
+    return { ok: true, data: (msgRes.data || []).map(function (m) { return m.id; }) };
   }
 
   /* =========================================================
@@ -1691,6 +1782,11 @@
     reopenThread: reopenThread,
     markMessagesRead: markMessagesRead,
     markMessagesDelivered: markMessagesDelivered,
+
+    pinMessage: pinMessage,
+    unpinMessage: unpinMessage,
+    getPinnedMessages: getPinnedMessages,
+    getStarredMessageIds: getStarredMessageIds,
 
     toggleMessageReaction: toggleMessageReaction,
     getMessageReactions: getMessageReactions,
