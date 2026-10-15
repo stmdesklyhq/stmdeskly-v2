@@ -51,7 +51,6 @@
     <span class="wm-clock" id="wmClock" aria-hidden="true"></span>
   </a>
 
-  <!-- Expandable action pill -->
   <div class="action-pill" id="actionPill" data-open="false">
     <a class="ap-btn ap-profile" href="/profile.html" aria-label="Your profile" tabindex="-1">
       <span class="avatar" id="userAvatar">·</span>
@@ -60,9 +59,8 @@
       <svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
       <i></i>
     </button>
-    <button class="ap-btn ap-search" id="searchButton" type="button" aria-label="Search" aria-expanded="false">
-      <svg class="ico-search" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5"/></svg>
-      <svg class="ico-close" viewBox="0 0 24 24"><path d="M6 6 18 18M18 6 6 18"/></svg>
+    <button class="ap-btn ap-search" id="searchButton" type="button" aria-label="Search">
+      <svg viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5"/></svg>
     </button>
   </div>
 </header>
@@ -193,7 +191,7 @@
   document.addEventListener('scroll', onScroll, { passive: true, capture: true });
 })();
 
-/* ---------- Action pill: tap to expand, tap any icon to run + collapse ---------- */
+/* ---------- Action pill: tap search → expand, tap action → close ---------- */
 (function () {
   var pill = document.getElementById('actionPill');
   if (!pill) return;
@@ -206,7 +204,6 @@
     pill.setAttribute('data-open', open ? 'true' : 'false');
     searchBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
 
-    // Reveal / hide the hidden buttons from the tab order
     [bellBtn, profile].forEach(function (el) {
       if (!el) return;
       if (open) el.removeAttribute('tabindex');
@@ -214,35 +211,40 @@
     });
   }
 
+  function isOpen() {
+    return pill.getAttribute('data-open') === 'true';
+  }
+
+  // Tap search: open if closed, close if open
   searchBtn.addEventListener('click', function (e) {
     e.preventDefault();
-    var open = pill.getAttribute('data-open') === 'true';
-    if (!open) { setOpen(true); return; }
-
-    // Search is open, tap again → go to Explore
-    location.href = '/explore.html';
+    setOpen(!isOpen());
   });
 
-  // If pill is open and user taps a hidden icon, run it
+  // Tap bell / profile: run, then close
   bellBtn.addEventListener('click', function () {
+    setOpen(false);
     location.href = '/notifications';
   });
-  profile.addEventListener('click', function () {
+
+  profile.addEventListener('click', function (e) {
+    e.preventDefault();
+    setOpen(false);
     location.href = '/profile.html';
   });
 
-  // Tap anywhere outside → close
+  // Tap outside closes
   document.addEventListener('click', function (e) {
-    if (pill.getAttribute('data-open') !== 'true') return;
+    if (!isOpen()) return;
     if (pill.contains(e.target)) return;
     setOpen(false);
   });
 
-  // Tap elsewhere in the page then scroll far enough → close
+  // Any scroll closes
   window.addEventListener('scroll', function () {
-    if (pill.getAttribute('data-open') !== 'true') return;
+    if (!isOpen()) return;
     var y = window.scrollY || document.documentElement.scrollTop || 0;
-    if (y > 8) setOpen(false);
+    if (y > 4) setOpen(false);
   }, { passive: true });
 })();
 
@@ -270,10 +272,8 @@
   function swap() {
     if (swapped) return;
     swapped = true;
-
     nameEl.classList.add('is-out');
     clockEl.classList.add('is-in');
-
     tick();
     setInterval(tick, 1000);
   }
