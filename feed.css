@@ -1,1808 +1,350 @@
-/* =========================================================
-   STMDESKLY v2 — Home feed
-   Complete. Split floating topbar with scroll-hide,
-   post cards, composer, comment sheet. Nav lives in nav.css.
-   ========================================================= */
-
-/* =========================================================
-   1. CRITICAL BASE — no white overscroll, locked cream
-   ========================================================= */
-
-html {
-  background-color: #F7F6F1;
-  font-size: 16px;
-  font-family: Poppins, system-ui, -apple-system, "Segoe UI", sans-serif;
-}
-
-html,
-body {
-  -webkit-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-}
-
-body,
-.app-shell {
-  background-color: #F7F6F1;
-}
-
-/* =========================================================
-   2. SHELL
-   ========================================================= */
-
-.app-shell {
-  width: 100%;
-  max-width: var(--width-feed, 620px);
-  min-height: 100dvh;
-  margin: 0 auto;
-  padding: 0 var(--page-gutter, 18px) calc(var(--bottom-nav-h, 74px) + env(safe-area-inset-bottom) + var(--space-4, 16px));
-}
-
-/* =========================================================
-   3. SPLIT FLOATING TOPBAR
-   Two pills — wordmark on the left, actions on the right.
-   Real backdrop blur. Hides on scroll down, returns on up.
-   ========================================================= */
-
-.topbar {
-  position: sticky;
-  top: 8px;
-  z-index: 10;
-
-  height: auto;
-  margin: 8px 0 var(--space-4, 16px);
-  padding: 0;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-
-  background: transparent;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
-
-  transition:
-    transform 280ms cubic-bezier(.2, .7, .2, 1),
-    opacity 240ms ease;
-}
-
-.topbar.is-hidden {
-  transform: translateY(-140%);
-  opacity: 0;
-  pointer-events: none;
-}
-
-.topbar.is-visible {
-  transform: translateY(0);
-  opacity: 1;
-}
-
-/* --- Left pill: wordmark --- */
-
-.topbar > .wordmark {
-  display: inline-flex;
-  align-items: center;
-  height: 48px;
-  padding: 0 18px;
-
-  border-radius: 16px;
-  border: 1px solid rgba(23, 43, 58, 0.06);
-
-  background: linear-gradient(
-    135deg,
-    rgba(220, 235, 227, 0.85) 0%,
-    rgba(255, 254, 251, 0.82) 60%
-  );
-
-  box-shadow:
-    0 1px 2px rgba(23, 43, 58, 0.03),
-    0 8px 22px rgba(23, 43, 58, 0.07);
-
-  backdrop-filter: blur(20px) saturate(1.4);
-  -webkit-backdrop-filter: blur(20px) saturate(1.4);
-
-  font-size: 18px;
-  font-weight: var(--fw-bold, 700);
-  letter-spacing: -0.05em;
-  color: var(--text-primary, #172B3A);
-}
-
-/* --- Right pill: actions --- */
-
-.topbar > .top-actions {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  height: 48px;
-  padding: 0 6px 0 4px;
-
-  border-radius: 16px;
-  border: 1px solid rgba(23, 43, 58, 0.06);
-
-  background: rgba(255, 254, 251, 0.82);
-
-  box-shadow:
-    0 1px 2px rgba(23, 43, 58, 0.03),
-    0 8px 22px rgba(23, 43, 58, 0.07);
-
-  backdrop-filter: blur(20px) saturate(1.4);
-  -webkit-backdrop-filter: blur(20px) saturate(1.4);
-}
-
-.topbar > .top-actions .icon-button,
-.topbar > .top-actions .avatar-button {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--text-primary, #172B3A);
-  transition: background 140ms cubic-bezier(.2, .7, .2, 1);
-}
-
-.topbar > .top-actions .icon-button:hover,
-.topbar > .top-actions .avatar-button:hover {
-  background: rgba(23, 43, 58, 0.06);
-}
-
-.topbar > .top-actions .icon-button svg {
-  width: 19px;
-  height: 19px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.9;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.topbar > .top-actions .notice i {
-  position: absolute;
-  right: 7px;
-  top: 7px;
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: #C75D5D;
-  box-shadow: 0 0 0 2px var(--bg-page, #F7F6F1);
-}
-
-.topbar > .top-actions .avatar-button .avatar {
-  display: grid;
-  place-items: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 999px;
-  background: var(--mint, #DCEBE3);
-  color: var(--teal, #2F6D70);
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0;
-}
-
-/* =========================================================
-   4. WELCOME
-   ========================================================= */
-
-.welcome {
-  padding: 0 0 var(--space-4, 16px);
-}
-
-.eyebrow {
-  margin: 0 0 var(--space-1, 4px);
-  color: var(--teal, #2F6D70);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.welcome h1 {
-  margin: 0;
-  font-size: 24px;
-  font-weight: 600;
-  letter-spacing: -0.04em;
-  line-height: 1.2;
-  color: var(--text-primary, #172B3A);
-}
-
-.welcome h1 span {
-  color: var(--teal, #2F6D70);
-}
-
-.welcome > p:last-child {
-  margin: 4px 0 0;
-  color: var(--text-muted, #718087);
-  font-size: 12px;
-  line-height: 1.45;
-}
-
-/* =========================================================
-   5. CATEGORY CHIPS
-   ========================================================= */
-
-.category-scroll {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  margin: 0 -18px 16px;
-  padding: 0 18px 4px;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.category-scroll::-webkit-scrollbar {
-  display: none;
-}
-
-.filter-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 36px;
-  flex: none;
-  padding: 0 12px;
-  border: 1.5px solid var(--border, #E5E4DD);
-  border-radius: 999px;
-  background: var(--paper, #FFFEFB);
-  color: var(--text-secondary, #344A57);
-  font-size: 11px;
-  font-weight: 500;
-  white-space: nowrap;
-  transition:
-    background 140ms cubic-bezier(.2, .7, .2, 1),
-    border-color 140ms cubic-bezier(.2, .7, .2, 1),
-    color 140ms cubic-bezier(.2, .7, .2, 1);
-}
-
-.filter-chip svg {
-  width: 15px;
-  height: 15px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.9;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.filter-chip:hover {
-  border-color: var(--border-hard, #C9D2CE);
-  color: var(--text-primary, #172B3A);
-}
-
-.filter-chip.active {
-  background: var(--teal, #2F6D70);
-  border-color: var(--teal, #2F6D70);
-  color: var(--white, #FFFFFF);
-  font-weight: 600;
-}
-
-/* =========================================================
-   6. COMPOSER
-   ========================================================= */
-
-.composer {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-height: 60px;
-  margin-bottom: 16px;
-  padding: 10px 12px;
-  border: 1.5px solid var(--border, #E5E4DD);
-  border-radius: 16px;
-  background: var(--paper, #FFFEFB);
-  transition: border-color 140ms cubic-bezier(.2, .7, .2, 1);
-}
-
-.composer:hover {
-  border-color: var(--border-hard, #C9D2CE);
-}
-
-.composer-avatar {
-  width: 36px;
-  height: 36px;
-  background: var(--mint, #DCEBE3);
-  color: var(--teal, #2F6D70);
-}
-
-.composer-prompt {
-  flex: 1;
-  min-width: 0;
-  color: var(--text-muted, #718087);
-  font-size: 12px;
-}
-
-.composer-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  min-height: 36px;
-  padding: 0 12px;
-  border-radius: 999px;
-  background: var(--teal, #2F6D70);
-  color: var(--white, #FFFFFF);
-  font-size: 11px;
-  font-weight: 600;
-  white-space: nowrap;
-  transition: background 140ms cubic-bezier(.2, .7, .2, 1);
-}
-
-.composer-button:hover {
-  background: var(--teal-dark, #24595C);
-}
-
-.composer-button svg {
-  width: 14px;
-  height: 14px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-/* =========================================================
-   7. FEED CONTAINER
-   ========================================================= */
-
-.feed {
-  display: grid;
-  gap: 12px;
-}
-
-.feed-loading,
-.feed-empty {
-  padding: 40px 20px;
-  color: var(--text-muted, #718087);
-  font-size: 12px;
-  line-height: 1.6;
-  text-align: center;
-}
-
-.feed-loading[hidden],
-.feed-empty[hidden] {
-  display: none !important;
-}
-
-/* =========================================================
-   8. POST CARD
-   ========================================================= */
-
-.post-card {
-  min-width: 0;
-  padding: 16px;
-  border: 1px solid var(--border, #E5E4DD);
-  border-radius: 16px;
-  background: var(--paper, #FFFEFB);
-  transition: border-color 140ms cubic-bezier(.2, .7, .2, 1);
-}
-
-.post-card:hover {
-  border-color: var(--border-hard, #C9D2CE);
-}
-
-/* ---------- Post header ---------- */
-
-.post-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  min-width: 0;
-  margin-bottom: 12px;
-}
-
-.post-avatar {
-  flex-shrink: 0;
-  width: 38px;
-  height: 38px;
-  background: var(--mint, #DCEBE3);
-  color: var(--teal, #2F6D70);
-  font-size: 12px;
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.post-author {
-  flex: 1;
-  min-width: 0;
-}
-
-.post-author-link {
-  display: block;
-  color: var(--text-primary, #172B3A);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  line-height: 1.3;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.post-author-link:hover {
-  color: var(--teal, #2F6D70);
-}
-
-.post-meta {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 4px 8px;
-  margin-top: 3px;
-  color: var(--text-muted, #718087);
-  font-size: 11px;
-  line-height: 1.5;
-}
-
-.post-category {
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: var(--mint, #DCEBE3);
-  color: var(--teal, #2F6D70);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.location {
-  display: inline-flex;
-  align-items: center;
-  gap: 3px;
-}
-
-.location svg {
-  width: 11px;
-  height: 11px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.9;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.post-menu {
-  flex-shrink: 0;
-  width: 32px;
-  height: 32px;
-  display: grid;
-  place-items: center;
-  margin-top: -2px;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--text-muted, #718087);
-  transition:
-    background 140ms cubic-bezier(.2, .7, .2, 1),
-    color 140ms cubic-bezier(.2, .7, .2, 1);
-}
-
-.post-menu:hover {
-  background: rgba(23, 43, 58, 0.05);
-  color: var(--text-primary, #172B3A);
-}
-
-.post-menu svg {
-  width: 18px;
-  height: 18px;
-  fill: currentColor;
-}
-
-/* ---------- Post content ---------- */
-
-.post-title {
-  margin: 0 0 6px;
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  line-height: 1.3;
-  color: var(--text-primary, #172B3A);
-}
-
-.post-body {
-  margin: 0;
-  color: var(--text-secondary, #344A57);
-  font-size: 14px;
-  line-height: 1.6;
-  overflow-wrap: anywhere;
-  white-space: pre-wrap;
-}
-
-.post-price {
-  display: inline-block;
-  margin: 8px 0 0;
-  padding: 4px 11px;
-  border-radius: 999px;
-  background: var(--mint, #DCEBE3);
-  color: var(--teal, #2F6D70);
-  font-size: 11px;
-  font-weight: 600;
-}
-
-/* ---------- Post photos ---------- */
-
-.post-photos {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px;
-  margin-top: 12px;
-}
-
-.post-photo-tile {
-  position: relative;
-  aspect-ratio: 1 / 1;
-  overflow: hidden;
-  border-radius: 10px;
-  background: #E5E8E2;
-}
-
-.post-photo-tile img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.post-photo-more {
-  display: grid;
-  place-items: center;
-  background:
-    linear-gradient(0deg, rgba(7,17,25,.78), rgba(7,17,25,.5)),
-    linear-gradient(135deg, #6D7A70, #293A35);
-  color: var(--white, #FFFFFF);
-  font-size: 16px;
-  font-weight: 700;
-}
-
-/* ---------- Post actions ---------- */
-
-.post-actions {
-  display: flex;
-  align-items: center;
-  gap: 24px;
-  margin-top: 12px;
-  padding-top: 12px;
-  border-top: 1px solid rgba(23, 43, 58, 0.06);
-}
-
-.post-action {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  min-height: 30px;
-  padding: 4px 0;
-  border: 0;
-  background: transparent;
-  color: var(--text-secondary, #344A57);
-  font-size: 11px;
-  font-weight: 500;
-  transition: color 140ms cubic-bezier(.2, .7, .2, 1);
-}
-
-.post-action:hover {
-  color: var(--text-primary, #172B3A);
-}
-
-.post-action svg {
-  width: 20px;
-  height: 20px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.9;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.post-action.is-liked,
-.post-card.is-liked .post-action[data-action="like"] {
-  color: #C75D5D;
-}
-
-.post-card.is-liked .post-action[data-action="like"] svg {
-  fill: #C75D5D;
-  stroke: #C75D5D;
-}
-
-.post-action[data-action="share"].copied {
-  color: var(--teal, #2F6D70);
-}
-
-.reaction-count,
-.reply-count {
-  font-size: 10px;
-  min-width: 8px;
-}
-
-/* =========================================================
-   9. COMMENT SHEET
-   ========================================================= */
-
-.sheet-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  background: rgba(16, 35, 47, 0.55);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  animation: sheet-fade 200ms cubic-bezier(.2, .7, .2, 1) both;
-}
-
-.sheet-overlay[hidden] {
-  display: none !important;
-}
-
-@keyframes sheet-fade {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-.sheet {
-  width: 100%;
-  max-width: 620px;
-  height: 82dvh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  border-radius: 22px 22px 0 0;
-  background: var(--paper, #FFFEFB);
-  box-shadow: 0 -14px 44px rgba(23, 43, 58, 0.20);
-  animation: sheet-up 260ms cubic-bezier(.2, .7, .2, 1) both;
-}
-
-@keyframes sheet-up {
-  from { transform: translateY(24px); }
-  to   { transform: translateY(0); }
-}
-
-.sheet-handle {
-  flex-shrink: 0;
-  width: 42px;
-  height: 4px;
-  margin: 10px auto 0;
-  border-radius: 999px;
-  background: var(--border, #E5E4DD);
-}
-
-.sheet-head {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px 14px;
-  border-bottom: 1px solid var(--border, #E5E4DD);
-}
-
-.sheet-head > span {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-primary, #172B3A);
-}
-
-.sheet-head button {
-  width: 32px;
-  height: 32px;
-  display: grid;
-  place-items: center;
-  border: 0;
-  border-radius: 999px;
-  background: var(--cream, #F7F6F1);
-  color: var(--text-primary, #172B3A);
-  font-size: 19px;
-  line-height: 1;
-  cursor: pointer;
-  transition: background 140ms cubic-bezier(.2, .7, .2, 1);
-}
-
-.sheet-head button:hover {
-  background: var(--mint, #DCEBE3);
-}
-
-.sheet-body {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  padding: 12px 16px 8px;
-}
-
-.sheet-post {
-  padding: 12px 14px;
-  margin-bottom: 16px;
-  border: 1px solid var(--border, #E5E4DD);
-  border-radius: 12px;
-  background: #FBFBF7;
-}
-
-.sheet-post .post-header      { margin-bottom: 6px; }
-.sheet-post .post-author-link { font-size: 12px; }
-.sheet-post .post-meta        { font-size: 10px; }
-.sheet-post .post-body        { font-size: 12px; margin: 0; }
-
-.sheet-post .post-actions,
-.sheet-post .post-photos,
-.sheet-post .post-title,
-.sheet-post .post-price,
-.sheet-post .post-menu {
-  display: none;
-}
-
-.sheet-replies {
-  display: grid;
-  gap: 16px;
-}
-
-.sheet-empty {
-  padding: 32px 0;
-  text-align: center;
-  color: var(--text-muted, #718087);
-  font-size: 12px;
-  line-height: 1.6;
-}
-
-.reply {
-  position: relative;
-  display: grid;
-  grid-template-columns: 32px 1fr;
-  gap: 10px;
-}
-
-.reply-avatar {
-  width: 32px;
-  height: 32px;
-  display: grid;
-  place-items: center;
-  border-radius: 999px;
-  background: var(--mint, #DCEBE3);
-  color: var(--teal, #2F6D70);
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.reply-body {
-  min-width: 0;
-}
-
-.reply-head {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  margin-bottom: 2px;
-}
-
-.reply-name {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-primary, #172B3A);
-}
-
-.reply-time {
-  font-size: 10px;
-  color: var(--text-muted, #718087);
-}
-
-.reply-text {
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.6;
-  color: var(--text-secondary, #344A57);
-  overflow-wrap: anywhere;
-}
-
-.reply-remove {
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  width: 26px;
-  height: 26px;
-  display: grid;
-  place-items: center;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--text-muted, #718087);
-  font-size: 17px;
-  line-height: 1;
-  cursor: pointer;
-  transition:
-    color 140ms cubic-bezier(.2, .7, .2, 1),
-    background 140ms cubic-bezier(.2, .7, .2, 1);
-}
-
-.reply-remove:hover {
-  color: var(--danger-fg, #B3261E);
-  background: rgba(179, 38, 30, 0.08);
-}
-
-.sheet-composer {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-  border-top: 1px solid var(--border, #E5E4DD);
-  background: var(--paper, #FFFEFB);
-}
-
-.sheet-composer input {
-  flex: 1;
-  min-width: 0;
-  height: 42px;
-  padding: 0 16px;
-  border: 1px solid var(--border, #E5E4DD);
-  border-radius: 999px;
-  background: var(--cream, #F7F6F1);
-  color: var(--text-primary, #172B3A);
-  font-size: 12px;
-  outline: none;
-  transition:
-    border-color 140ms cubic-bezier(.2, .7, .2, 1),
-    box-shadow 140ms cubic-bezier(.2, .7, .2, 1),
-    background 140ms cubic-bezier(.2, .7, .2, 1);
-}
-
-.sheet-composer input:focus {
-  border-color: var(--teal, #2F6D70);
-  background: var(--white, #FFFFFF);
-  box-shadow: 0 0 0 4px rgba(47, 109, 112, 0.18);
-}
-
-.sheet-composer button {
-  flex-shrink: 0;
-  width: 42px;
-  height: 42px;
-  display: grid;
-  place-items: center;
-  border: 0;
-  border-radius: 999px;
-  background: var(--teal, #2F6D70);
-  color: var(--white, #FFFFFF);
-  cursor: pointer;
-  transition: background 140ms cubic-bezier(.2, .7, .2, 1);
-}
-
-.sheet-composer button:hover:not(:disabled) {
-  background: var(--teal-dark, #24595C);
-}
-
-.sheet-composer button:disabled {
-  background: var(--border, #E5E4DD);
-  cursor: not-allowed;
-}
-
-.sheet-composer button svg {
-  width: 18px;
-  height: 18px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-/* =========================================================
-   10. RESPONSIVE
-   ========================================================= */
-
-@media (min-width: 600px) {
-  .app-shell {
-    padding-left: 28px;
-    padding-right: 28px;
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#F7F6F1">
+<title>Home — STMDeskly</title>
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    width: 100%; max-width: 100%;
+    overflow-x: clip;
+    background: #F7F6F1;
+    color: #172B3A;
+  }
+  body {
+    font-family: Poppins, system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 14px; line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  img { max-width: 100%; height: auto; display: block; }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; cursor: pointer; }
+  h1 { font-size: 24px; line-height: 1.25; margin: 0; font-weight: 600; letter-spacing: -0.04em; }
+  .app-shell { width: 100%; max-width: 620px; margin: 0 auto; padding: 0 18px 112px; }
+  .topbar { min-height: 52px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+</style>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="preload" as="style" href="tokens.css?v=1">
+<link rel="preload" as="style" href="feed.css?v=4">
+<link rel="preload" as="style" href="nav.css?v=4">
+
+<link rel="stylesheet" href="tokens.css?v=1">
+<link rel="stylesheet" href="feed.css?v=4">
+<link rel="stylesheet" href="nav.css?v=4">
+</head>
+
+<body>
+
+<div class="app-shell">
+
+<header class="topbar">
+  <a class="wordmark" href="/home.html" aria-label="STMDeskly home">
+    <span class="wm-name" id="wmName">STMDeskly</span>
+    <span class="wm-clock" id="wmClock" aria-hidden="true"></span>
+  </a>
+
+  <div class="action-pill" id="actionPill" data-open="false">
+    <a class="ap-btn ap-profile" href="/profile.html" aria-label="Your profile" tabindex="-1">
+      <span class="avatar" id="userAvatar">·</span>
+    </a>
+    <button class="ap-btn ap-bell" id="notificationsButton" type="button" aria-label="Notifications" tabindex="-1">
+      <svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
+      <i></i>
+    </button>
+    <button class="ap-btn ap-search" id="searchButton" type="button" aria-label="Search">
+      <svg viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5"/></svg>
+    </button>
+  </div>
+</header>
+
+<main>
+
+<section class="welcome" id="welcome">
+  <h1 id="greeting">Hi there<span>.</span></h1>
+</section>
+
+<nav class="category-scroll" id="categoryNav" aria-label="Filter posts">
+  <button class="filter-chip active" data-category="all" aria-pressed="true">
+    <svg viewBox="0 0 24 24"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>
+    All
+  </button>
+  <button class="filter-chip" data-category="gig" aria-pressed="false">
+    <svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18"/></svg>
+    Gigs
+  </button>
+  <button class="filter-chip" data-category="deal" aria-pressed="false">
+    <svg viewBox="0 0 24 24"><path d="M20 13 12 21 3 12l9-9h8z"/><circle cx="16" cy="8" r="1"/></svg>
+    Market deals
+  </button>
+  <button class="filter-chip" data-category="business" aria-pressed="false">
+    <svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="1"/><path d="M9 7h2m2 0h2M9 11h2m2 0h2M10 21v-5h4v5"/></svg>
+    Business
+  </button>
+  <button class="filter-chip" data-category="skill" aria-pressed="false">
+    <svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20v-1a6 6 0 0 1 12 0v1zM16 5a3 3 0 0 1 0 6M18 14a5 5 0 0 1 3 5v1h-4"/></svg>
+    Skills &amp; work
+  </button>
+</nav>
+
+<a class="composer" href="/new-post.html">
+  <span class="avatar composer-avatar" id="composerAvatar">·</span>
+  <span class="composer-prompt">What's on your mind?</span>
+  <span class="composer-button">
+    <svg viewBox="0 0 24 24"><path d="m14 5 5 5M4 20l4.2-.9L19 8.3a2.1 2.1 0 0 0-3-3L5.2 16.1 4 20Z"/></svg>
+    New post
+  </span>
+</a>
+
+<section class="feed" id="feed" aria-label="Latest posts">
+  <div class="feed-loading" id="feedLoading">Loading…</div>
+  <div class="feed-empty" id="feedEmpty" hidden>
+    No posts yet. Be the first to share something.
+  </div>
+</section>
+
+</main>
+
+</div>
+
+<div class="sheet-overlay" id="commentOverlay" hidden>
+  <div class="sheet" id="commentSheet">
+    <div class="sheet-handle" id="sheetHandle"></div>
+    <header class="sheet-head">
+      <span id="sheetTitle">Replies</span>
+      <button type="button" id="sheetClose" aria-label="Close">×</button>
+    </header>
+    <div class="sheet-body" id="sheetBody">
+      <div class="sheet-post" id="sheetPost"></div>
+      <div class="sheet-replies" id="sheetReplies"></div>
+    </div>
+    <form class="sheet-composer" id="sheetComposer">
+      <input type="text" id="sheetInput" placeholder="Write a reply…" maxlength="500" autocomplete="off">
+      <button type="submit" id="sheetSend" disabled>
+        <svg viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+      </button>
+    </form>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="auth.js?v=33"></script>
+<script src="home.js?v=7"></script>
+<script src="nav.js?v=101"></script>
+
+<script>
+/* ---------- Topbar scroll behaviour ---------- */
+(function () {
+  var topbar = document.querySelector('.topbar');
+  if (!topbar) return;
+
+  function getScrollY() {
+    return Math.max(
+      window.scrollY || 0,
+      window.pageYOffset || 0,
+      document.documentElement ? document.documentElement.scrollTop : 0,
+      document.body ? document.body.scrollTop : 0
+    );
   }
 
-  .topbar > .wordmark,
-  .topbar > .top-actions {
-    height: 52px;
+  var lastY = getScrollY();
+  var ticking = false;
+  var HIDE_AFTER = 24;
+  var SHOW_AFTER = 2;
+
+  function update() {
+    var y = getScrollY();
+    var dy = y - lastY;
+
+    if (dy > SHOW_AFTER && y > HIDE_AFTER) {
+      topbar.classList.add('is-hidden');
+      topbar.classList.remove('is-visible');
+    } else if (dy < -SHOW_AFTER) {
+      topbar.classList.remove('is-hidden');
+      topbar.classList.add('is-visible');
+    }
+
+    if (y <= 4) {
+      topbar.classList.remove('is-hidden');
+      topbar.classList.add('is-visible');
+    }
+
+    lastY = y;
+    ticking = false;
   }
 
-  .welcome {
-    padding-top: 8px;
+  function onScroll() {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(update);
   }
 
-  .category-scroll {
-    margin-left: 0;
-    margin-right: 0;
-    padding-left: 0;
-    padding-right: 0;
-    flex-wrap: wrap;
+  window.addEventListener('scroll', onScroll, { passive: true });
+  document.addEventListener('scroll', onScroll, { passive: true, capture: true });
+})();
+
+/* ---------- Action pill: tap search → expand, tap action → close ---------- */
+(function () {
+  var pill = document.getElementById('actionPill');
+  if (!pill) return;
+
+  var searchBtn = document.getElementById('searchButton');
+  var bellBtn   = document.getElementById('notificationsButton');
+  var profile   = pill.querySelector('.ap-profile');
+
+  function setOpen(open) {
+    pill.setAttribute('data-open', open ? 'true' : 'false');
+    searchBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+
+    [bellBtn, profile].forEach(function (el) {
+      if (!el) return;
+      if (open) el.removeAttribute('tabindex');
+      else el.setAttribute('tabindex', '-1');
+    });
   }
 
-  .post-card {
-    padding: 20px;
+  function isOpen() {
+    return pill.getAttribute('data-open') === 'true';
   }
 
-  .post-photos {
-    gap: 8px;
+  // Tap search: open if closed, close if open
+  searchBtn.addEventListener('click', function (e) {
+    e.preventDefault();
+    setOpen(!isOpen());
+  });
+
+  // Tap bell / profile: run, then close
+  bellBtn.addEventListener('click', function () {
+    setOpen(false);
+    location.href = '/notifications';
+  });
+
+  profile.addEventListener('click', function (e) {
+    e.preventDefault();
+    setOpen(false);
+    location.href = '/profile.html';
+  });
+
+  // Tap outside closes
+  document.addEventListener('click', function (e) {
+    if (!isOpen()) return;
+    if (pill.contains(e.target)) return;
+    setOpen(false);
+  });
+
+  // Any scroll closes
+  window.addEventListener('scroll', function () {
+    if (!isOpen()) return;
+    var y = window.scrollY || document.documentElement.scrollTop || 0;
+    if (y > 4) setOpen(false);
+  }, { passive: true });
+})();
+
+/* ---------- Wordmark → live clock swap ---------- */
+(function () {
+  var nameEl  = document.getElementById('wmName');
+  var clockEl = document.getElementById('wmClock');
+  if (!nameEl || !clockEl) return;
+
+  var swapped = false;
+
+  function tick() {
+    var d = new Date();
+    var h = d.getHours();
+    var m = d.getMinutes();
+    var s = d.getSeconds();
+    var ampm = h >= 12 ? 'pm' : 'am';
+    var h12 = h % 12; if (h12 === 0) h12 = 12;
+    clockEl.textContent =
+      (h12 < 10 ? '0' : '') + h12 + ':' +
+      (m < 10 ? '0' : '') + m + ':' +
+      (s < 10 ? '0' : '') + s + ' ' + ampm;
   }
-}
 
-@media (max-width: 370px) {
-  .app-shell {
-    padding-left: 12px;
-    padding-right: 12px;
+  function swap() {
+    if (swapped) return;
+    swapped = true;
+    nameEl.classList.add('is-out');
+    clockEl.classList.add('is-in');
+    tick();
+    setInterval(tick, 1000);
   }
 
-  .category-scroll {
-    margin-left: -12px;
-    margin-right: -12px;
-    padding-left: 12px;
-    padding-right: 12px;
+  setTimeout(swap, 1200);
+})();
+
+/* ---------- Greeting — show on arrival, retire for the session ---------- */
+(function () {
+  var w = document.getElementById('welcome');
+  if (!w) return;
+
+  var KEY = 'stm_greeting_shown';
+  var already = false;
+  try { already = sessionStorage.getItem(KEY) === '1'; } catch (e) {}
+
+  if (already) {
+    w.style.display = 'none';
+    return;
   }
 
-  .topbar > .wordmark {
-    font-size: 16px;
-    padding: 0 14px;
-    height: 44px;
-  }
-
-  .topbar > .top-actions {
-    height: 44px;
-  }
-
-  .composer {
-    padding: 8px 10px;
-    gap: 8px;
-  }
-
-  .composer-button {
-    padding: 0 10px;
-    font-size: 10px;
-  }
-
-  .post-card {
-    padding: 12px;
-  }
-
-  .post-actions {
-    gap: 16px;
-  }
-}
-/* =========================================================
-   APPEND — Base avatar shape (circles everywhere)
-   ========================================================= */
-
-.avatar {
-  display: grid !important;
-  place-items: center !important;
-  flex: none !important;
-  border-radius: 999px !important;
-  background: var(--mint, #DCEBE3) !important;
-  color: var(--teal, #2F6D70) !important;
-  font-weight: 600 !important;
-  letter-spacing: 0 !important;
-  overflow: hidden !important;
-}
-
-.post-avatar,
-.composer-avatar {
-  border-radius: 999px !important;
-}
-
-.post-avatar {
-  width: 38px !important;
-  height: 38px !important;
-  font-size: 12px !important;
-}
-
-.composer-avatar {
-  width: 36px !important;
-  height: 36px !important;
-  font-size: 12px !important;
-}
-/* =========================================================
-   APPEND — Snappier topbar show/hide
-   Faster reveal on scroll up, safer hide distance.
-   ========================================================= */
-
-.topbar {
-  transition:
-    transform 240ms cubic-bezier(.2, .7, .2, 1),
-    opacity 200ms ease !important;
-}
-
-/* Fixed hide distance — doesn't rely on element height */
-.topbar.is-hidden {
-  transform: translateY(-120px) !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-  transition:
-    transform 260ms cubic-bezier(.4, .0, .7, .2),
-    opacity 220ms ease !important;
-}
-
-.topbar.is-visible {
-  transform: translateY(0) !important;
-  opacity: 1 !important;
-  pointer-events: auto !important;
-}
-/* =========================================================
-   APPEND — Gig cards
-   Six visual differences from a normal post:
-     1. teal left stripe
-     2. teal gavel chip
-     3. budget block
-     4. deadline chip (colour-coded)
-     5. Apply button (full-width)
-     6. closed banner when filled
-   ========================================================= */
-
-/* 1. Left stripe — the shape reads before the text */
-.post-card.is-gig {
-  position: relative;
-  overflow: hidden;
-  padding-left: 22px;
-}
-
-.post-card.is-gig::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 4px;
-  background: var(--teal, #2F6D70);
-}
-
-/* 2. Teal gavel chip */
-.post-category-gig {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px 9px 3px 7px;
-  border-radius: 999px;
-  background: var(--teal, #2F6D70);
-  color: #FFFEFB;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.post-category-gig svg {
-  width: 11px;
-  height: 11px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-/* 3. Budget block */
-.gig-budget {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  margin: 12px 0;
-  padding: 12px 16px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #EDF5F0 0%, #E4EFE8 100%);
-  border: 1px solid rgba(47, 109, 112, 0.16);
-}
-
-.gig-budget-value {
-  font-size: 18px;
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 1.2;
-  color: var(--teal, #2F6D70);
-}
-
-.gig-budget-label {
-  font-size: 9.5px;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  color: rgba(47, 109, 112, 0.7);
-}
-
-/* 4. Deadline chip */
-.gig-deadline {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  background: rgba(23, 43, 58, 0.06);
-  color: var(--text-muted, #718087);
-}
-
-.gig-deadline.is-soon {
-  background: #FBF0D9;
-  color: #79551B;
-}
-
-.gig-deadline.is-today,
-.gig-deadline.is-overdue {
-  background: #FFF1EF;
-  color: #B3261E;
-}
-
-/* 5. Apply button — full-width, teal, real action */
-.gig-apply {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  min-height: 46px;
-  margin-top: 12px;
-  padding: 12px 18px;
-  border: 0;
-  border-radius: 14px;
-  background: var(--teal, #2F6D70);
-  color: #FFFEFB;
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: -0.005em;
-  cursor: pointer;
-  transition: background 140ms ease, transform 140ms ease;
-}
-
-.gig-apply:hover { background: #24595C; }
-.gig-apply:active { transform: scale(0.99); }
-
-.gig-apply svg {
-  width: 17px;
-  height: 17px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-/* Own gig action — outline button, replaces Apply on your own gigs */
-.gig-own-action {
-  display: block;
-  width: 100%;
-  min-height: 40px;
-  margin-top: 12px;
-  padding: 10px 18px;
-  border: 1px solid rgba(47, 109, 112, 0.30);
-  border-radius: 14px;
-  background: transparent;
-  color: var(--teal, #2F6D70);
-  font-family: inherit;
-  font-size: 12.5px;
-  font-weight: 700;
-  letter-spacing: -0.005em;
-  cursor: pointer;
-  transition: background 140ms ease, border-color 140ms ease;
-}
-
-.gig-own-action:hover {
-  background: rgba(47, 109, 112, 0.06);
-  border-color: var(--teal, #2F6D70);
-}
-
-.gig-own-action:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-/* 6. Closed banner */
-.gig-closed {
-  margin-top: 12px;
-  padding: 12px 16px;
-  border-radius: 14px;
-  background: #F2F3EE;
-  border: 1px solid #D5D9D3;
-  color: #5A6A72;
-  font-size: 12.5px;
-  font-weight: 600;
-  text-align: center;
-}
-/* Icon alignment — match search and bell optical centers */
-.icon-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-.icon-button svg {
-  display: block;
-}
-/* Bell optical alignment — clapper hangs below the body, so nudge up */
-#notificationsButton svg {
-  transform: translateY(-1px);
-}
-/* =========================================================
-   APPEND — Topbar actions, aligned + soft avatar outline
-   ========================================================= */
-
-/* Kill the previous bell nudge */
-#notificationsButton svg,
-.topbar > .top-actions .icon-button svg {
-  transform: none !important;
-}
-
-/* One clean line: consistent 36×36 cells, even gap, no asymmetry */
-.topbar > .top-actions {
-  gap: 4px;
-  padding: 0 8px;
-}
-
-.topbar > .top-actions .icon-button,
-.topbar > .top-actions .avatar-button {
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  display: grid;
-  place-items: center;
-  border: 0;
-  background: transparent;
-}
-
-.topbar > .top-actions .icon-button svg {
-  display: block;
-  width: 20px;
-  height: 20px;
-  stroke-width: 1.9;
-}
-
-/* Avatar — hairline ink outline, quiet */
-.topbar > .top-actions .avatar-button .avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: 999px;
-  background: var(--mint, #DCEBE3);
-  color: var(--teal, #2F6D70);
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0;
-  box-shadow: inset 0 0 0 1px rgba(23, 43, 58, 0.10);
-   }
-/* =========================================================
-   APPEND — Flat feed (X-style density)
-   Ordinary posts become continuous rows with hairline
-   dividers. Gigs keep their card treatment so they pop.
-   ========================================================= */
-
-/* Feed is a flowing list, not a grid of floating boxes */
-.feed {
-  display: block;
-  gap: 0;
-}
-
-/* ---------- Ordinary posts — flat rows ---------- */
-.post-card {
-  padding: 14px 0;
-  border: 0;
-  border-bottom: 1px solid rgba(15, 39, 51, 0.07);
-  border-radius: 0;
-  background: transparent;
-  transition: background 140ms cubic-bezier(.2, .7, .2, 1);
-}
-
-.post-card:hover {
-  background: rgba(15, 39, 51, 0.02);
-  border-color: rgba(15, 39, 51, 0.07);
-}
-
-.post-card:first-child {
-  border-top: 1px solid rgba(15, 39, 51, 0.07);
-}
-
-/* ---------- Header rhythm — tighter ---------- */
-.post-header {
-  margin-bottom: 5px;
-  gap: 10px;
-}
-
-.post-avatar {
-  width: 36px;
-  height: 36px;
-  font-size: 12px;
-}
-
-.post-author-link {
-  font-size: 13px;
-}
-
-.post-meta {
-  margin-top: 2px;
-  font-size: 11px;
-  gap: 4px 6px;
-}
-
-/* Category chip — smaller */
-.post-category {
-  padding: 1px 7px;
-  font-size: 9.5px;
-  letter-spacing: 0.05em;
-}
-
-/* ---------- Content — tighter line-height ---------- */
-.post-title {
-  font-size: 15px;
-  margin: 0 0 3px;
-  letter-spacing: -0.02em;
-}
-
-.post-body {
-  font-size: 14px;
-  line-height: 1.45;
-  margin: 0;
-}
-
-/* ---------- Photos — tighter gap, smaller radius ---------- */
-.post-photos {
-  margin-top: 10px;
-  gap: 4px;
-}
-
-.post-photo-tile {
-  border-radius: 8px;
-}
-
-/* ---------- Price pill — smaller ---------- */
-.post-price {
-  margin-top: 6px;
-  padding: 3px 10px;
-  font-size: 11px;
-}
-
-/* ---------- Actions — no top border, divider is the row above ---------- */
-.post-actions {
-  margin-top: 8px;
-  padding-top: 0;
-  border-top: 0;
-  gap: 22px;
-}
-
-.post-action {
-  min-height: 28px;
-  padding: 2px 0;
-  font-size: 11px;
-}
-
-/* =========================================================
-   Gigs — keep card treatment so they sit above the river
-   ========================================================= */
-
-.post-card.is-gig {
-  padding: 14px 16px 14px 22px;
-  border: 1px solid var(--border, #E5E4DD);
-  border-bottom: 1px solid var(--border, #E5E4DD);
-  border-radius: 16px;
-  background: var(--paper, #FFFEFB);
-  margin: 12px 0;
-}
-
-.post-card.is-gig:hover {
-  background: var(--paper, #FFFEFB);
-  border-color: var(--border-hard, #C9D2CE);
-}
-/* =========================================================
-   APPEND — Post header, one-line scan
-   Name · category · time on one line. Content right under.
-   ========================================================= */
-
-/* Header becomes: [avatar] [name + meta inline]
-   Menu stays right if present. */
-.post-header {
-  gap: 10px;
-  margin-bottom: 6px;
-  align-items: flex-start;
-}
-
-/* Name and meta share a line — no more stacked rows */
-.post-author {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  column-gap: 8px;
-  row-gap: 2px;
-  min-width: 0;
-}
-
-.post-author-link {
-  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: -0.015em;
-  line-height: 1.2;
-}
-
-/* Meta: chip, time, location — inline, quiet */
-.post-meta {
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  margin-top: 0;
-  font-size: 11px;
-  line-height: 1.2;
-  color: var(--text-muted, #718087);
-}
-
-.post-meta > span:not(.post-category) {
-  font-weight: 500;
-}
-
-/* Soft divider dot between meta items */
-.post-meta > span:not(.post-category) + span:not(.post-category)::before,
-.post-meta > span:not(.post-category)::before {
-  /* only between items, not before the first */
-}
-
-.post-meta > .post-category + span::before,
-.post-meta > span + span::before {
-  content: "·";
-  margin-right: 6px;
-  color: rgba(23, 43, 58, 0.28);
-  font-weight: 700;
-}
-
-/* Category chip — smaller, softer, no more full mint fill */
-.post-category {
-  padding: 2px 8px;
-  border-radius: 999px;
-  font-size: 9.5px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  background: rgba(47, 109, 112, 0.10);
-  color: var(--teal, #2F6D70);
-  line-height: 1.4;
-}
-
-/* Menu button aligns with name baseline */
-.post-menu {
-  margin-top: -2px;
-}
-
-/* =========================================================
-   Content — proper rhythm under the header
-   ========================================================= */
-
-.post-title {
-  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.3;
-  margin: 0 0 4px;
-  color: var(--text-primary, #172B3A);
-}
-
-.post-body {
-  font-size: 14px;
-  font-weight: 500;
-  line-height: 1.5;
-  margin: 0;
-  color: var(--text-secondary, #344A57);
-}
-
-/* =========================================================
-   Single photo — spans full width (no more awkward 1/3)
-   Multi-photo grids stay as they are.
-   ========================================================= */
-
-.post-photos:has(.post-photo-tile:only-child) {
-  grid-template-columns: 1fr;
-  margin-top: 10px;
-  gap: 0;
-}
-
-.post-photos:has(.post-photo-tile:only-child) .post-photo-tile {
-  aspect-ratio: 16 / 10;
-  border-radius: 12px;
-}
-
-/* =========================================================
-   Actions row — smaller, quieter, sits under the content
-   ========================================================= */
-
-.post-actions {
-  margin-top: 10px;
-  padding-top: 0;
-  border-top: 0;
-  gap: 24px;
-}
-
-.post-action {
-  min-height: 26px;
-  padding: 0;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-muted, #718087);
-  letter-spacing: 0.01em;
-}
-
-.post-action svg {
-  width: 18px;
-  height: 18px;
-  stroke-width: 1.8;
-}
-
-.post-action:hover {
-  color: var(--teal, #2F6D70);
-}
-
-.reaction-count,
-.reply-count {
-  font-size: 11px;
-  font-weight: 600;
-}
-/* =========================================================
-   APPEND — Home intro rhythm
-   Group the greeting, separate it from chips and composer.
-   ========================================================= */
-
-/* Intro block — tighter internally, spaced from what follows */
-.welcome {
-  padding: 4px 4px 20px;
-  margin-bottom: 4px;
-  border-bottom: 1px solid rgba(15, 39, 51, 0.06);
-}
-
-/* Eyebrow smaller, quieter, sits just above the greeting */
-.welcome .eyebrow,
-.eyebrow {
-  font-family: Manrope, system-ui, sans-serif;
-  font-size: 9.5px;
-  font-weight: 800;
-  letter-spacing: 0.18em;
-  color: var(--teal, #1F5F58);
-  margin: 0 0 6px;
-}
-
-/* Greeting — the loudest thing, nothing else competes */
-.welcome h1 {
-  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
-  font-size: 24px;
-  font-weight: 800;
-  letter-spacing: -0.05em;
-  line-height: 1.1;
-  margin: 0 0 6px;
-  color: var(--text-primary, #0F2733);
-}
-
-.welcome h1 span {
-  color: var(--teal, #1F5F58);
-}
-
-/* Subline — smaller, quieter, one step below the greeting */
-.welcome > p:last-child {
-  margin: 0;
-  font-size: 12.5px;
-  font-weight: 500;
-  line-height: 1.5;
-  color: var(--text-muted, #63727D);
-  max-width: 34ch;
-}
-
-/* =========================================================
-   Chips row — clearer gap from intro and from composer
-   ========================================================= */
-
-.category-scroll {
-  margin-top: 20px;
-  margin-bottom: 20px;
-}
-
-/* =========================================================
-   Composer — its own band, with a bottom gap before the feed
-   ========================================================= */
-
-.composer {
-  margin-bottom: 22px;
-}
-
-/* =========================================================
-   Feed — separate from everything above
-   ========================================================= */
-
-.feed {
-  margin-top: 4px;
-}
-
-/* =========================================================
-   APPEND — Wordmark slides out, live clock slides in
-   ========================================================= */
-
-.topbar > .wordmark {
-  display: inline-flex;
-  align-items: center;
-  height: 48px;
-  padding: 0 16px;
-  overflow: hidden;
-  position: relative;
-}
-
-/* Both children stack in the same slot; only one is visible */
-.topbar > .wordmark .wm-name,
-.topbar > .wordmark .wm-clock {
-  display: inline-block;
-  font-family: Poppins, system-ui, sans-serif;
-  line-height: 1;
-  white-space: nowrap;
-  transition:
-    transform 420ms cubic-bezier(.2, .7, .2, 1),
-    opacity 320ms ease;
-  will-change: transform, opacity;
-}
-
-/* The name — primary, sits in flow */
-.topbar > .wordmark .wm-name {
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: -0.05em;
-  color: var(--text-primary, #172B3A);
-  transform: translateX(0);
-  opacity: 1;
-}
-
-/* The clock — hidden to the right until swap */
-.topbar > .wordmark .wm-clock {
-  position: absolute;
-  left: 16px;
-  top: 50%;
-  font-size: 14px;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  color: var(--teal, #1F5F58);
-  font-variant-numeric: tabular-nums;
-  transform: translate(40px, -50%);
-  opacity: 0;
-}
-
-/* --- Swap states --- */
-
-.topbar > .wordmark .wm-name.is-out {
-  transform: translateX(-40px);
-  opacity: 0;
-}
-
-.topbar > .wordmark .wm-clock.is-in {
-  transform: translate(0, -50%);
-  opacity: 1;
-}
-
-/* Reduced motion — swap without sliding */
-@media (prefers-reduced-motion: reduce) {
-  .topbar > .wordmark .wm-name,
-  .topbar > .wordmark .wm-clock {
-    transition: opacity 200ms linear !important;
-  }
-  .topbar > .wordmark .wm-name.is-out { transform: translateX(0); }
-  .topbar > .wordmark .wm-clock.is-in { transform: translate(0, -50%); }
-}
-
-/* =========================================================
-   APPEND — Expandable action pill
-   Small circle by default. Tap → expands left to a row of
-   three icons. Tap any icon → runs it and collapses.
-   ========================================================= */
-
-.topbar > .action-pill {
-  display: inline-flex;
-  align-items: center;
-  height: 48px;
-  padding: 6px;
-  border-radius: 16px;
-  border: 1px solid rgba(23, 43, 58, 0.06);
-  background: rgba(255, 254, 251, 0.82);
-  backdrop-filter: blur(20px) saturate(1.4);
-  -webkit-backdrop-filter: blur(20px) saturate(1.4);
-  box-shadow:
-    0 1px 2px rgba(23, 43, 58, 0.03),
-    0 8px 22px rgba(23, 43, 58, 0.07);
-  gap: 0;
-  transition: gap 260ms cubic-bezier(.2, .7, .2, 1);
-}
-
-.topbar > .action-pill[data-open="true"] {
-  gap: 4px;
-}
-
-/* Base button shape */
-.topbar > .action-pill .ap-btn {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--text-primary, #172B3A);
-  cursor: pointer;
-  transition:
-    background 140ms cubic-bezier(.2, .7, .2, 1),
-    width 280ms cubic-bezier(.2, .7, .2, 1),
-    opacity 200ms ease,
-    transform 280ms cubic-bezier(.2, .7, .2, 1),
-    margin 280ms cubic-bezier(.2, .7, .2, 1);
-}
-
-.topbar > .action-pill .ap-btn:hover {
-  background: rgba(23, 43, 58, 0.06);
-}
-
-.topbar > .action-pill .ap-btn svg {
-  display: block;
-  width: 19px;
-  height: 19px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.9;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-/* Hidden state — icons collapse to nothing and slide right */
-.topbar > .action-pill .ap-bell,
-.topbar > .action-pill .ap-profile {
-  width: 0;
-  opacity: 0;
-  transform: translateX(6px);
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.topbar > .action-pill[data-open="true"] .ap-bell,
-.topbar > .action-pill[data-open="true"] .ap-profile {
-  width: 36px;
-  opacity: 1;
-  transform: translateX(0);
-  pointer-events: auto;
-}
-
-/* Bell dot */
-.topbar > .action-pill .ap-bell.notice i {
-  position: absolute;
-  right: 7px;
-  top: 7px;
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: #C75D5D;
-  box-shadow: 0 0 0 2px var(--bg-page, #F7F6F1);
-  pointer-events: none;
-}
-
-/* Avatar in pill */
-.topbar > .action-pill .ap-profile .avatar {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 999px;
-  background: var(--mint, #DCEBE3);
-  color: var(--teal, #2F6D70);
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0;
-  box-shadow: inset 0 0 0 1px rgba(23, 43, 58, 0.10);
-}
-
-/* Search icon toggles between magnifier and X when open */
-.topbar > .action-pill .ap-search .ico-close {
-  display: none;
-}
-.topbar > .action-pill[data-open="true"] .ap-search .ico-search {
-  display: none;
-}
-.topbar > .action-pill[data-open="true"] .ap-search .ico-close {
-  display: block;
-  stroke-width: 2.2;
-}
-
-/* Kill the old top-actions rules — they're gone */
-.topbar > .top-actions { display: none !important; }
-
-/* Reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  .topbar > .action-pill,
-  .topbar > .action-pill .ap-btn { transition: none !important; }
-}
+  setTimeout(function () {
+    w.classList.add('is-leaving');
+    try { sessionStorage.setItem(KEY, '1'); } catch (e) {}
+  }, 2600);
+
+  w.addEventListener('transitionend', function (e) {
+    if (e.propertyName === 'max-height' || e.propertyName === 'opacity') {
+      w.style.display = 'none';
+    }
+  });
+})();
+
+/* ---------- Notifications bell dot ---------- */
+(function () {
+  var btn = document.getElementById('notificationsButton');
+  if (!btn) return;
+
+  (async function paintDot() {
+    if (!window.AUTH) return;
+
+    var user = await AUTH.currentUser();
+    if (!user) return;
+
+    var lastSeen = await AUTH.getLastSeenNotificationsAt();
+    var lastSeenMs = lastSeen ? new Date(lastSeen).getTime() : 0;
+
+    var res = await AUTH.getNotifications();
+    if (!res.ok) return;
+
+    var d = res.data || {};
+    var hasNew = false;
+
+    function scan(list) {
+      if (hasNew || !list) return;
+      for (var i = 0; i < list.length; i++) {
+        if (new Date(list[i].created_at).getTime() > lastSeenMs) {
+          hasNew = true;
+          return;
+        }
+      }
+    }
+
+    scan(d.chatRequests);
+    scan(d.likes);
+    scan(d.replies);
+
+    if (hasNew) btn.classList.add('notice');
+  })();
+})();
+</script>
+
+</body>
+</html>
