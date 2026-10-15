@@ -1,9 +1,8 @@
 /* =========================================================
    STMDESKLY v2 — Home feed
-   Single-file stylesheet for the Home page.
-   Split floating topbar (wordmark + expandable action pill),
-   intro rhythm, category chips, composer, flat feed rows,
-   gig cards, comment sheet. Nav lives in nav.css.
+   Single canonical stylesheet. No stacked appends.
+   Sections marked [APPEND] were added after the base was
+   written. Everything else is the base layer.
    ========================================================= */
 
 /* =========================================================
@@ -41,29 +40,23 @@ body,
 
 /* =========================================================
    3. TOPBAR
-   Two pills — wordmark on the left (with live clock swap),
-   expandable action pill on the right.
    ========================================================= */
 
 .topbar {
   position: sticky;
   top: 8px;
   z-index: 10;
-
   height: auto;
   margin: 8px 0 var(--space-4, 16px);
   padding: 0;
-
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-
   background: transparent;
   border: 0;
   border-radius: 0;
   box-shadow: none;
-
   transition:
     transform 240ms cubic-bezier(.2, .7, .2, 1),
     opacity 200ms ease;
@@ -80,7 +73,9 @@ body,
   opacity: 1;
 }
 
-/* --- Left pill: wordmark + clock --- */
+/* =========================================================
+   4. WORDMARK — wordmark + live clock swap
+   ========================================================= */
 
 .topbar > .wordmark {
   position: relative;
@@ -89,20 +84,16 @@ body,
   height: 48px;
   padding: 0 16px;
   overflow: hidden;
-
   border-radius: 16px;
   border: 1px solid rgba(23, 43, 58, 0.06);
-
   background: linear-gradient(
     135deg,
     rgba(220, 235, 227, 0.85) 0%,
     rgba(255, 254, 251, 0.82) 60%
   );
-
   box-shadow:
     0 1px 2px rgba(23, 43, 58, 0.03),
     0 8px 22px rgba(23, 43, 58, 0.07);
-
   backdrop-filter: blur(20px) saturate(1.4);
   -webkit-backdrop-filter: blur(20px) saturate(1.4);
 }
@@ -128,15 +119,17 @@ body,
   opacity: 1;
 }
 
+/* [APPEND — clock padding fix] */
 .topbar > .wordmark .wm-clock {
   position: absolute;
   left: 16px;
   top: 50%;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
   color: var(--teal, #1F5F58);
   font-variant-numeric: tabular-nums;
+  line-height: 1;
   transform: translate(40px, -50%);
   opacity: 0;
 }
@@ -151,7 +144,10 @@ body,
   opacity: 1;
 }
 
-/* --- Right pill: expandable action pill --- */
+/* =========================================================
+   5. ACTION PILL — single search that expands to reveal
+   bell + avatar. Tap any icon → close + run.
+   ========================================================= */
 
 .topbar > .action-pill {
   display: inline-flex;
@@ -161,14 +157,11 @@ body,
   border-radius: 16px;
   border: 1px solid rgba(23, 43, 58, 0.06);
   background: rgba(255, 254, 251, 0.82);
-
   box-shadow:
     0 1px 2px rgba(23, 43, 58, 0.03),
     0 8px 22px rgba(23, 43, 58, 0.07);
-
   backdrop-filter: blur(20px) saturate(1.4);
   -webkit-backdrop-filter: blur(20px) saturate(1.4);
-
   gap: 0;
   transition: gap 260ms cubic-bezier(.2, .7, .2, 1);
 }
@@ -200,20 +193,17 @@ body,
   background: rgba(23, 43, 58, 0.06);
 }
 
+/* [APPEND — icon optical centring, no nudges beyond this one] */
 .topbar > .action-pill .ap-btn svg {
   display: block;
-  width: 19px;
-  height: 19px;
+  width: 20px;
+  height: 20px;
   fill: none;
   stroke: currentColor;
   stroke-width: 1.9;
   stroke-linecap: round;
   stroke-linejoin: round;
-}
-
-/* Bell path extends 1px lower than search — optical nudge */
-.topbar > .action-pill .ap-bell svg {
-  transform: translateY(-0.5px);
+  overflow: visible;
 }
 
 /* Hidden icons — collapse to zero, slide right */
@@ -263,9 +253,7 @@ body,
 }
 
 /* =========================================================
-   4. WELCOME
-   Greeting only. Shows on arrival, collapses after a beat,
-   stays gone for the session (sessionStorage in home.html).
+   6. WELCOME — greeting shows, then retires for session
    ========================================================= */
 
 .welcome {
@@ -305,7 +293,7 @@ body,
 }
 
 /* =========================================================
-   5. CATEGORY CHIPS
+   7. CATEGORY CHIPS
    ========================================================= */
 
 .category-scroll {
@@ -365,7 +353,7 @@ body,
 }
 
 /* =========================================================
-   6. COMPOSER
+   8. COMPOSER
    ========================================================= */
 
 .composer {
@@ -385,11 +373,20 @@ body,
   border-color: var(--border-hard, #C9D2CE);
 }
 
+/* [APPEND — composer avatar was square; forced circular] */
 .composer-avatar {
+  display: grid;
+  place-items: center;
   width: 36px;
   height: 36px;
+  flex-shrink: 0;
+  border-radius: 999px;
   background: var(--mint, #DCEBE3);
   color: var(--teal, #2F6D70);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+  overflow: hidden;
 }
 
 .composer-prompt {
@@ -429,9 +426,7 @@ body,
 }
 
 /* =========================================================
-   7. FEED CONTAINER
-   Flat list. Ordinary posts are rows divided by hairlines.
-   Gig cards break out as bordered cards.
+   9. FEED CONTAINER — flat list
    ========================================================= */
 
 .feed {
@@ -454,7 +449,7 @@ body,
 }
 
 /* =========================================================
-   8. POST — flat row treatment
+   10. POST — flat row
    ========================================================= */
 
 .post-card {
@@ -475,14 +470,17 @@ body,
   border-top: 1px solid rgba(15, 39, 51, 0.07);
 }
 
-/* ---------- Post header — one-line scan ---------- */
+/* ---------- Post header — vertically centred row ---------- */
 
+/* [APPEND — header now uses align-items: center so meta
+   sits level with the avatar, not baseline-aligned to
+   the author name.] */
 .post-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 10px;
   min-width: 0;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .post-avatar {
@@ -501,14 +499,15 @@ body,
   text-decoration: none;
 }
 
+/* [APPEND — author + meta centred, wraps in one flow] */
 .post-author {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: center;
   column-gap: 8px;
-  row-gap: 2px;
+  row-gap: 3px;
 }
 
 .post-author-link {
@@ -550,13 +549,13 @@ body,
 
 .post-category {
   display: inline-block;
-  padding: 2px 8px;
+  padding: 2px 9px;
   border-radius: 999px;
   font-size: 9.5px;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  line-height: 1.4;
+  line-height: 1.5;
   background: rgba(47, 109, 112, 0.10);
   color: var(--teal, #2F6D70);
 }
@@ -577,13 +576,13 @@ body,
   stroke-linejoin: round;
 }
 
+/* [APPEND — removed the -2px margin-top, header now centres it] */
 .post-menu {
   flex-shrink: 0;
   width: 32px;
   height: 32px;
   display: grid;
   place-items: center;
-  margin-top: -2px;
   border: 0;
   border-radius: 999px;
   background: transparent;
@@ -673,7 +672,7 @@ body,
   font-weight: 700;
 }
 
-/* Single photo — full-width, 16:10 */
+/* [APPEND — single photo stretches full-width, 16:10] */
 .post-photos:has(.post-photo-tile:only-child) {
   grid-template-columns: 1fr;
   gap: 0;
@@ -747,9 +746,7 @@ body,
 }
 
 /* =========================================================
-   9. GIG CARDS
-   Break out of the flat list — bordered, teal stripe,
-   budget block, deadline chip, Apply button.
+   11. GIG CARDS — break out of the flat list
    ========================================================= */
 
 .post-card.is-gig {
@@ -926,7 +923,7 @@ body,
 }
 
 /* =========================================================
-   10. COMMENT SHEET
+   12. COMMENT SHEET
    ========================================================= */
 
 .sheet-overlay {
@@ -1194,7 +1191,7 @@ body,
 }
 
 /* =========================================================
-   11. RESPONSIVE
+   13. RESPONSIVE
    ========================================================= */
 
 @media (min-width: 600px) {
@@ -1289,7 +1286,7 @@ body,
 }
 
 /* =========================================================
-   12. REDUCED MOTION
+   14. REDUCED MOTION
    ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
@@ -1301,4 +1298,4 @@ body,
   .welcome {
     transition: none !important;
   }
- }
+   }
