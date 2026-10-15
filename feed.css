@@ -1200,3 +1200,12 @@ body,
   font-weight: 600;
   text-align: center;
 }
+/* Icon alignment — match search and bell optical centers */
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.icon-button svg {
+  display: block;
+}
