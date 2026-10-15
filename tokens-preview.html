@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>STMDeskly — tokens preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: #F7F6F1; color: #172B3A;
+    font-family: Poppins, system-ui, sans-serif;
+    overflow-x: clip;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 620px; margin: 0 auto; padding: 24px 18px 60px; }
+  h1.page { font-size: 24px; font-weight: 800; letter-spacing: -0.05em; margin: 0 0 4px; }
+  p.sub { color: #718087; font-size: 12px; margin: 0 0 32px; line-height: 1.6; }
+
+  .label {
+    font-size: 10px; font-weight: 800; letter-spacing: 0.14em;
+    text-transform: uppercase; color: #2F6D70; margin: 0 4px 10px;
+  }
+
+  .panel {
+    background: #FFFEFB;
+    border: 1px solid #E5E4DD;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 14px;
+  }
+  .panel + .label { margin-top: 32px; }
+
+  /* Font samples share this shape */
+  .sample .eyebrow {
+    font-size: 10px; font-weight: 800; letter-spacing: 0.14em;
+    text-transform: uppercase; color: #2F6D70; margin: 0 0 6px;
+  }
+  .sample h2 {
+    font-size: 24px; font-weight: 800; letter-spacing: -0.05em;
+    line-height: 1.15; margin: 0 0 8px;
+  }
+  .sample p.body {
+    font-size: 14px; line-height: 1.6; margin: 0 0 14px;
+  }
+  .sample .meta {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    font-size: 11px; color: #718087;
+  }
+  .sample .chip {
+    display: inline-block;
+    padding: 3px 10px; border-radius: 999px;
+    background: #DCEBE3; color: #2F6D70;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .sample .fontname {
+    font-family: Poppins, system-ui, sans-serif;
+    font-size: 11px; font-weight: 700; color: #172B3A;
+    margin: 0 0 12px; padding-bottom: 12px;
+    border-bottom: 1px solid #E5E4DD;
+  }
+  .sample .fontname b { color: #2F6D70; font-weight: 800; }
+
+  /* Palette panels */
+  .palette { display: grid; gap: 12px; }
+  .swatches {
+    display: grid; grid-template-columns: repeat(6, 1fr);
+    gap: 6px; margin-bottom: 4px;
+  }
+  .swatch {
+    aspect-ratio: 1; border-radius: 8px;
+    border: 1px solid rgba(0,0,0,0.06);
+  }
+  .swatch-label {
+    font-size: 9px; font-weight: 600; letter-spacing: 0.06em;
+    text-align: center; color: #718087; text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+  .palette-name {
+    font-size: 11px; font-weight: 700; margin: 0 0 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+  }
+
+  /* Mini UI mock inside each palette */
+  .mock {
+    border-radius: 14px;
+    padding: 16px;
+  }
+  .mock .m-eyebrow {
+    font-size: 10px; font-weight: 800; letter-spacing: 0.14em;
+    text-transform: uppercase; margin: 0 0 6px;
+  }
+  .mock h3 {
+    font-size: 20px; font-weight: 800; letter-spacing: -0.04em;
+    line-height: 1.15; margin: 0 0 8px;
+  }
+  .mock p {
+    font-size: 12.5px; line-height: 1.55; margin: 0 0 12px;
+  }
+  .mock .chiprow { display: flex; gap: 6px; margin-bottom: 12px; }
+  .mock .m-chip {
+    padding: 4px 10px; border-radius: 999px;
+    font-size: 10px; font-weight: 700; letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .mock .m-btn {
+    display: inline-block;
+    padding: 10px 18px; border-radius: 999px;
+    font-size: 12px; font-weight: 700;
+    letter-spacing: -0.005em;
+  }
+  .mock .m-card {
+    margin-top: 12px; padding: 12px;
+    border-radius: 12px; font-size: 12px; line-height: 1.5;
+  }
+
+  /* Font assignments */
+  .font-poppins  { font-family: Poppins, system-ui, sans-serif; }
+  .font-jakarta  { font-family: "Plus Jakarta Sans", system-ui, sans-serif; }
+  .font-manrope  { font-family: Manrope, system-ui, sans-serif; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1 class="page">Tokens preview</h1>
+  <p class="sub">Same copy, three typefaces. Then three palettes. Pick one of each — send back the letters.</p>
+
+  <p class="label">Typeface</p>
+
+  <div class="panel sample font-poppins">
+    <p class="fontname">A — <b>Poppins</b> (current)</p>
+    <p class="eyebrow">Your community</p>
+    <h2>Good evening, STMGraph.</h2>
+    <p class="body">Find opportunities. Share your skills. Grow together. A Desk sits beside Instagram and WhatsApp — one link, no code, no card.</p>
+    <div class="meta">
+      <span class="chip">Gig</span>
+      <span>47m ago</span>
+      <span>Yaba, Lagos</span>
+    </div>
+  </div>
+
+  <div class="panel sample font-jakarta">
+    <p class="fontname">B — <b>Plus Jakarta Sans</b></p>
+    <p class="eyebrow">Your community</p>
+    <h2>Good evening, STMGraph.</h2>
+    <p class="body">Find opportunities. Share your skills. Grow together. A Desk sits beside Instagram and WhatsApp — one link, no code, no card.</p>
+    <div class="meta">
+      <span class="chip">Gig</span>
+      <span>47m ago</span>
+      <span>Yaba, Lagos</span>
+    </div>
+  </div>
+
+  <div class="panel sample font-manrope">
+    <p class="fontname">C — <b>Manrope</b></p>
+    <p class="eyebrow">Your community</p>
+    <h2>Good evening, STMGraph.</h2>
+    <p class="body">Find opportunities. Share your skills. Grow together. A Desk sits beside Instagram and WhatsApp — one link, no code, no card.</p>
+    <div class="meta">
+      <span class="chip">Gig</span>
+      <span>47m ago</span>
+      <span>Yaba, Lagos</span>
+    </div>
+  </div>
+
+  <p class="label">Palette</p>
+
+  <div class="panel">
+    <p class="palette-name">A — Current (warm &amp; muted)</p>
+    <div class="swatches">
+      <div class="swatch" style="background:#F7F6F1"></div>
+      <div class="swatch" style="background:#FFFEFB"></div>
+      <div class="swatch" style="background:#172B3A"></div>
+      <div class="swatch" style="background:#2F6D70"></div>
+      <div class="swatch" style="background:#DCEBE3"></div>
+      <div class="swatch" style="background:#718087"></div>
+    </div>
+    <div class="swatch-label">cream · paper · navy · teal · mint · muted</div>
+
+    <div class="mock" style="background:#F7F6F1; border:1px solid #E5E4DD;">
+      <p class="m-eyebrow" style="color:#2F6D70">Recent activity</p>
+      <h3 style="color:#172B3A">Notifications</h3>
+      <p style="color:#718087">Chat requests, likes, replies — all in one place.</p>
+      <div class="chiprow">
+        <span class="m-chip" style="background:#DCEBE3;color:#2F6D70">Gig</span>
+        <span class="m-chip" style="background:#DCEBE3;color:#2F6D70">Filled</span>
+      </div>
+      <span class="m-btn" style="background:#2F6D70;color:#FFFEFB">Create my Desk</span>
+      <div class="m-card" style="background:#FFFEFB;color:#172B3A;border:1px solid #E5E4DD">
+        Success started a chat with you · 12m
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <p class="palette-name">B — Deeper (print &amp; presence)</p>
+    <div class="swatches">
+      <div class="swatch" style="background:#F3F1EA"></div>
+      <div class="swatch" style="background:#FFFFFF"></div>
+      <div class="swatch" style="background:#0F2733"></div>
+      <div class="swatch" style="background:#1F5F58"></div>
+      <div class="swatch" style="background:#DCEBE3"></div>
+      <div class="swatch" style="background:#63727D"></div>
+    </div>
+    <div class="swatch-label">cream · white · navy · jade · mint · slate</div>
+
+    <div class="mock" style="background:#F3F1EA; border:1px solid #E0DED6;">
+      <p class="m-eyebrow" style="color:#1F5F58">Recent activity</p>
+      <h3 style="color:#0F2733">Notifications</h3>
+      <p style="color:#63727D">Chat requests, likes, replies — all in one place.</p>
+      <div class="chiprow">
+        <span class="m-chip" style="background:#DCEBE3;color:#1F5F58">Gig</span>
+        <span class="m-chip" style="background:#DCEBE3;color:#1F5F58">Filled</span>
+      </div>
+      <span class="m-btn" style="background:#1F5F58;color:#FFFFFF">Create my Desk</span>
+      <div class="m-card" style="background:#FFFFFF;color:#0F2733;border:1px solid #E0DED6">
+        Success started a chat with you · 12m
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <p class="palette-name">C — Cooler (modern &amp; cleaner)</p>
+    <div class="swatches">
+      <div class="swatch" style="background:#F2F3EF"></div>
+      <div class="swatch" style="background:#FFFFFF"></div>
+      <div class="swatch" style="background:#14202B"></div>
+      <div class="swatch" style="background:#2E6E63"></div>
+      <div class="swatch" style="background:#E0EFE5"></div>
+      <div class="swatch" style="background:#64727C"></div>
+    </div>
+    <div class="swatch-label">sage · white · ink · sage-teal · mint · grey</div>
+
+    <div class="mock" style="background:#F2F3EF; border:1px solid #DDDFD9;">
+      <p class="m-eyebrow" style="color:#2E6E63">Recent activity</p>
+      <h3 style="color:#14202B">Notifications</h3>
+      <p style="color:#64727C">Chat requests, likes, replies — all in one place.</p>
+      <div class="chiprow">
+        <span class="m-chip" style="background:#E0EFE5;color:#2E6E63">Gig</span>
+        <span class="m-chip" style="background:#E0EFE5;color:#2E6E63">Filled</span>
+      </div>
+      <span class="m-btn" style="background:#2E6E63;color:#FFFFFF">Create my Desk</span>
+      <div class="m-card" style="background:#FFFFFF;color:#14202B;border:1px solid #DDDFD9">
+        Success started a chat with you · 12m
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+  </html>
