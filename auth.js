@@ -1,4 +1,4 @@
-// auth.js — v32 — 15 Oct 2026
+// auth.js — v33 — 15 Oct 2026
 // STMDESKLY v2 — Auth module
 (function () {
   'use strict';
@@ -192,9 +192,10 @@
     const res = await sb.from('desks')
       .select('id, username, name')
       .eq('user_id', user.id)
-      .maybeSingle();
-    if (res.error) return null;
-    return res.data;
+      .order('created_at', { ascending: true })
+      .limit(1);
+    if (res.error || !res.data || !res.data.length) return null;
+    return res.data[0];
   }
 
   async function getLastSeenNotificationsAt() {
@@ -204,9 +205,10 @@
     const res = await sb.from('desks')
       .select('last_seen_notifications_at')
       .eq('user_id', user.id)
-      .maybeSingle();
-    if (res.error) return null;
-    return (res.data && res.data.last_seen_notifications_at) || null;
+      .order('created_at', { ascending: true })
+      .limit(1);
+    if (res.error || !res.data || !res.data.length) return null;
+    return res.data[0].last_seen_notifications_at || null;
   }
 
   /* ---------- Logout ---------- */
