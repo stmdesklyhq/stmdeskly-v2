@@ -1259,3 +1259,124 @@ body,
   letter-spacing: 0;
   box-shadow: inset 0 0 0 1px rgba(23, 43, 58, 0.10);
    }
+/* =========================================================
+   APPEND — Flat feed (X-style density)
+   Ordinary posts become continuous rows with hairline
+   dividers. Gigs keep their card treatment so they pop.
+   ========================================================= */
+
+/* Feed is a flowing list, not a grid of floating boxes */
+.feed {
+  display: block;
+  gap: 0;
+}
+
+/* ---------- Ordinary posts — flat rows ---------- */
+.post-card {
+  padding: 14px 0;
+  border: 0;
+  border-bottom: 1px solid rgba(15, 39, 51, 0.07);
+  border-radius: 0;
+  background: transparent;
+  transition: background 140ms cubic-bezier(.2, .7, .2, 1);
+}
+
+.post-card:hover {
+  background: rgba(15, 39, 51, 0.02);
+  border-color: rgba(15, 39, 51, 0.07);
+}
+
+.post-card:first-child {
+  border-top: 1px solid rgba(15, 39, 51, 0.07);
+}
+
+/* ---------- Header rhythm — tighter ---------- */
+.post-header {
+  margin-bottom: 5px;
+  gap: 10px;
+}
+
+.post-avatar {
+  width: 36px;
+  height: 36px;
+  font-size: 12px;
+}
+
+.post-author-link {
+  font-size: 13px;
+}
+
+.post-meta {
+  margin-top: 2px;
+  font-size: 11px;
+  gap: 4px 6px;
+}
+
+/* Category chip — smaller */
+.post-category {
+  padding: 1px 7px;
+  font-size: 9.5px;
+  letter-spacing: 0.05em;
+}
+
+/* ---------- Content — tighter line-height ---------- */
+.post-title {
+  font-size: 15px;
+  margin: 0 0 3px;
+  letter-spacing: -0.02em;
+}
+
+.post-body {
+  font-size: 14px;
+  line-height: 1.45;
+  margin: 0;
+}
+
+/* ---------- Photos — tighter gap, smaller radius ---------- */
+.post-photos {
+  margin-top: 10px;
+  gap: 4px;
+}
+
+.post-photo-tile {
+  border-radius: 8px;
+}
+
+/* ---------- Price pill — smaller ---------- */
+.post-price {
+  margin-top: 6px;
+  padding: 3px 10px;
+  font-size: 11px;
+}
+
+/* ---------- Actions — no top border, divider is the row above ---------- */
+.post-actions {
+  margin-top: 8px;
+  padding-top: 0;
+  border-top: 0;
+  gap: 22px;
+}
+
+.post-action {
+  min-height: 28px;
+  padding: 2px 0;
+  font-size: 11px;
+}
+
+/* =========================================================
+   Gigs — keep card treatment so they sit above the river
+   ========================================================= */
+
+.post-card.is-gig {
+  padding: 14px 16px 14px 22px;
+  border: 1px solid var(--border, #E5E4DD);
+  border-bottom: 1px solid var(--border, #E5E4DD);
+  border-radius: 16px;
+  background: var(--paper, #FFFEFB);
+  margin: 12px 0;
+}
+
+.post-card.is-gig:hover {
+  background: var(--paper, #FFFEFB);
+  border-color: var(--border-hard, #C9D2CE);
+}
