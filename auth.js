@@ -551,6 +551,44 @@
     return a < b ? [a, b] : [b, a];
   }
 
+  /* Find an existing thread between the current user and otherUserId.
+     Returns { ok: true, thread: null } if none exists. */
+  async function findThread(otherUserId) {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+    if (user.id === otherUserId) return { ok: false, error: { message: 'You cannot chat with yourself' } };
+
+    const pair = sortPair(user.id, otherUserId);
+    const a = pair[0];
+    const b = pair[1];
+
+    const res = await sb
+      .from('chat_threads')
+      .select('id, status, initiated_by, user_a, user_b, last_message_at')
+      .eq('user_a', a)
+      .eq('user_b', b)
+      .maybeSingle();
+
+    if (res.error && res.error.code !== 'PGRST116') {
+      return { ok: false, error: res.error };
+    }
+    return { ok: true, thread: res.data || null };
+  }
+
+  /* Get just the desk info of another user (for header / presence). */
+  async function getDeskByUserId(userId) {
+    const res = await sb
+      .from('desks')
+      .select('user_id, name, username, avatar_url, role')
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (res.error) return { ok: false, error: res.error };
+    return { ok: true, desk: res.data };
+  }
+
+  /* Creates a thread if none exists. If one exists (any status), returns it.
+     Reopens cancelled/declined threads as pending. */
   async function startThread(otherUserId) {
     const userRes = await sb.auth.getUser();
     const user = userRes.data.user;
@@ -575,7 +613,6 @@
     if (existing.data) {
       const t = existing.data;
 
-      // Cancelled or declined — reset to a fresh pending request.
       if (t.status === 'cancelled' || t.status === 'declined') {
         const upd = await sb
           .from('chat_threads')
@@ -591,7 +628,6 @@
         return { ok: true, thread: upd.data, created: false, reopened: true };
       }
 
-      // Still pending or accepted — use it as-is.
       return { ok: true, thread: t, created: false };
     }
 
@@ -799,7 +835,6 @@
     return { ok: true, thread: res.data };
   }
 
-  /* ---------- Cancel a pending request (sender only) ---------- */
   async function cancelThread(threadId) {
     const userRes = await sb.auth.getUser();
     const user = userRes.data.user;
@@ -845,7 +880,6 @@
     return { ok: true, thread: check.data };
   }
 
-  /* ---------- Reopen a cancelled or declined thread ---------- */
   async function reopenThread(threadId) {
     const userRes = await sb.auth.getUser();
     const user = userRes.data.user;
@@ -1642,6 +1676,8 @@
     getReplyCounts: getReplyCounts,
     deleteReply: deleteReply,
 
+    findThread: findThread,
+    getDeskByUserId: getDeskByUserId,
     startThread: startThread,
     loadThread: loadThread,
     loadMessages: loadMessages,
