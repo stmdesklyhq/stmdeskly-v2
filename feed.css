@@ -1532,3 +1532,75 @@ body,
   font-size: 11px;
   font-weight: 600;
 }
+/* =========================================================
+   APPEND — Home intro rhythm
+   Group the greeting, separate it from chips and composer.
+   ========================================================= */
+
+/* Intro block — tighter internally, spaced from what follows */
+.welcome {
+  padding: 4px 4px 20px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid rgba(15, 39, 51, 0.06);
+}
+
+/* Eyebrow smaller, quieter, sits just above the greeting */
+.welcome .eyebrow,
+.eyebrow {
+  font-family: Manrope, system-ui, sans-serif;
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  color: var(--teal, #1F5F58);
+  margin: 0 0 6px;
+}
+
+/* Greeting — the loudest thing, nothing else competes */
+.welcome h1 {
+  font-family: "Plus Jakarta Sans", system-ui, sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 1.1;
+  margin: 0 0 6px;
+  color: var(--text-primary, #0F2733);
+}
+
+.welcome h1 span {
+  color: var(--teal, #1F5F58);
+}
+
+/* Subline — smaller, quieter, one step below the greeting */
+.welcome > p:last-child {
+  margin: 0;
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--text-muted, #63727D);
+  max-width: 34ch;
+}
+
+/* =========================================================
+   Chips row — clearer gap from intro and from composer
+   ========================================================= */
+
+.category-scroll {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+/* =========================================================
+   Composer — its own band, with a bottom gap before the feed
+   ========================================================= */
+
+.composer {
+  margin-bottom: 22px;
+}
+
+/* =========================================================
+   Feed — separate from everything above
+   ========================================================= */
+
+.feed {
+  margin-top: 4px;
+}
