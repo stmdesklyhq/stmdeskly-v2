@@ -51,7 +51,7 @@
     <button class="icon-button" id="searchButton" aria-label="Search">
       <svg viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5"/></svg>
     </button>
-    <button class="icon-button notice" id="notificationsButton" aria-label="Notifications">
+    <button class="icon-button" id="notificationsButton" aria-label="Notifications">
       <svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
       <i></i>
     </button>
@@ -134,7 +134,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
-<script src="auth.js?v=23"></script>
+<script src="auth.js?v=31"></script>
 <script src="home.js?v=7"></script>
 <script src="nav.js?v=101"></script>
 
@@ -196,6 +196,49 @@
   searchBtn.addEventListener('click', function () {
     location.href = '/explore.html';
   });
+})();
+
+/* Notifications bell — dot only when there's something newer than last_seen */
+(function () {
+  var btn = document.getElementById('notificationsButton');
+  if (!btn) return;
+
+  btn.addEventListener('click', function () {
+    location.href = '/notifications';
+  });
+
+  (async function paintDot() {
+    if (!window.AUTH) return;
+
+    var user = await AUTH.currentUser();
+    if (!user) return;
+
+    var desk = await AUTH.currentDesk();
+    var lastSeen = (desk && desk.last_seen_notifications_at) || null;
+    var lastSeenMs = lastSeen ? new Date(lastSeen).getTime() : 0;
+
+    var res = await AUTH.getNotifications();
+    if (!res.ok) return;
+
+    var d = res.data || {};
+    var hasNew = false;
+
+    function scan(list) {
+      if (hasNew || !list) return;
+      for (var i = 0; i < list.length; i++) {
+        if (new Date(list[i].created_at).getTime() > lastSeenMs) {
+          hasNew = true;
+          return;
+        }
+      }
+    }
+
+    scan(d.chatRequests);
+    scan(d.likes);
+    scan(d.replies);
+
+    if (hasNew) btn.classList.add('notice');
+  })();
 })();
 </script>
 
