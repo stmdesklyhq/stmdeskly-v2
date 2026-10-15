@@ -7,9 +7,11 @@
 /chats         /chats.html              200
 /chat          /chat.html               200
 /notifications /notifications.html      200
+/blocked       /blocked.html            200
 /login         /login.html              200
 /signup        /signup.html             200
+/forgot        /forgot.html             200
+/reset         /reset.html              200
 /edit          /edit.html               200
 /new-post      /new-post.html           200
 /new-chat      /new-chat.html           200
-/blocked       /blocked.html            200
