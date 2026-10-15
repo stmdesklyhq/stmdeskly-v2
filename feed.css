@@ -1209,3 +1209,7 @@ body,
 .icon-button svg {
   display: block;
 }
+/* Bell optical alignment — clapper hangs below the body, so nudge up */
+#notificationsButton svg {
+  transform: translateY(-1px);
+}
