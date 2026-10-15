@@ -95,7 +95,6 @@
   const LONG_TEXT_CHARS = 400;
   const LONG_TEXT_LINES = 6;
 
-  /* Slide-to-reply thresholds */
   const SWIPE_TRIGGER = 55;
   const SWIPE_MAX = 72;
 
@@ -145,7 +144,7 @@
   /* Swipe state */
   let touchTimer = null;
   let touchStart = null;
-  let swipeState = 'idle'; // idle | scroll | swiping
+  let swipeState = 'idle';
   let swipeBubble = null;
   let swipeDx = 0;
   let swipeStartX = 0;
@@ -835,7 +834,7 @@
   }
 
   /* =========================================================
-     Ensure thread — turns draft mode into a real thread.
+     Ensure thread
      ========================================================= */
 
   async function ensureThread() {
@@ -1936,6 +1935,7 @@
         hint.style.opacity = '';
         hint.style.transform = '';
         hint.classList.remove('is-armed');
+        hint.classList.remove('is-visible');
       }
     }
 
@@ -1963,10 +1963,8 @@
     const readmore = e.target.closest('.chat-bubble-readmore');
     if (photo || audioBtn || readmore || !bubble) return;
 
-    // Don't swipe-reply to deleted messages
     if (bubble.classList.contains('deleted')) return;
 
-    // Reset any stale swipe state
     resetSwipeVisuals();
 
     touchStart = {
@@ -1987,12 +1985,10 @@
     const dx = e.touches[0].clientX - touchStart.x;
     const dy = e.touches[0].clientY - touchStart.y;
 
-    // Any real movement cancels the long-press
     if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
       if (touchTimer) { clearTimeout(touchTimer); touchTimer = null; }
     }
 
-    // Decide gesture direction once
     if (swipeState === 'idle') {
       if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) {
         swipeState = 'scroll';
@@ -2002,6 +1998,12 @@
         swipeMsgId = swipeBubble.dataset.id;
         swipeStartX = touchStart.x;
         swipeBubble.classList.add('is-swiping');
+
+        const row = swipeBubble.closest('.chat-row');
+        if (row) {
+          const hint = row.querySelector('.chat-reply-hint');
+          if (hint) hint.classList.add('is-visible');
+        }
       }
     }
 
@@ -2045,6 +2047,7 @@
           hint.style.opacity = '';
           hint.style.transform = '';
           hint.classList.remove('is-armed');
+          hint.classList.remove('is-visible');
         }
       }
 
