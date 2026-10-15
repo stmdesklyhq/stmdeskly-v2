@@ -1,7 +1,7 @@
 /* =========================================================
    STMDESKLY v2 — Single chat
-   Long messages collapse with a Read more toggle.
-   Star indicator, pins, draft mode, cancel/reopen.
+   Slide-to-reply. Read more toggle. Star indicator, pins,
+   draft mode, cancel/reopen.
    ========================================================= */
 (function () {
   'use strict';
@@ -92,9 +92,12 @@
 
   const REACTION_EMOJIS = ['👍', '❤️', '😂', '🔥', '🙏', '👏'];
 
-  /* Collapse threshold — roughly 8–10 lines on a phone */
   const LONG_TEXT_CHARS = 400;
   const LONG_TEXT_LINES = 6;
+
+  /* Slide-to-reply thresholds */
+  const SWIPE_TRIGGER = 55;
+  const SWIPE_MAX = 72;
 
   let me = null;
   let thread = null;
@@ -138,6 +141,15 @@
   let playStartOffset = 0;
   let playTotalDur = 0;
   let progressRaf = null;
+
+  /* Swipe state */
+  let touchTimer = null;
+  let touchStart = null;
+  let swipeState = 'idle'; // idle | scroll | swiping
+  let swipeBubble = null;
+  let swipeDx = 0;
+  let swipeStartX = 0;
+  let swipeMsgId = null;
 
   /* =========================================================
      IndexedDB — failed voice notes
@@ -638,14 +650,15 @@
 
       const hasPhoto = !!m.photo_url && !m.deleted_at;
       const hasAudio = !!m.audio_url && !m.deleted_at;
+      const isDeleted = !!m.deleted_at;
 
-      const isLongBody = !m.deleted_at && !hasPhoto && !hasAudio && !isAuto && isLongText(m.body);
+      const isLongBody = !isDeleted && !hasPhoto && !hasAudio && !isAuto && isLongText(m.body);
       const isExpanded = expandedMessageIds.has(m.id);
 
       let contentHtml;
       let useFooter = false;
 
-      if (m.deleted_at) {
+      if (isDeleted) {
         contentHtml = '<em>Message deleted</em>';
       } else if (hasPhoto) {
         contentHtml = '<img class="chat-bubble-photo" src="' + esc(m.photo_url) + '" alt="" data-src="' + esc(m.photo_url) + '">';
@@ -659,7 +672,7 @@
         contentHtml = autoChip + (m.body ? esc(m.body) : '');
       }
 
-      const bodyCls = m.deleted_at
+      const bodyCls = isDeleted
         ? ' chat-bubble deleted'
         : (isAuto ? ' chat-bubble-auto' : '');
 
@@ -675,13 +688,12 @@
         : '';
 
       const time = timeShort(m.created_at);
-      const dot = (mine && !m.deleted_at) ? dotHtml(m) : '';
+      const dot = (mine && !isDeleted) ? dotHtml(m) : '';
 
       let metaHtml;
-      if (m.deleted_at) {
+      if (isDeleted) {
         metaHtml = '';
       } else if (useFooter) {
-        // Long message — meta goes into a footer row alongside the toggle
         metaHtml =
           '<div class="chat-bubble-bottom">' +
             '<button type="button" class="chat-bubble-readmore" data-readmore="' + esc(m.id) + '">' +
@@ -695,8 +707,17 @@
 
       const reactionsHtml = (m.__pending || m.__failed) ? '' : reactionsHtmlFor(m.id);
 
+      const replyHint =
+        '<span class="chat-reply-hint" aria-hidden="true">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' +
+            '<path d="M9 17l-6-6 6-6"/>' +
+            '<path d="M3 11h13a6 6 0 0 1 6 6v3"/>' +
+          '</svg>' +
+        '</span>';
+
       return divider +
-        '<div class="' + wrapCls + '">' +
+        '<div class="' + wrapCls + '" data-msg-id="' + esc(m.id) + '">' +
+          replyHint +
           '<div class="chat-bubble ' + cls + bodyCls + photoCls + audioCls + stateCls + '" data-id="' + esc(m.id) + '" data-sender="' + esc(m.sender_id) + '">' +
             replyHtml +
             contentHtml +
@@ -1010,6 +1031,10 @@
     replyPreview.textContent = preview;
     replyBar.hidden = false;
     chatInput.focus();
+
+    if (navigator.vibrate) {
+      try { navigator.vibrate(8); } catch (e) {}
+    }
   }
 
   function cancelReply() {
@@ -1895,6 +1920,32 @@
   });
 
   /* =========================================================
+     Swipe helpers
+     ========================================================= */
+
+  function resetSwipeVisuals() {
+    if (swipeBubble) {
+      swipeBubble.classList.remove('is-swiping');
+      swipeBubble.style.transform = '';
+    }
+
+    const rows = chatLog.querySelectorAll('.chat-row');
+    for (let i = 0; i < rows.length; i++) {
+      const hint = rows[i].querySelector('.chat-reply-hint');
+      if (hint) {
+        hint.style.opacity = '';
+        hint.style.transform = '';
+        hint.classList.remove('is-armed');
+      }
+    }
+
+    swipeState = 'idle';
+    swipeBubble = null;
+    swipeDx = 0;
+    swipeMsgId = null;
+  }
+
+  /* =========================================================
      Events
      ========================================================= */
 
@@ -1905,16 +1956,25 @@
     openContext(bubble.dataset.id);
   });
 
-  let touchTimer = null;
-  let touchStart = null;
-
   chatLog.addEventListener('touchstart', function (e) {
     const bubble = e.target.closest('.chat-bubble');
     const photo = e.target.closest('.chat-bubble-photo');
     const audioBtn = e.target.closest('.chat-audio-play');
     const readmore = e.target.closest('.chat-bubble-readmore');
     if (photo || audioBtn || readmore || !bubble) return;
-    touchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+
+    // Don't swipe-reply to deleted messages
+    if (bubble.classList.contains('deleted')) return;
+
+    // Reset any stale swipe state
+    resetSwipeVisuals();
+
+    touchStart = {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+      bubble: bubble
+    };
+
     touchTimer = setTimeout(function () {
       openContext(bubble.dataset.id);
       touchTimer = null;
@@ -1923,17 +1983,87 @@
 
   chatLog.addEventListener('touchmove', function (e) {
     if (!touchStart) return;
-    const dx = Math.abs(e.touches[0].clientX - touchStart.x);
-    const dy = Math.abs(e.touches[0].clientY - touchStart.y);
-    if (dx > 8 || dy > 8) {
+
+    const dx = e.touches[0].clientX - touchStart.x;
+    const dy = e.touches[0].clientY - touchStart.y;
+
+    // Any real movement cancels the long-press
+    if (Math.abs(dx) > 8 || Math.abs(dy) > 8) {
       if (touchTimer) { clearTimeout(touchTimer); touchTimer = null; }
     }
-  }, { passive: true });
+
+    // Decide gesture direction once
+    if (swipeState === 'idle') {
+      if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) {
+        swipeState = 'scroll';
+      } else if (dx > 12 && dx > Math.abs(dy) * 1.3) {
+        swipeState = 'swiping';
+        swipeBubble = touchStart.bubble;
+        swipeMsgId = swipeBubble.dataset.id;
+        swipeStartX = touchStart.x;
+        swipeBubble.classList.add('is-swiping');
+      }
+    }
+
+    if (swipeState === 'swiping' && swipeBubble) {
+      const rawDx = e.touches[0].clientX - swipeStartX;
+      const shift = Math.max(0, Math.min(rawDx, SWIPE_MAX));
+      swipeDx = shift;
+      swipeBubble.style.transform = 'translateX(' + shift + 'px)';
+
+      const row = swipeBubble.closest('.chat-row');
+      if (row) {
+        const hint = row.querySelector('.chat-reply-hint');
+        if (hint) {
+          const progress = Math.min(1, shift / SWIPE_TRIGGER);
+          hint.style.opacity = String(progress * 0.95);
+          hint.style.transform = 'translateY(-50%) scale(' + (0.55 + 0.45 * progress) + ')';
+          if (shift >= SWIPE_TRIGGER) hint.classList.add('is-armed');
+          else hint.classList.remove('is-armed');
+        }
+      }
+
+      try { e.preventDefault(); } catch (err) {}
+    }
+  }, { passive: false });
 
   chatLog.addEventListener('touchend', function () {
     if (touchTimer) { clearTimeout(touchTimer); touchTimer = null; }
     touchStart = null;
-  });
+
+    if (swipeState === 'swiping' && swipeBubble) {
+      const id = swipeMsgId;
+      const shouldReply = swipeDx >= SWIPE_TRIGGER;
+
+      swipeBubble.classList.remove('is-swiping');
+      swipeBubble.style.transform = '';
+
+      const row = swipeBubble.closest('.chat-row');
+      if (row) {
+        const hint = row.querySelector('.chat-reply-hint');
+        if (hint) {
+          hint.style.opacity = '';
+          hint.style.transform = '';
+          hint.classList.remove('is-armed');
+        }
+      }
+
+      if (shouldReply && id) {
+        startReply(id);
+      }
+    }
+
+    swipeState = 'idle';
+    swipeBubble = null;
+    swipeDx = 0;
+    swipeMsgId = null;
+  }, { passive: true });
+
+  chatLog.addEventListener('touchcancel', function () {
+    if (touchTimer) { clearTimeout(touchTimer); touchTimer = null; }
+    touchStart = null;
+    resetSwipeVisuals();
+  }, { passive: true });
 
   chatLog.addEventListener('scroll', function () {
     updateScrollButton();
@@ -1948,7 +2078,6 @@
   }
 
   chatLog.addEventListener('click', function (e) {
-    /* Read more / Show less toggle — must come first */
     const readmoreBtn = e.target.closest('.chat-bubble-readmore');
     if (readmoreBtn) {
       e.preventDefault();
@@ -1960,7 +2089,6 @@
       if (wasExpanded) expandedMessageIds.delete(id);
       else expandedMessageIds.add(id);
 
-      // Preserve scroll — if user was near the bottom, stay there
       const wasAtBottom = isAtBottom();
       const scrollTop = chatLog.scrollTop;
       renderMessages();
