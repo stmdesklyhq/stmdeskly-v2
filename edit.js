@@ -1,525 +1,422 @@
-/* =========================================================
-   STMDESKLY v2 — Editor (hash-routed sections)
-   ========================================================= */
-(function () {
-  'use strict';
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#F7F6F1"><title>Edit my Desk — STMDeskly</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-  const $ = function (id) { return document.getElementById(id); };
+<link rel="preload" as="style" href="tokens.css?v=1">
+<link rel="preload" as="style" href="type.css?v=1">
+<link rel="stylesheet" href="tokens.css?v=1">
+<link rel="stylesheet" href="type.css?v=1">
+<link rel="stylesheet" href="edit.css?v=8">
+<link rel="stylesheet" href="publish.css?v=1">
+<link rel="stylesheet" href="appearance.css?v=1">
+</head>
+<body class="page-edit">
 
-  const form            = $('editForm');
-  const saveStatus      = $('saveStatus');
-  const saveBtn         = $('saveBtn');
-  const previewBtn      = $('previewBtn');
-  const previewClose    = $('previewClose');
-  const previewOverlay  = $('previewOverlay');
-  const previewFrame    = $('previewFrame');
-  const copyBtn         = $('copyBtn');
-  const avatarPreview   = $('avatarPreview');
-  const avatarInput     = $('avatarInput');
-  const avatarUploadBtn = $('avatarUploadBtn');
-  const avatarRemoveBtn = $('avatarRemoveBtn');
-  const coverPreview    = $('coverPreview');
-  const coverInput      = $('coverInput');
-  const coverUploadBtn  = $('coverUploadBtn');
-  const coverRemoveBtn  = $('coverRemoveBtn');
-  const photoGrid       = $('photoGrid');
-  const addPhotoBtn     = $('addPhotoBtn');
-  const photoInput      = $('photoInput');
-  const deskLinkEl      = $('deskLink');
-  const aboutCount      = $('aboutCount');
-  const backBtn         = $('backBtn');
-  const publishStrip    = $('publishStrip');
-  const publishStripLabel = $('publishStripLabel');
-  const publishStripTitle = $('publishStripTitle');
-  const publishStripSub = $('publishStripSub');
-  const publishAction   = $('publishAction');
-  const publishActionText = $('publishActionText');
-  const viewList        = $('viewList');
+<!-- ================= LIST VIEW ================= -->
+<div class="edit-view" id="viewList">
 
-  const PANEL_IDS = {
-    profile:    'panel-profile',
-    about:      'panel-about',
-    work:       'panel-work',
-    details:    'panel-details',
-    contact:    'panel-contact',
-    appearance: 'panel-appearance',
-    visibility: 'panel-visibility'
-  };
+  <header class="topbar">
+    <button class="back" type="button" id="backBtn" aria-label="Back">
+      <svg viewBox="0 0 24 24"><path d="M19 12H5m7 7-7-7 7-7"/></svg>
+    </button>
+    <h1>Edit my Desk</h1>
+    <button class="preview" type="button" id="previewBtn">
+      <svg viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+      <span>Preview</span>
+    </button>
+  </header>
 
-  const MAX_PHOTOS    = 12;
-  const MAX_FILE_SIZE = 5 * 1024 * 1024;
+  <section class="link-banner">
+    <div class="link-mark">
+      <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1"/></svg>
+    </div>
+    <div class="link-copy">
+      <small>Your Desk link</small>
+      <a id="deskLink" href="#">Loading…</a>
+    </div>
+    <button class="copy" type="button" id="copyBtn" aria-label="Copy Desk link">
+      <svg viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+    </button>
+  </section>
 
-  let desk = null;
-  let dirty = false;
-  let initialSnapshot = '';
-  let saving = false;
-  let publishing = false;
+  <section class="publish-strip" id="publishStrip" hidden>
+    <div class="publish-strip-main">
+      <small id="publishStripLabel">NOT PUBLISHED</small>
+      <strong id="publishStripTitle">Only you can see this Desk.</strong>
+      <p id="publishStripSub">You can keep editing after you publish.</p>
+    </div>
+    <button type="button" class="publish-action" id="publishAction">
+      <span id="publishActionText">Publish my Desk</span>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
+    </button>
+  </section>
 
-  function setStatus(kind, text) {
-    if (!saveStatus) return;
-    saveStatus.className = kind || '';
-    saveStatus.textContent = text || '';
-  }
+  <main class="main">
 
-  function snapshot() {
-    const data = collectFields();
-    data.avatar_url = desk.avatar_url || '';
-    data.cover_url = desk.cover_url || '';
-    data.photos = JSON.stringify(desk.photos || []);
-    return JSON.stringify(data);
-  }
+    <div class="intro">
+      <small>YOUR SPACE, YOUR STORY</small>
+      <h2>Make your Desk <em>yours.</em></h2>
+      <p>Edit each part of your Desk one at a time.</p>
+    </div>
 
-  function markDirty() {
-    if (saving) return;
-    if (snapshot() === initialSnapshot) {
-      dirty = false;
-      setStatus('', '');
-    } else {
-      dirty = true;
-      setStatus('dirty', 'Unsaved changes');
-    }
-  }
+    <nav class="section-list" aria-label="Desk sections">
 
-  function collectFields() {
-    const appearance = (window.APPEARANCE && window.APPEARANCE.get)
-      ? window.APPEARANCE.get()
-      : {
-          accent: '#2F6D50',
-          background: 'cream',
-          pattern: 'none',
-          font_pair: 'modern',
-          corner_style: 'rounded',
-          layout_style: 'spacious',
-          photo_layout: 'grid'
-        };
+      <a class="section-row" href="#profile">
+        <span class="section-num">01</span>
+        <span class="section-copy">
+          <strong>Profile</strong>
+          <small>Your name, photo and tagline</small>
+        </span>
+        <svg class="section-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
+      </a>
 
-    return {
-      name:            $('name')            ? $('name').value.trim() : '',
-      role:            $('role')            ? $('role').value.trim() : '',
-      tagline:         $('tagline')         ? $('tagline').value.trim() : '',
-      services:        $('services')        ? $('services').value : '',
-      about:           $('about')           ? $('about').value : '',
-      location:        $('location')        ? $('location').value.trim() : '',
-      opening_hours:   $('opening_hours')   ? $('opening_hours').value : '',
-      service_times:   $('service_times')   ? $('service_times').value : '',
-      whatsapp:        $('whatsapp')        ? $('whatsapp').value.trim() : '',
-      email:           $('email')           ? $('email').value.trim() : '',
-      phone:           $('phone')           ? $('phone').value.trim() : '',
-      website:         $('website')         ? $('website').value.trim() : '',
-      show_in_explore: $('show_in_explore') ? $('show_in_explore').checked : true,
+      <a class="section-row" href="#about">
+        <span class="section-num">02</span>
+        <span class="section-copy">
+          <strong>About</strong>
+          <small>What you offer and who you are</small>
+        </span>
+        <svg class="section-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
+      </a>
 
-      cover_url:       desk.cover_url || null,
-      avatar_url:      desk.avatar_url || null,
-      photos:          desk.photos || [],
+      <a class="section-row" href="#work">
+        <span class="section-num">03</span>
+        <span class="section-copy">
+          <strong>My work</strong>
+          <small>Photos of what you do</small>
+        </span>
+        <svg class="section-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
+      </a>
 
-      accent:          appearance.accent,
-      background:      appearance.background,
-      pattern:         appearance.pattern,
-      font_pair:       appearance.font_pair,
-      corner_style:    appearance.corner_style,
-      layout_style:    appearance.layout_style,
-      photo_layout:    appearance.photo_layout,
-    };
-  }
+      <a class="section-row" href="#details">
+        <span class="section-num">04</span>
+        <span class="section-copy">
+          <strong>Details</strong>
+          <small>Location and hours</small>
+        </span>
+        <svg class="section-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
+      </a>
 
-  function initials(name) {
-    const parts = String(name || '').trim().split(/\s+/).filter(Boolean);
-    if (!parts.length) return '·';
-    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-  }
+      <a class="section-row" href="#contact">
+        <span class="section-num">05</span>
+        <span class="section-copy">
+          <strong>Contact</strong>
+          <small>WhatsApp, email, phone</small>
+        </span>
+        <svg class="section-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
+      </a>
 
-  /* ---------- Avatar ---------- */
-  function paintAvatar() {
-    if (!avatarPreview) return;
-    if (desk.avatar_url) {
-      avatarPreview.innerHTML = '<img src="' + desk.avatar_url + '" alt="">';
-      if (avatarRemoveBtn) avatarRemoveBtn.hidden = false;
-    } else {
-      avatarPreview.textContent = initials(desk.name);
-      if (avatarRemoveBtn) avatarRemoveBtn.hidden = true;
-    }
-  }
+      <a class="section-row" href="#appearance">
+        <span class="section-num">06</span>
+        <span class="section-copy">
+          <strong>Appearance</strong>
+          <small>Colours, fonts, layout</small>
+        </span>
+        <svg class="section-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
+      </a>
 
-  /* ---------- Cover ---------- */
-  function paintCover() {
-    if (!coverPreview) return;
-    if (desk.cover_url) {
-      coverPreview.style.backgroundImage = 'url(' + desk.cover_url + ')';
-      if (coverRemoveBtn) coverRemoveBtn.hidden = false;
-    } else {
-      coverPreview.style.backgroundImage = '';
-      if (coverRemoveBtn) coverRemoveBtn.hidden = true;
-    }
-  }
+      <a class="section-row" href="#visibility">
+        <span class="section-num">07</span>
+        <span class="section-copy">
+          <strong>Visibility</strong>
+          <small>Discoverability options</small>
+        </span>
+        <svg class="section-chevron" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg>
+      </a>
 
-  /* ---------- Photos ---------- */
-  function paintPhotos() {
-    if (!photoGrid) return;
-    const photos = desk.photos || [];
-    photoGrid.innerHTML = '';
-    photos.forEach(function (url) {
-      const tile = document.createElement('div');
-      tile.className = 'photo';
-      tile.dataset.url = url;
-      tile.innerHTML =
-        '<img src="' + url + '" alt="">' +
-        '<button type="button" aria-label="Remove photo">×</button>';
-      const btn = tile.querySelector('button');
-      btn.addEventListener('click', function () { removePhotoTile(tile); });
-      photoGrid.appendChild(tile);
-    });
-  }
+    </nav>
 
-  function removePhotoTile(tile) {
-    const url = tile.dataset.url;
-    desk.photos = (desk.photos || []).filter(function (u) { return u !== url; });
-    tile.remove();
-    markDirty();
-  }
+  </main>
+</div>
 
-  function addPhotoTileUploading() {
-    const tile = document.createElement('div');
-    tile.className = 'photo uploading';
-    tile.innerHTML = '<div><i></i>Uploading…</div>';
-    photoGrid.appendChild(tile);
-    return tile;
-  }
+<!-- ================= PANEL VIEWS ================= -->
+<form id="editForm">
 
-  async function handlePhotoFile(file) {
-    if (file.size > MAX_FILE_SIZE) { alert('Max 5 MB.'); return; }
-    if (!file.type.startsWith('image/')) { alert('Only images.'); return; }
-    const tile = addPhotoTileUploading();
-    const res = await AUTH.uploadPhoto(file);
-    if (!res.ok) {
-      tile.remove();
-      alert('Could not upload that photo. Try again.');
-      return;
-    }
-    desk.photos = desk.photos || [];
-    desk.photos.push(res.url);
-    tile.remove();
-    paintPhotos();
-    markDirty();
-  }
+<!-- PROFILE -->
+<section class="edit-panel" id="panel-profile" hidden>
+  <header class="panel-topbar">
+    <button class="back" type="button" data-close aria-label="Back">
+      <svg viewBox="0 0 24 24"><path d="M19 12H5m7 7-7-7 7-7"/></svg>
+    </button>
+    <h1>Profile</h1>
+    <span class="panel-spacer"></span>
+  </header>
 
-  /* ---------- Save ---------- */
-  async function save() {
-    if (saving) return;
-    const values = collectFields();
-    if (!values.name) { setStatus('error', 'Your name is required.'); return; }
-    saving = true;
-    setStatus('saving', 'Saving…');
-    if (saveBtn) saveBtn.disabled = true;
-    const oldPhotos = (desk.photos || []).slice();
-    const res = await AUTH.updateDesk(values);
-    if (!res.ok) {
-      saving = false;
-      if (saveBtn) saveBtn.disabled = false;
-      const msg = (res.error && res.error.message) || 'unknown';
-      setStatus('error', 'Couldn\u2019t save: ' + msg);
-      return;
-    }
-    const newSet = {};
-    (desk.photos || []).forEach(function (u) { newSet[u] = true; });
-    const removed = oldPhotos.filter(function (u) { return !newSet[u]; });
-    removed.forEach(function (u) { AUTH.removePhoto(u); });
-    Object.assign(desk, values);
-    desk.photos = values.photos;
-    initialSnapshot = snapshot();
-    dirty = false;
-    saving = false;
-    if (saveBtn) saveBtn.disabled = false;
-    setStatus('saved', 'All changes saved');
-    setTimeout(function () { if (!dirty) setStatus('', ''); }, 2500);
-  }
+  <div class="panel-body">
+    <div class="avatar-card">
+      <div class="avatar" id="avatarPreview">CO</div>
+      <div>
+        <strong>Your profile photo</strong>
+        <p>A clear photo helps people recognise you.</p>
+        <button class="primary-soft" type="button" id="avatarUploadBtn">Upload photo</button>
+        <button class="ghost" type="button" id="avatarRemoveBtn" hidden>Remove</button>
+      </div>
+    </div>
+    <input type="file" id="avatarInput" accept="image/*" hidden>
 
-  /* ---------- Publish ---------- */
-  function paintPublishStrip() {
-    if (!publishStrip) return;
-    publishStrip.hidden = false;
-    if (desk.published) {
-      publishStrip.className = 'publish-strip published';
-      publishStripLabel.textContent = 'LIVE';
-      publishStripTitle.textContent = 'Anyone with this link can see your Desk.';
-      publishStripSub.textContent = 'Unpublishing hides it from visitors. Your edits are kept.';
-      publishActionText.textContent = 'Unpublish';
-      publishAction.classList.remove('publish-action');
-      publishAction.classList.add('unpublish-action');
-    } else {
-      publishStrip.className = 'publish-strip unpublished';
-      publishStripLabel.textContent = 'NOT PUBLISHED';
-      publishStripTitle.textContent = 'Only you can see this Desk.';
-      publishStripSub.textContent = 'You can keep editing after you publish.';
-      publishActionText.textContent = 'Publish my Desk';
-      publishAction.classList.remove('unpublish-action');
-      publishAction.classList.add('publish-action');
-    }
-    publishAction.disabled = false;
-  }
+    <label for="name">Your name</label>
+    <input id="name" name="name" required>
 
-  async function publishDesk() {
-    if (publishing) return;
-    publishing = true;
-    publishAction.disabled = true;
-    const wasPublished = !!desk.published;
-    publishActionText.textContent = wasPublished ? 'Unpublishing…' : 'Publishing…';
-    const res = await AUTH.updateDesk({ published: !wasPublished });
-    if (!res.ok) {
-      publishing = false;
-      publishAction.disabled = false;
-      publishActionText.textContent = wasPublished ? 'Unpublish' : 'Publish my Desk';
-      alert('Could not update publication. Try again.');
-      return;
-    }
-    desk.published = !wasPublished;
-    publishing = false;
-    if (desk.published) { location.href = '/publish.html'; return; }
-    paintPublishStrip();
-  }
+    <label for="role">What you do</label>
+    <input id="role" name="role">
 
-  /* ---------- Preview ---------- */
-  function openPreview() {
-    if (!previewOverlay || !previewFrame) return;
-    const draft = Object.assign({}, desk, collectFields());
-    draft.photos = desk.photos || [];
-    draft.avatar_url = desk.avatar_url || '';
-    draft.cover_url = desk.cover_url || '';
-    let encoded;
-    try {
-      const json = JSON.stringify(draft);
-      encoded = btoa(unescape(encodeURIComponent(json)));
-    } catch (err) { alert('Could not prepare preview.'); return; }
-    previewFrame.src = '/preview.html?d=' + encodeURIComponent(encoded) + '&t=' + Date.now();
-    previewOverlay.hidden = false;
-    previewOverlay.style.display = 'flex';
-  }
+    <label for="tagline">Tagline</label>
+    <input id="tagline" name="tagline" maxlength="90">
+    <small class="hint">One short line about you. Up to 90 characters.</small>
+  </div>
+</section>
 
-  function closePreview() {
-    if (!previewOverlay || !previewFrame) return;
-    previewOverlay.hidden = true;
-    previewOverlay.style.display = 'none';
-    previewFrame.src = 'about:blank';
-  }
+<!-- ABOUT -->
+<section class="edit-panel" id="panel-about" hidden>
+  <header class="panel-topbar">
+    <button class="back" type="button" data-close aria-label="Back">
+      <svg viewBox="0 0 24 24"><path d="M19 12H5m7 7-7-7 7-7"/></svg>
+    </button>
+    <h1>About</h1>
+    <span class="panel-spacer"></span>
+  </header>
 
-  /* ---------- Routing ---------- */
+  <div class="panel-body">
+    <label for="services">What you offer</label>
+    <textarea id="services" name="services" rows="4"></textarea>
+    <small class="hint">Keep each service on its own line.</small>
 
-  function showList() {
-    if (viewList) viewList.style.display = '';
-    Object.keys(PANEL_IDS).forEach(function (key) {
-      const el = $(PANEL_IDS[key]);
-      if (el) el.hidden = true;
-    });
-    window.scrollTo(0, 0);
-  }
+    <label for="about">About you <span class="count" id="aboutCount">0 / 700</span></label>
+    <textarea id="about" name="about" rows="5" maxlength="700"></textarea>
+  </div>
+</section>
 
-  function showPanel(slug) {
-    if (!PANEL_IDS[slug]) return showList();
-    if (viewList) viewList.style.display = 'none';
-    Object.keys(PANEL_IDS).forEach(function (key) {
-      const el = $(PANEL_IDS[key]);
-      if (el) el.hidden = key !== slug;
-    });
-    window.scrollTo(0, 0);
-  }
+<!-- MY WORK -->
+<section class="edit-panel" id="panel-work" hidden>
+  <header class="panel-topbar">
+    <button class="back" type="button" data-close aria-label="Back">
+      <svg viewBox="0 0 24 24"><path d="M19 12H5m7 7-7-7 7-7"/></svg>
+    </button>
+    <h1>My work</h1>
+    <span class="panel-spacer"></span>
+  </header>
 
-  function route() {
-    const slug = (location.hash || '').replace('#', '').trim();
-    if (!slug || !PANEL_IDS[slug]) showList();
-    else showPanel(slug);
-  }
+  <div class="panel-body">
+    <div class="photos" id="photoGrid"></div>
+    <button class="add-photo" type="button" id="addPhotoBtn">
+      <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Add a photo
+    </button>
+    <small class="hint">Up to 12 photos. JPG or PNG, max 5 MB each.</small>
+    <input type="file" id="photoInput" accept="image/*" multiple hidden>
+  </div>
+</section>
 
-  window.addEventListener('hashchange', route);
+<!-- DETAILS -->
+<section class="edit-panel" id="panel-details" hidden>
+  <header class="panel-topbar">
+    <button class="back" type="button" data-close aria-label="Back">
+      <svg viewBox="0 0 24 24"><path d="M19 12H5m7 7-7-7 7-7"/></svg>
+    </button>
+    <h1>Details</h1>
+    <span class="panel-spacer"></span>
+  </header>
 
-  /* ---------- Boot ---------- */
-  (async function boot() {
-    const user = await AUTH.currentUser();
-    if (!user) { location.replace('/login.html'); return; }
-    const row = await AUTH.currentDesk();
-    if (!row) { location.replace('/signup.html'); return; }
-    const res = await AUTH.sb.from('desks').select('*').eq('id', row.id).maybeSingle();
-    if (res.error || !res.data) { location.replace('/'); return; }
-    desk = res.data;
-    if (!Array.isArray(desk.photos)) desk.photos = [];
-    if (typeof desk.published !== 'boolean') desk.published = false;
+  <div class="panel-body">
+    <label for="location">Location</label>
+    <input id="location" name="location">
 
-    const fill = function (id, value) {
-      const el = $(id);
-      if (el) el.value = value || '';
-    };
-    fill('name', desk.name);
-    fill('role', desk.role);
-    fill('tagline', desk.tagline);
-    fill('services', desk.services);
-    fill('about', desk.about);
-    fill('location', desk.location);
-    fill('opening_hours', desk.opening_hours);
-    fill('service_times', desk.service_times);
-    fill('whatsapp', desk.whatsapp);
-    fill('email', desk.email);
-    fill('phone', desk.phone);
-    fill('website', desk.website);
-    if ($('show_in_explore')) $('show_in_explore').checked = !!desk.show_in_explore;
+    <label for="opening_hours">Opening hours</label>
+    <textarea id="opening_hours" name="opening_hours" rows="2"></textarea>
 
-    paintAvatar();
-    paintCover();
-    paintPhotos();
-    paintPublishStrip();
+    <label for="service_times">Service times <span class="optional">(optional)</span></label>
+    <textarea id="service_times" name="service_times" rows="2"></textarea>
+  </div>
+</section>
 
-    if (window.APPEARANCE && window.APPEARANCE.load) {
-      window.APPEARANCE.load(desk);
-    }
+<!-- CONTACT -->
+<section class="edit-panel" id="panel-contact" hidden>
+  <header class="panel-topbar">
+    <button class="back" type="button" data-close aria-label="Back">
+      <svg viewBox="0 0 24 24"><path d="M19 12H5m7 7-7-7 7-7"/></svg>
+    </button>
+    <h1>Contact</h1>
+    <span class="panel-spacer"></span>
+  </header>
 
-    const url = location.origin + '/u/' + encodeURIComponent(desk.username);
-    if (deskLinkEl) {
-      deskLinkEl.textContent = url.replace(/^https?:\/\//, '');
-      if (deskLinkEl.tagName === 'A') deskLinkEl.href = url;
-    }
+  <div class="panel-body">
+    <label for="whatsapp">WhatsApp</label>
+    <input id="whatsapp" name="whatsapp" type="tel">
+    <small class="hint">The main contact button on your Desk.</small>
 
-    function updateAboutCount() {
-      if (!aboutCount) return;
-      const el = $('about');
-      const len = el ? el.value.length : 0;
-      aboutCount.textContent = len + ' / 700';
-    }
-    const aboutEl = $('about');
-    if (aboutEl) {
-      aboutEl.addEventListener('input', updateAboutCount);
-      updateAboutCount();
-    }
+    <label for="email">Email</label>
+    <input id="email" name="email" type="email">
 
-    initialSnapshot = snapshot();
-    dirty = false;
-    setStatus('', '');
+    <label for="phone">Phone</label>
+    <input id="phone" name="phone" type="tel">
 
-    function onUserChange(e) {
-      if (!e.isTrusted) return;
-      markDirty();
-    }
+    <label for="website">Website <span class="optional">(optional)</span></label>
+    <input id="website" name="website" type="url">
+  </div>
+</section>
 
-    if (form) {
-      form.addEventListener('input', onUserChange);
-      form.addEventListener('change', onUserChange);
-    }
+<!-- APPEARANCE -->
+<section class="edit-panel" id="panel-appearance" hidden>
+  <header class="panel-topbar">
+    <button class="back" type="button" data-close aria-label="Back">
+      <svg viewBox="0 0 24 24"><path d="M19 12H5m7 7-7-7 7-7"/></svg>
+    </button>
+    <h1>Appearance</h1>
+    <span class="panel-spacer"></span>
+  </header>
 
-    route();
-  })();
+  <div class="panel-body appearance-group" id="appearance">
 
-  /* ---------- Events ---------- */
-  if (backBtn) {
-    backBtn.addEventListener('click', function () {
-      if (location.hash) {
-        history.pushState('', document.title, location.pathname);
-        route();
-        return;
-      }
-      if (window.history.length > 1) history.back();
-      else location.href = '/dashboard.html';
-    });
-  }
+    <div class="appearance-preview-wrap">
+      <div class="appearance-preview" id="appearancePreview"
+        data-accent="forest" data-background="cream" data-pattern="none"
+        data-font="modern" data-corners="rounded" data-layout="spacious" data-photo-layout="grid">
+        <div class="appearance-preview-pattern" aria-hidden="true"></div>
+        <div class="appearance-preview-content">
+          <div class="appearance-preview-avatar" aria-hidden="true"><span>CO</span></div>
+          <div class="appearance-preview-copy">
+            <span class="appearance-preview-label">A LITTLE ABOUT ME</span>
+            <h3 id="appearancePreviewName">Chidi Okonkwo</h3>
+            <p id="appearancePreviewRole">Photographer</p>
+            <span class="appearance-preview-line"></span>
+          </div>
+        </div>
+        <span class="appearance-preview-caption">DESK PREVIEW</span>
+      </div>
+      <p class="appearance-preview-note">A glimpse of how your Desk could look.</p>
+    </div>
 
-  document.querySelectorAll('[data-close]').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      history.pushState('', document.title, location.pathname);
-      route();
-    });
-  });
+    <div class="appearance-control">
+      <div class="appearance-control-heading"><h3>Accent colour</h3><span class="appearance-selection" id="accentSelection">Forest</span></div>
+      <div class="appearance-colours" role="group" aria-label="Accent colour">
+        <button type="button" class="appearance-colour is-selected" data-group="accent" data-value="forest" aria-label="Forest green" aria-pressed="true"><span class="colour-dot" style="--swatch:#2F6D50"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
+        <button type="button" class="appearance-colour" data-group="accent" data-value="emerald" aria-label="Emerald" aria-pressed="false"><span class="colour-dot" style="--swatch:#087F5B"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
+        <button type="button" class="appearance-colour" data-group="accent" data-value="blue" aria-label="Deep blue" aria-pressed="false"><span class="colour-dot" style="--swatch:#2458A6"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
+        <button type="button" class="appearance-colour" data-group="accent" data-value="red" aria-label="Warm red" aria-pressed="false"><span class="colour-dot" style="--swatch:#B93D45"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
+        <button type="button" class="appearance-colour" data-group="accent" data-value="terracotta" aria-label="Terracotta" aria-pressed="false"><span class="colour-dot" style="--swatch:#B85C38"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
+        <button type="button" class="appearance-colour" data-group="accent" data-value="plum" aria-label="Plum" aria-pressed="false"><span class="colour-dot" style="--swatch:#79518D"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
+        <button type="button" class="appearance-colour" data-group="accent" data-value="amber" aria-label="Amber" aria-pressed="false"><span class="colour-dot" style="--swatch:#A66A13"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
+        <button type="button" class="appearance-colour" data-group="accent" data-value="charcoal" aria-label="Charcoal" aria-pressed="false"><span class="colour-dot" style="--swatch:#34424A"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
+      </div>
+      <p class="appearance-hint">Used on buttons and highlights.</p>
+    </div>
 
-  if (form) {
-    form.addEventListener('submit', function (e) { e.preventDefault(); save(); });
-  }
-  if (saveBtn) {
-    saveBtn.addEventListener('click', function (e) { e.preventDefault(); save(); });
-  }
-  if (previewBtn)   previewBtn.addEventListener('click', openPreview);
-  if (previewClose) previewClose.addEventListener('click', closePreview);
-  if (previewOverlay) {
-    previewOverlay.addEventListener('click', function (e) {
-      if (e.target === previewOverlay) closePreview();
-    });
-  }
-  if (publishAction) publishAction.addEventListener('click', publishDesk);
-  if (copyBtn && deskLinkEl) {
-    copyBtn.addEventListener('click', async function () {
-      const link = deskLinkEl.href || deskLinkEl.textContent;
-      try {
-        await navigator.clipboard.writeText(link);
-        copyBtn.classList.add('copied');
-        setTimeout(function () { copyBtn.classList.remove('copied'); }, 1400);
-      } catch (err) { prompt('Copy this link:', link); }
-    });
-  }
+    <div class="appearance-control">
+      <div class="appearance-control-heading"><h3>Page background</h3><span class="appearance-selection" id="backgroundSelection">Cream</span></div>
+      <div class="appearance-backgrounds" role="group" aria-label="Page background">
+        <button type="button" class="appearance-background is-selected" data-group="background" data-value="cream" aria-pressed="true"><span class="background-swatch" style="--swatch:#F3F1EA"></span><span>Cream</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
+        <button type="button" class="appearance-background" data-group="background" data-value="white" aria-pressed="false"><span class="background-swatch" style="--swatch:#FFFFFF"></span><span>White</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
+        <button type="button" class="appearance-background" data-group="background" data-value="warm-grey" aria-pressed="false"><span class="background-swatch" style="--swatch:#EEEAE3"></span><span>Warm grey</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
+        <button type="button" class="appearance-background" data-group="background" data-value="cool-grey" aria-pressed="false"><span class="background-swatch" style="--swatch:#E9EDF0"></span><span>Cool grey</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg></button>
+      </div>
+      <p class="appearance-hint">The colour behind everything.</p>
+    </div>
 
-  /* Avatar */
-  if (avatarUploadBtn && avatarInput) {
-    avatarUploadBtn.addEventListener('click', function () { avatarInput.click(); });
-  }
-  if (avatarInput) {
-    avatarInput.addEventListener('change', async function (e) {
-      const file = e.target.files && e.target.files[0];
-      e.target.value = '';
-      if (!file) return;
-      if (file.size > MAX_FILE_SIZE) { alert('Max 5 MB.'); return; }
-      const res = await AUTH.uploadAvatar(file);
-      if (!res.ok) { alert('Could not upload that photo.'); return; }
-      desk.avatar_url = res.url;
-      paintAvatar();
-      markDirty();
-    });
-  }
-  if (avatarRemoveBtn) {
-    avatarRemoveBtn.addEventListener('click', function () {
-      desk.avatar_url = null;
-      paintAvatar();
-      markDirty();
-    });
-  }
+    <div class="appearance-control">
+      <div class="appearance-control-heading"><h3>Pattern</h3><span class="appearance-selection" id="patternSelection">None</span></div>
+      <div class="appearance-patterns" role="group" aria-label="Background pattern">
+        <button type="button" class="appearance-pattern is-selected" data-group="pattern" data-value="none" aria-pressed="true"><span class="pattern-tile pattern-none"></span><span>None</span></button>
+        <button type="button" class="appearance-pattern" data-group="pattern" data-value="dots" aria-pressed="false"><span class="pattern-tile pattern-dots"></span><span>Dots</span></button>
+        <button type="button" class="appearance-pattern" data-group="pattern" data-value="grid" aria-pressed="false"><span class="pattern-tile pattern-grid"></span><span>Grid</span></button>
+        <button type="button" class="appearance-pattern" data-group="pattern" data-value="diagonal" aria-pressed="false"><span class="pattern-tile pattern-diagonal"></span><span>Diagonal</span></button>
+        <button type="button" class="appearance-pattern" data-group="pattern" data-value="waves" aria-pressed="false"><span class="pattern-tile pattern-waves"></span><span>Waves</span></button>
+        <button type="button" class="appearance-pattern" data-group="pattern" data-value="plus" aria-pressed="false"><span class="pattern-tile pattern-plus"></span><span>Plus</span></button>
+        <button type="button" class="appearance-pattern" data-group="pattern" data-value="rings" aria-pressed="false"><span class="pattern-tile pattern-rings"></span><span>Rings</span></button>
+        <button type="button" class="appearance-pattern" data-group="pattern" data-value="crosshatch" aria-pressed="false"><span class="pattern-tile pattern-crosshatch"></span><span>Crosshatch</span></button>
+      </div>
+      <p class="appearance-hint">Optional texture behind your Desk.</p>
+    </div>
 
-  /* Cover */
-  if (coverUploadBtn && coverInput) {
-    coverUploadBtn.addEventListener('click', function () { coverInput.click(); });
-  }
-  if (coverInput) {
-    coverInput.addEventListener('change', async function (e) {
-      const file = e.target.files && e.target.files[0];
-      e.target.value = '';
-      if (!file) return;
-      if (file.size > MAX_FILE_SIZE) { alert('Max 5 MB.'); return; }
-      const res = await AUTH.uploadCover(file);
-      if (!res.ok) { alert('Could not upload cover.'); return; }
-      desk.cover_url = res.url;
-      paintCover();
-      markDirty();
-    });
-  }
-  if (coverRemoveBtn) {
-    coverRemoveBtn.addEventListener('click', function () {
-      desk.cover_url = null;
-      paintCover();
-      markDirty();
-    });
-  }
+    <div class="appearance-control">
+      <div class="appearance-control-heading"><h3>Font pair</h3><span class="appearance-selection" id="fontSelection">Modern</span></div>
+      <div class="appearance-fonts" role="group" aria-label="Font pair">
+        <button type="button" class="appearance-font is-selected" data-group="font" data-value="modern" aria-pressed="true"><span class="font-sample font-modern" data-preview-name>Chidi Okonkwo</span><span class="font-option-copy"><strong>Modern</strong><small>Clean and balanced</small></span><span class="font-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></span></button>
+        <button type="button" class="appearance-font" data-group="font" data-value="classic" aria-pressed="false"><span class="font-sample font-classic" data-preview-name>Chidi Okonkwo</span><span class="font-option-copy"><strong>Classic</strong><small>Timeless and composed</small></span><span class="font-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></span></button>
+        <button type="button" class="appearance-font" data-group="font" data-value="editorial" aria-pressed="false"><span class="font-sample font-editorial" data-preview-name>Chidi Okonkwo</span><span class="font-option-copy"><strong>Editorial</strong><small>Expressive and distinctive</small></span><span class="font-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></span></button>
+        <button type="button" class="appearance-font" data-group="font" data-value="friendly" aria-pressed="false"><span class="font-sample font-friendly" data-preview-name>Chidi Okonkwo</span><span class="font-option-copy"><strong>Friendly</strong><small>Soft and approachable</small></span><span class="font-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg></span></button>
+      </div>
+      <p class="appearance-hint">The type used across your Desk.</p>
+    </div>
 
-  /* Photos */
-  if (addPhotoBtn && photoInput) {
-    addPhotoBtn.addEventListener('click', function () {
-      if ((desk.photos || []).length >= MAX_PHOTOS) { alert('Max ' + MAX_PHOTOS + ' photos.'); return; }
-      photoInput.click();
-    });
-  }
-  if (photoInput) {
-    photoInput.addEventListener('change', async function (e) {
-      const files = Array.from(e.target.files || []);
-      e.target.value = '';
-      for (const f of files) {
-        if ((desk.photos || []).length >= MAX_PHOTOS) { alert('Max ' + MAX_PHOTOS + ' photos.'); break; }
-        await handlePhotoFile(f);
-      }
-    });
-  }
-  window.addEventListener('beforeunload', function (e) {
-    if (!dirty) return;
-    e.preventDefault();
-    e.returnValue = '';
-  });
-})();
+    <div class="appearance-control">
+      <div class="appearance-control-heading"><h3>Corners</h3><span class="appearance-selection" id="cornersSelection">Rounded</span></div>
+      <div class="appearance-two-options" role="group" aria-label="Corner style">
+        <button type="button" class="appearance-visual-option is-selected" data-group="corners" data-value="rounded" aria-pressed="true"><span class="corner-demo corner-rounded"><span></span><span></span><span></span></span><strong>Rounded</strong><small>Soft edges</small></button>
+        <button type="button" class="appearance-visual-option" data-group="corners" data-value="sharp" aria-pressed="false"><span class="corner-demo corner-sharp"><span></span><span></span><span></span></span><strong>Sharp</strong><small>Clean edges</small></button>
+      </div>
+      <p class="appearance-hint">How soft or sharp your Desk feels.</p>
+    </div>
+
+    <div class="appearance-control">
+      <div class="appearance-control-heading"><h3>Layout</h3><span class="appearance-selection" id="layoutSelection">Spacious</span></div>
+      <div class="appearance-two-options" role="group" aria-label="Layout spacing">
+        <button type="button" class="appearance-visual-option is-selected" data-group="layout" data-value="spacious" aria-pressed="true"><span class="layout-demo layout-spacious"><i></i><i></i><i></i><i></i></span><strong>Spacious</strong><small>More breathing room</small></button>
+        <button type="button" class="appearance-visual-option" data-group="layout" data-value="compact" aria-pressed="false"><span class="layout-demo layout-compact"><i></i><i></i><i></i><i></i></span><strong>Compact</strong><small>Closer together</small></button>
+      </div>
+      <p class="appearance-hint">How much breathing room your content has.</p>
+    </div>
+
+    <div class="appearance-control">
+      <div class="appearance-control-heading"><h3>Photo layout</h3><span class="appearance-selection" id="photoLayoutSelection">Grid</span></div>
+      <div class="appearance-photo-layouts" role="group" aria-label="Photo layout">
+        <button type="button" class="appearance-photo-option is-selected" data-group="photo-layout" data-value="grid" aria-pressed="true"><span class="photo-layout-demo photo-grid"><i></i><i></i><i></i></span><strong>Grid</strong></button>
+        <button type="button" class="appearance-photo-option" data-group="photo-layout" data-value="big-first" aria-pressed="false"><span class="photo-layout-demo photo-big-first"><i></i><i></i><i></i></span><strong>Big first</strong></button>
+        <button type="button" class="appearance-photo-option" data-group="photo-layout" data-value="slide" aria-pressed="false"><span class="photo-layout-demo photo-slide"><i></i><i></i><i></i><i></i></span><strong>Slide</strong></button>
+        <button type="button" class="appearance-photo-option" data-group="photo-layout" data-value="mosaic" aria-pressed="false"><span class="photo-layout-demo photo-mosaic"><i></i><i></i><i></i><i></i></span><strong>Mosaic</strong></button>
+      </div>
+      <p class="appearance-hint">How your photos arrange themselves.</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- VISIBILITY -->
+<section class="edit-panel" id="panel-visibility" hidden>
+  <header class="panel-topbar">
+    <button class="back" type="button" data-close aria-label="Back">
+      <svg viewBox="0 0 24 24"><path d="M19 12H5m7 7-7-7 7-7"/></svg>
+    </button>
+    <h1>Visibility</h1>
+    <span class="panel-spacer"></span>
+  </header>
+
+  <div class="panel-body">
+    <label class="switch">
+      <input type="checkbox" name="show_in_explore" id="show_in_explore" checked>
+      <span class="track"><i></i></span>
+      <span>
+        <strong>Show my Desk in Explore</strong>
+        <small>People browsing STMDeskly can find your Desk. Your direct link works either way.</small>
+      </span>
+    </label>
+  </div>
+</section>
+
+</form>
+
+<footer class="savebar">
+  <span class="dirty" id="saveStatus">Unsaved changes</span>
+  <button class="save" type="submit" form="editForm" id="saveBtn">Save changes <svg viewBox="0 0 24 24"><path d="m5 12 5 5L20 7"/></svg></button>
+</footer>
+
+<div class="preview-overlay" id="previewOverlay" hidden style="display:none !important">
+  <div class="preview-panel">
+    <div class="preview-head">
+      <span>Preview</span>
+      <button type="button" id="previewClose" aria-label="Close preview">×</button>
+    </div>
+    <iframe id="previewFrame" title="Desk preview"></iframe>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="auth.js?v=33"></script>
+<script src="desk-render.js?v=1"></script>
+<script src="appearance.js?v=2"></script>
+<script src="edit.js?v=9"></script>
+</body>
+</html>
