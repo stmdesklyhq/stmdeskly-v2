@@ -42,7 +42,7 @@
     if (usernameValue) usernameValue.textContent = '@' + username;
 
     if (seeDeskButton && desk && desk.username) {
-      seeDeskButton.href = '/u/' + encodeURIComponent(desk.username);
+      seeDeskButton.href = '/desk.html?u=' + encodeURIComponent(desk.username);
     }
   }
 
