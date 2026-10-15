@@ -47,4 +47,115 @@
       <svg class="auth-google-icon" viewBox="0 0 24 24" aria-hidden="true">
         <path fill="#4285F4" d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47a5.53 5.53 0 0 1-2.4 3.63v3h3.88c2.27-2.09 3.54-5.17 3.54-8.87Z"/>
         <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.94-2.91l-3.88-3c-1.08.72-2.45 1.16-4.06 1.16-3.13 0-5.78-2.11-6.73-4.96H1.29v3.09A11.99 11.99 0 0 0 12 24Z"/>
-        <path fill="#FBBC05" d="M5.27 14.29A7.2 7.2 0 0 1 4.89 12c0-.
+        <path fill="#FBBC05" d="M5.27 14.29A7.2 7.2 0 0 1 4.89 12c0-.8.14-1.57.38-2.29V6.62H1.29A11.99 11.99 0 0 0 0 12c0 1.94.46 3.77 1.29 5.38l3.98-3.09Z"/>
+        <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.69 1.29 6.62l3.98 3.09C6.22 6.86 8.87 4.75 12 4.75Z"/>
+      </svg>
+      <span>Continue with Google</span>
+    </button>
+
+    <div class="auth-divider"><span>or</span></div>
+
+    <form id="loginForm" novalidate>
+
+      <div class="auth-field">
+        <label class="auth-label" for="email">Email</label>
+        <input class="auth-input" type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email" required>
+      </div>
+
+      <div class="auth-field">
+        <div class="auth-label-row">
+          <label class="auth-label" for="password">Password</label>
+          <a class="auth-forgot" href="/forgot.html">Forgot?</a>
+        </div>
+        <div class="auth-pw-wrap">
+          <input class="auth-input" type="password" id="password" name="password" placeholder="Your password" autocomplete="current-password" required>
+          <button type="button" class="reveal-btn" id="pwToggle" aria-label="Show password">Show</button>
+        </div>
+      </div>
+
+      <div class="auth-options">
+        <label class="auth-remember">
+          <input type="checkbox" id="remember" name="remember">
+          <span>Keep me logged in</span>
+        </label>
+      </div>
+
+      <button type="submit" class="auth-submit" id="submitBtn">
+        Log in
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14M13 5l7 7-7 7"/>
+        </svg>
+      </button>
+
+    </form>
+
+    <p class="auth-foot">
+      New here? <a href="/signup.html">Create your Desk</a>
+    </p>
+
+  </div>
+</main>
+
+<p class="auth-bottom-note">A real website. In one minute. Free.</p>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="auth.js?v=33"></script>
+
+<script>
+(function () {
+  'use strict';
+
+  var form = document.getElementById('loginForm');
+  var errorBox = document.getElementById('formError');
+  var submitBtn = document.getElementById('submitBtn');
+  var googleBtn = document.getElementById('googleBtn');
+  var pwToggle = document.getElementById('pwToggle');
+  var pwInput = document.getElementById('password');
+
+  function showError(msg) {
+    errorBox.textContent = msg || '';
+    errorBox.hidden = !msg;
+  }
+
+  pwToggle.addEventListener('click', function () {
+    var show = pwInput.type === 'password';
+    pwInput.type = show ? 'text' : 'password';
+    pwToggle.textContent = show ? 'Hide' : 'Show';
+  });
+
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    showError('');
+
+    var email = document.getElementById('email').value.trim();
+    var password = pwInput.value;
+
+    if (!email || !password) {
+      showError('Enter your email and password.');
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Logging in…';
+
+    var res = await AUTH.loginEmail({ email: email, password: password });
+
+    if (!res.ok) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = 'Log in <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>';
+      showError((res.error && res.error.message) || 'Could not log in. Check your details.');
+      return;
+    }
+
+    location.replace('/home.html');
+  });
+
+  googleBtn.addEventListener('click', function () {
+    AUTH.signInGoogle(location.origin + '/home.html');
+  });
+})();
+</script>
+
+</body>
+            </html>
