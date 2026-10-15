@@ -30,10 +30,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <link rel="preload" as="style" href="tokens.css?v=1">
-<link rel="preload" as="style" href="chat.css?v=21">
+<link rel="preload" as="style" href="chat.css?v=22">
 
 <link rel="stylesheet" href="tokens.css?v=1">
-<link rel="stylesheet" href="chat.css?v=21">
+<link rel="stylesheet" href="chat.css?v=22">
 </head>
 
 <body class="page-chat">
@@ -168,6 +168,17 @@
   <button type="button" class="chat-cancelled-reopen" id="reopenRequestBtn">Send again</button>
 </div>
 
+<button type="button" class="chat-pinned-strip" id="pinnedStrip" hidden>
+  <span class="chat-pinned-strip-icon" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 17v5"/>
+      <path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1z"/>
+    </svg>
+  </span>
+  <span class="chat-pinned-strip-copy" id="pinnedStripCopy"></span>
+  <span class="chat-pinned-strip-count" id="pinnedStripCount" hidden></span>
+</button>
+
 <div class="chat-missing" id="chatMissing" hidden>
   <span class="chat-missing-mark" aria-hidden="true">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -297,6 +308,13 @@
     </svg>
     <span id="starLabel">Star</span>
   </button>
+  <button type="button" class="chat-context-item" data-action="pin">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 17v5"/>
+      <path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1z"/>
+    </svg>
+    <span id="pinLabel">Pin message</span>
+  </button>
   <button type="button" class="chat-context-item" data-action="copy">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
     <span>Copy</span>
@@ -328,6 +346,16 @@
   <div class="starred-list" id="starredList"></div>
 </div>
 
+<div class="pinned-sheet-overlay" id="pinnedSheetOverlay" hidden>
+  <div class="pinned-sheet">
+    <header class="pinned-sheet-head">
+      <span>Pinned messages</span>
+      <button type="button" id="pinnedSheetClose" aria-label="Close">×</button>
+    </header>
+    <div class="pinned-sheet-list" id="pinnedSheetList"></div>
+  </div>
+</div>
+
 <div class="chat-lightbox" id="chatLightbox" hidden>
   <button type="button" class="chat-lightbox-close" id="chatLightboxClose" aria-label="Close">×</button>
   <img id="chatLightboxImg" src="" alt="">
@@ -335,8 +363,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
-<script src="auth.js?v=24"></script>
-<script src="chat.js?v=19"></script>
+<script src="auth.js?v=25"></script>
+<script src="chat.js?v=20"></script>
 
 </body>
-       </html>
+     </html>
