@@ -134,7 +134,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
-<script src="auth.js?v=31"></script>
+<script src="auth.js?v=32"></script>
 <script src="home.js?v=7"></script>
 <script src="nav.js?v=101"></script>
 
@@ -213,8 +213,7 @@
     var user = await AUTH.currentUser();
     if (!user) return;
 
-    var desk = await AUTH.currentDesk();
-    var lastSeen = (desk && desk.last_seen_notifications_at) || null;
+    var lastSeen = await AUTH.getLastSeenNotificationsAt();
     var lastSeenMs = lastSeen ? new Date(lastSeen).getTime() : 0;
 
     var res = await AUTH.getNotifications();
