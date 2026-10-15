@@ -1,4 +1,4 @@
-/* =========================================================
+7/* =========================================================
    STMDESKLY v2 — Chat
    Floating split topbar. Floating composer. Clean bubbles.
    ========================================================= */
@@ -1713,3 +1713,233 @@
 }
 .chat-cancelled-reopen:active { transform: scale(0.97); }
 .chat-cancelled-reopen:disabled { opacity: 0.55; cursor: not-allowed; }
+/* =========================================================
+   APPEND — Star indicator, pinned strip, pinned sheet
+   ========================================================= */
+
+/* Star marker inside the bubble meta */
+.chat-bubble-meta .chat-bubble-star {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 11px;
+  height: 11px;
+  margin-right: 2px;
+}
+
+.chat-bubble-meta .chat-bubble-star svg {
+  width: 11px;
+  height: 11px;
+}
+
+.chat-bubble.them .chat-bubble-star { color: #D4A93A; }
+.chat-bubble.me   .chat-bubble-star { color: #FBE8A0; }
+
+/* Pinned strip above the chat log */
+.chat-pinned-strip {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 12px 8px;
+  padding: 10px 14px;
+
+  border: 1px solid rgba(47, 109, 112, 0.22);
+  border-radius: 14px;
+  background: linear-gradient(135deg, #EDF5F0 0%, #E4EFE8 100%);
+  color: var(--text-primary, #172B3A);
+
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 140ms ease, box-shadow 140ms ease;
+}
+.chat-pinned-strip:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(47, 109, 112, 0.12);
+}
+.chat-pinned-strip:active { transform: translateY(0); }
+
+.chat-pinned-strip-icon {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: rgba(255, 254, 251, 0.85);
+  color: var(--teal, #2F6D70);
+}
+.chat-pinned-strip-icon svg { width: 15px; height: 15px; }
+
+.chat-pinned-strip-copy {
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  color: var(--text-primary, #172B3A);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-pinned-strip-count {
+  flex: 0 0 auto;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--teal, #2F6D70);
+  color: #FFFEFB;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+/* Pinned sheet */
+.pinned-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(16, 35, 47, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: pinned-fade 180ms ease both;
+}
+.pinned-sheet-overlay[hidden] { display: none !important; }
+
+@keyframes pinned-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.pinned-sheet {
+  width: 100%;
+  max-width: 620px;
+  max-height: 78dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper, #FFFEFB);
+  border-radius: 22px 22px 0 0;
+  box-shadow: 0 -14px 44px rgba(23, 43, 58, 0.22);
+  animation: pinned-up 240ms cubic-bezier(.2, .7, .2, 1) both;
+}
+
+@keyframes pinned-up {
+  from { transform: translateY(40px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.pinned-sheet-head {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid rgba(23, 43, 58, 0.06);
+}
+.pinned-sheet-head > span {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-primary, #172B3A);
+  letter-spacing: -0.01em;
+}
+.pinned-sheet-head > button {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: var(--cream, #F7F6F1);
+  color: var(--text-primary, #172B3A);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.pinned-sheet-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12px 16px calc(20px + env(safe-area-inset-bottom));
+  display: grid;
+  gap: 8px;
+}
+
+.pinned-empty {
+  padding: 32px 12px;
+  color: var(--text-muted, #718087);
+  font-size: 13px;
+  text-align: center;
+  line-height: 1.7;
+}
+
+.pinned-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+
+  background: var(--cream, #F7F6F1);
+  border: 1px solid rgba(23, 43, 58, 0.06);
+  border-radius: 14px;
+
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease;
+}
+.pinned-item:hover {
+  background: #FBFBF7;
+  border-color: rgba(47, 109, 112, 0.24);
+}
+
+.pinned-item-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.pinned-item-meta {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted, #718087);
+  margin-bottom: 3px;
+}
+
+.pinned-item-body {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-primary, #172B3A);
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.pinned-item-unpin {
+  flex: 0 0 auto;
+  min-height: 30px;
+  padding: 0 12px;
+
+  border: 1px solid rgba(23, 43, 58, 0.12);
+  border-radius: 999px;
+  background: transparent;
+
+  color: var(--text-primary, #172B3A);
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease, color 140ms ease;
+}
+.pinned-item-unpin:hover {
+  border-color: #B3261E;
+  color: #B3261E;
+  background: rgba(179, 38, 30, 0.05);
+}
