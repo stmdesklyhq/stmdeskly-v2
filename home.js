@@ -1,6 +1,6 @@
 /* =========================================================
    STMDESKLY v2 — Home (feed)
-   Avatar links are plain <a href>. Nothing intercepts them.
+   Standard posts + gig cards (six visual differences).
    ========================================================= */
 (function () {
   'use strict';
@@ -104,19 +104,111 @@
     return '<div class="post-photos">' + tiles + more + '</div>';
   }
 
+  /* ---------- Gig helpers ---------- */
+
+  function gigStatusOf(post) {
+    const s = String(post.gig_status || 'open').toLowerCase();
+    if (s === 'filled' || s === 'closed') return s;
+    return 'open';
+  }
+
+  function renderGigChip(post) {
+    const status = gigStatusOf(post);
+    const label = 'Gig · ' + status.charAt(0).toUpperCase() + status.slice(1);
+    return '<span class="post-category post-category-gig">' +
+      '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+        '<path d="m14 5 5 5M4 20l4.2-.9L19 8.3a2.1 2.1 0 0 0-3-3L5.2 16.1 4 20Z"/>' +
+      '</svg>' +
+      esc(label) +
+    '</span>';
+  }
+
+  function renderGigBudget(post) {
+    const min = Number(post.gig_budget_min) || 0;
+    const max = Number(post.gig_budget_max) || 0;
+
+    if (!min && !max) return '';
+
+    let value = '';
+    if (min && max && min !== max) {
+      value = '₦' + min.toLocaleString() + ' – ₦' + max.toLocaleString();
+    } else if (min && max && min === max) {
+      value = '₦' + min.toLocaleString();
+    } else if (min) {
+      value = 'From ₦' + min.toLocaleString();
+    } else {
+      value = 'Up to ₦' + max.toLocaleString();
+    }
+
+    return '<div class="gig-budget">' +
+      '<span class="gig-budget-value">' + esc(value) + '</span>' +
+      '<span class="gig-budget-label">BUDGET</span>' +
+    '</div>';
+  }
+
+  function renderGigDeadline(post) {
+    if (!post.gig_deadline) return '';
+
+    const d = new Date(post.gig_deadline + 'T00:00:00');
+    if (isNaN(d.getTime())) return '';
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const diffDays = Math.round((d - today) / 86400000);
+
+    let cls = 'gig-deadline';
+    let label;
+
+    if (diffDays < 0) {
+      cls += ' is-overdue';
+      label = 'Overdue';
+    } else if (diffDays === 0) {
+      cls += ' is-today';
+      label = 'Due today';
+    } else if (diffDays <= 3) {
+      cls += ' is-soon';
+      label = 'Due in ' + diffDays + ' day' + (diffDays === 1 ? '' : 's');
+    } else {
+      label = 'Due ' + d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
+    }
+
+    return '<span class="' + cls + '">' + esc(label) + '</span>';
+  }
+
+  function renderGigAction(post, isMine) {
+    const status = gigStatusOf(post);
+
+    if (status === 'filled') {
+      return '<div class="gig-closed">This gig has been filled.</div>';
+    }
+    if (status === 'closed') {
+      return '<div class="gig-closed">This gig is closed.</div>';
+    }
+
+    if (isMine) {
+      return '<button type="button" class="gig-own-action" data-action="mark-filled">Mark as filled</button>';
+    }
+
+    return '<button type="button" class="gig-apply" data-action="apply">' +
+      '<svg viewBox="0 0 24 24" aria-hidden="true">' +
+        '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>' +
+      '</svg>' +
+      'Apply to this gig' +
+    '</button>';
+  }
+
+  /* ---------- Post rendering ---------- */
+
   function renderPost(post) {
+    const isGig = post.category === 'gig';
+
     const photoGrid = renderPhotoGrid(post.photos);
-    const categoryLabel = CATEGORY_LABELS[post.category] || post.category;
     const location = post.location
       ? '<span class="location"><svg viewBox="0 0 24 24"><path d="M20 10c0 5-8 11-8 11S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg>' + esc(post.location) + '</span>'
       : '';
 
     const title = post.title
       ? '<h3 class="post-title">' + esc(post.title) + '</h3>'
-      : '';
-
-    const price = post.price
-      ? '<div class="post-price">' + esc(post.price) + '</div>'
       : '';
 
     const isMine = currentUser && post.user_id === currentUser.id;
@@ -134,14 +226,36 @@
       ? '<button class="icon-button post-menu" data-action="menu" aria-label="Post options"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>'
       : '';
 
-    return '<article class="post-card" data-id="' + esc(post.id) + '" data-owner="' + esc(post.user_id) + '">' +
+    let categoryChip;
+    let extraMeta = '';
+    let budgetBlock = '';
+    let priceBlock = '';
+    let gigAction = '';
+
+    if (isGig) {
+      categoryChip = renderGigChip(post);
+      extraMeta = renderGigDeadline(post);
+      budgetBlock = renderGigBudget(post);
+      gigAction = renderGigAction(post, isMine);
+    } else {
+      const categoryLabel = CATEGORY_LABELS[post.category] || post.category;
+      categoryChip = '<span class="post-category">' + esc(categoryLabel) + '</span>';
+      priceBlock = post.price
+        ? '<div class="post-price">' + esc(post.price) + '</div>'
+        : '';
+    }
+
+    const cardCls = 'post-card' + (isGig ? ' is-gig' : '');
+
+    return '<article class="' + cardCls + '" data-id="' + esc(post.id) + '" data-owner="' + esc(post.user_id) + '">' +
       '<header class="post-header">' +
         '<a class="avatar post-avatar" href="' + profileUrl + '">' + esc(initials(post.author_name || '·')) + '</a>' +
         '<div class="post-author">' +
           '<a class="post-author-link" href="' + profileUrl + '"><strong>' + esc(post.author_name || 'Someone') + '</strong></a>' +
           '<div class="post-meta">' +
-            '<span class="post-category">' + esc(categoryLabel) + '</span>' +
+            categoryChip +
             '<span>' + esc(timeAgo(post.created_at)) + '</span>' +
+            extraMeta +
             location +
           '</div>' +
         '</div>' +
@@ -149,13 +263,15 @@
       '</header>' +
       title +
       '<p class="post-body">' + esc(post.body) + '</p>' +
-      price +
+      budgetBlock +
+      priceBlock +
       photoGrid +
       '<footer class="post-actions">' +
         '<button class="post-action" data-action="like" aria-label="Like"><svg viewBox="0 0 24 24"><path d="M20.8 4.8a5.5 5.5 0 0 0-7.8 0L12 5.9l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.3 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z"/></svg><span class="reaction-count" data-count-for="' + esc(post.id) + '"></span></button>' +
         '<button class="post-action" data-action="comment" aria-label="Comment"><svg viewBox="0 0 24 24"><path d="M20 11.5a7.5 7.5 0 0 1-7.5 7.5 8 8 0 0 1-3.5-.8L4 20l1.3-4.2a7.5 7.5 0 1 1 14.7-4.3Z"/></svg><span class="reply-count" data-reply-count-for="' + esc(post.id) + '"></span></button>' +
         '<button class="post-action" data-action="share" aria-label="Share"><svg viewBox="0 0 24 24"><path d="M12 16V4m-5 5 5-5 5 5M5 14v5a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-5"/></svg></button>' +
       '</footer>' +
+      gigAction +
     '</article>';
   }
 
@@ -263,6 +379,8 @@
     });
   }
 
+  /* ---------- Comment sheet ---------- */
+
   function openCommentSheet(postId) {
     if (!commentOverlay) return;
     activePostId = postId;
@@ -274,6 +392,8 @@
       if (menu) menu.remove();
       const actions = clone.querySelector('.post-actions');
       if (actions) actions.remove();
+      const gigBtn = clone.querySelector('.gig-apply, .gig-own-action, .gig-closed');
+      if (gigBtn) gigBtn.remove();
       sheetPost.innerHTML = '';
       sheetPost.appendChild(clone);
     } else if (sheetPost) {
@@ -401,12 +521,11 @@
 
   if (feedEl) {
     feedEl.addEventListener('click', async function (e) {
-      /* Do NOT touch avatar or author links — let the browser navigate */
       if (e.target.closest('.post-avatar') || e.target.closest('.post-author-link')) {
         return;
       }
 
-      const btn = e.target.closest('.post-action, .post-menu');
+      const btn = e.target.closest('.post-action, .post-menu, .gig-apply, .gig-own-action');
       if (!btn) return;
 
       const card = btn.closest('.post-card');
@@ -414,6 +533,7 @@
       const postId = card.dataset.id;
       const action = btn.dataset.action;
 
+      /* --- Standard menu (delete) --- */
       if (action === 'menu') {
         const isMine = currentUser && card.dataset.owner === currentUser.id;
         if (!isMine) return;
@@ -438,6 +558,41 @@
         return;
       }
 
+      /* --- Gig: apply --- */
+      if (action === 'apply') {
+        if (!currentUser) return;
+        const ownerId = card.dataset.owner;
+        if (!ownerId || ownerId === currentUser.id) return;
+
+        location.href = '/chat.html?to=' + encodeURIComponent(ownerId);
+        return;
+      }
+
+      /* --- Gig: mark as filled --- */
+      if (action === 'mark-filled') {
+        if (!currentUser) return;
+        if (card.dataset.owner !== currentUser.id) return;
+
+        if (!window.confirm('Mark this gig as filled?\n\nIt will stop accepting new applications.')) return;
+
+        btn.disabled = true;
+        const original = btn.textContent;
+        btn.textContent = 'Updating…';
+
+        const res = await AUTH.updateGigStatus(postId, 'filled');
+
+        if (!res.ok) {
+          btn.disabled = false;
+          btn.textContent = original;
+          alert('Could not update. Try again.');
+          return;
+        }
+
+        await loadFeed();
+        return;
+      }
+
+      /* --- Standard post actions --- */
       if (action === 'comment') {
         openCommentSheet(postId);
         return;
