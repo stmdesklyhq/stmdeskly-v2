@@ -1943,3 +1943,27 @@
   color: #B3261E;
   background: rgba(179, 38, 30, 0.05);
 }
+/* =========================================================
+   APPEND — viewport fill fix
+   Forces body and log to the correct height even when the
+   conversation is short.
+   ========================================================= */
+
+body.page-chat {
+  height: 100vh !important;
+  height: 100dvh !important;
+  max-height: 100vh !important;
+  max-height: 100dvh !important;
+  overflow: hidden !important;
+}
+
+body.page-chat .chat-log {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+}
+
+body.page-chat .chat-composer {
+  flex: 0 0 auto !important;
+  margin-top: auto !important;
+}
