@@ -1020,3 +1020,183 @@ body,
   opacity: 1 !important;
   pointer-events: auto !important;
 }
+/* =========================================================
+   APPEND — Gig cards
+   Six visual differences from a normal post:
+     1. teal left stripe
+     2. teal gavel chip
+     3. budget block
+     4. deadline chip (colour-coded)
+     5. Apply button (full-width)
+     6. closed banner when filled
+   ========================================================= */
+
+/* 1. Left stripe — the shape reads before the text */
+.post-card.is-gig {
+  position: relative;
+  overflow: hidden;
+  padding-left: 22px;
+}
+
+.post-card.is-gig::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: var(--teal, #2F6D70);
+}
+
+/* 2. Teal gavel chip */
+.post-category-gig {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px 3px 7px;
+  border-radius: 999px;
+  background: var(--teal, #2F6D70);
+  color: #FFFEFB;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.post-category-gig svg {
+  width: 11px;
+  height: 11px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* 3. Budget block */
+.gig-budget {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 12px 0;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #EDF5F0 0%, #E4EFE8 100%);
+  border: 1px solid rgba(47, 109, 112, 0.16);
+}
+
+.gig-budget-value {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  color: var(--teal, #2F6D70);
+}
+
+.gig-budget-label {
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  color: rgba(47, 109, 112, 0.7);
+}
+
+/* 4. Deadline chip */
+.gig-deadline {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background: rgba(23, 43, 58, 0.06);
+  color: var(--text-muted, #718087);
+}
+
+.gig-deadline.is-soon {
+  background: #FBF0D9;
+  color: #79551B;
+}
+
+.gig-deadline.is-today,
+.gig-deadline.is-overdue {
+  background: #FFF1EF;
+  color: #B3261E;
+}
+
+/* 5. Apply button — full-width, teal, real action */
+.gig-apply {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 46px;
+  margin-top: 12px;
+  padding: 12px 18px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--teal, #2F6D70);
+  color: #FFFEFB;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  cursor: pointer;
+  transition: background 140ms ease, transform 140ms ease;
+}
+
+.gig-apply:hover { background: #24595C; }
+.gig-apply:active { transform: scale(0.99); }
+
+.gig-apply svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Own gig action — outline button, replaces Apply on your own gigs */
+.gig-own-action {
+  display: block;
+  width: 100%;
+  min-height: 40px;
+  margin-top: 12px;
+  padding: 10px 18px;
+  border: 1px solid rgba(47, 109, 112, 0.30);
+  border-radius: 14px;
+  background: transparent;
+  color: var(--teal, #2F6D70);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease;
+}
+
+.gig-own-action:hover {
+  background: rgba(47, 109, 112, 0.06);
+  border-color: var(--teal, #2F6D70);
+}
+
+.gig-own-action:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* 6. Closed banner */
+.gig-closed {
+  margin-top: 12px;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: #F2F3EE;
+  border: 1px solid #D5D9D3;
+  color: #5A6A72;
+  font-size: 12.5px;
+  font-weight: 600;
+  text-align: center;
+}
