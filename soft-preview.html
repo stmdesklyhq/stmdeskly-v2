@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Soft font preview — STMDeskly</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Nunito:wght@400;500;600;700;800;900&family=Quicksand:wght@400;500;600;700&family=Baloo+2:wght@400;500;600;700;800&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: #EAE9E2; color: #0F2733;
+    font-family: Poppins, system-ui, sans-serif;
+    overflow-x: clip;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 440px; margin: 0 auto; padding: 20px 14px 60px; }
+  h1.page {
+    font-size: 20px; font-weight: 800; letter-spacing: -0.04em;
+    margin: 0 0 4px;
+  }
+  p.sub { color: #63727D; font-size: 12px; margin: 0 0 20px; line-height: 1.55; font-weight: 500; }
+  .panel {
+    background: #FFFFFF; border-radius: 18px;
+    padding: 16px 16px 18px; margin-bottom: 14px;
+    box-shadow: 0 1px 2px rgba(15,39,51,0.06), 0 12px 32px rgba(15,39,51,0.08);
+  }
+  .pname {
+    font-family: Poppins, system-ui, sans-serif;
+    font-size: 11px; font-weight: 800; letter-spacing: 0.14em;
+    text-transform: uppercase; color: #1F5F58;
+    margin: 0 0 4px;
+  }
+  .pdesc {
+    font-family: Poppins, system-ui, sans-serif;
+    font-size: 11.5px; font-weight: 500; color: #63727D;
+    margin: 0 0 14px; line-height: 1.5;
+  }
+  .demo .eyebrow {
+    font-size: 9.5px; font-weight: 800;
+    letter-spacing: 0.16em; text-transform: uppercase;
+    color: #1F5F58; margin: 0 0 6px;
+  }
+  .demo h2 {
+    font-size: 24px; font-weight: 800;
+    letter-spacing: -0.04em; line-height: 1.1;
+    margin: 0 0 6px;
+  }
+  .demo p.body {
+    font-size: 14px; font-weight: 500;
+    line-height: 1.55; margin: 0 0 12px;
+    color: #2D3F49;
+  }
+  .demo .meta {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    font-size: 11px; color: #63727D; font-weight: 600;
+  }
+  .demo .chip {
+    padding: 3px 10px; border-radius: 999px;
+    background: #DCEBE3; color: #1F5F58;
+    font-size: 10px; font-weight: 800; letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .demo .card {
+    margin-top: 12px; padding: 12px 14px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #E7F1EC 0%, #DDEBE4 100%);
+    border: 1px solid rgba(31,95,88,0.18);
+  }
+  .demo .card .v {
+    font-size: 17px; font-weight: 800;
+    letter-spacing: -0.025em; color: #1F5F58;
+    line-height: 1.1; margin: 0 0 3px;
+  }
+  .demo .card .l {
+    font-size: 9px; font-weight: 800;
+    letter-spacing: 0.16em; color: rgba(31,95,88,0.75);
+  }
+  .demo .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    margin-top: 12px; min-height: 40px; padding: 0 20px;
+    border-radius: 999px;
+    background: #1F5F58; color: #FFFFFF;
+    font-size: 12.5px; font-weight: 700;
+    letter-spacing: -0.005em;
+  }
+
+  /* Font family assignments */
+  .f-poppins   { font-family: Poppins, system-ui, sans-serif; }
+  .f-nunito    { font-family: Nunito, system-ui, sans-serif; }
+  .f-quicksand { font-family: Quicksand, system-ui, sans-serif; }
+  .f-baloo     { font-family: "Baloo 2", system-ui, sans-serif; }
+  .f-fredoka   { font-family: Fredoka, system-ui, sans-serif; }
+
+  .foot {
+    margin-top: 20px; padding: 14px 16px;
+    background: #FFFFFF; border-radius: 14px;
+    font-family: Poppins, system-ui, sans-serif;
+    font-size: 11.5px; line-height: 1.6;
+    font-weight: 500; color: #2D3F49;
+  }
+  .foot b { color: #0F2733; font-weight: 800; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1 class="page">Soft font preview</h1>
+  <p class="sub">Same copy, five fonts, palette B. Look on the real phone — pick which reads warmest to you.</p>
+
+  <div class="panel f-poppins">
+    <p class="pname">Poppins — current</p>
+    <p class="pdesc">Geometric but terminals are flat. Friendly, common, familiar. Not soft.</p>
+    <div class="demo">
+      <p class="eyebrow">Your community</p>
+      <h2>Good evening, STMGraph.</h2>
+      <p class="body">Find opportunities. Share your skills. Grow together.</p>
+      <div class="meta">
+        <span class="chip">Gig</span>
+        <span>47m ago</span>
+      </div>
+      <div class="card">
+        <div class="v">₦5,000 – ₦15,000</div>
+        <div class="l">BUDGET</div>
+      </div>
+      <span class="btn">Apply to this gig</span>
+    </div>
+  </div>
+
+  <div class="panel f-nunito">
+    <p class="pname">Nunito</p>
+    <p class="pdesc">Rounded terminals, warm, mature. Soft at every size but never childlike.</p>
+    <div class="demo">
+      <p class="eyebrow">Your community</p>
+      <h2>Good evening, STMGraph.</h2>
+      <p class="body">Find opportunities. Share your skills. Grow together.</p>
+      <div class="meta">
+        <span class="chip">Gig</span>
+        <span>47m ago</span>
+      </div>
+      <div class="card">
+        <div class="v">₦5,000 – ₦15,000</div>
+        <div class="l">BUDGET</div>
+      </div>
+      <span class="btn">Apply to this gig</span>
+    </div>
+  </div>
+
+  <div class="panel f-quicksand">
+    <p class="pname">Quicksand</p>
+    <p class="pdesc">Softest of the bunch. Very round, wide o. Playful — may feel light at 13px.</p>
+    <div class="demo">
+      <p class="eyebrow">Your community</p>
+      <h2>Good evening, STMGraph.</h2>
+      <p class="body">Find opportunities. Share your skills. Grow together.</p>
+      <div class="meta">
+        <span class="chip">Gig</span>
+        <span>47m ago</span>
+      </div>
+      <div class="card">
+        <div class="v">₦5,000 – ₦15,000</div>
+        <div class="l">BUDGET</div>
+      </div>
+      <span class="btn">Apply to this gig</span>
+    </div>
+  </div>
+
+  <div class="panel f-baloo">
+    <p class="pname">Baloo 2</p>
+    <p class="pdesc">Rounder and chunkier. Strong at headings, heavier than needed for body.</p>
+    <div class="demo">
+      <p class="eyebrow">Your community</p>
+      <h2>Good evening, STMGraph.</h2>
+      <p class="body">Find opportunities. Share your skills. Grow together.</p>
+      <div class="meta">
+        <span class="chip">Gig</span>
+        <span>47m ago</span>
+      </div>
+      <div class="card">
+        <div class="v">₦5,000 – ₦15,000</div>
+        <div class="l">BUDGET</div>
+      </div>
+      <span class="btn">Apply to this gig</span>
+    </div>
+  </div>
+
+  <div class="panel f-fredoka">
+    <p class="pname">Fredoka</p>
+    <p class="pdesc">Soft but leaning toy. Charming on headings, too round for reading.</p>
+    <div class="demo">
+      <p class="eyebrow">Your community</p>
+      <h2>Good evening, STMGraph.</h2>
+      <p class="body">Find opportunities. Share your skills. Grow together.</p>
+      <div class="meta">
+        <span class="chip">Gig</span>
+        <span>47m ago</span>
+      </div>
+      <div class="card">
+        <div class="v">₦5,000 – ₦15,000</div>
+        <div class="l">BUDGET</div>
+      </div>
+      <span class="btn">Apply to this gig</span>
+    </div>
+  </div>
+
+  <div class="foot">
+    <b>My pick:</b> <b>Nunito</b> for everything. It's the soft you're describing without crossing into toy. If you want a stronger voice on headings, pair <b>Baloo 2</b> headings with <b>Nunito</b> body — both soft, different weights of the same feeling.<br><br>
+    Look at the ₦ symbol especially. Some of these render it slightly differently — the one whose money symbol feels most confident is usually the right pick.
+  </div>
+
+</div>
+</body>
+        </html>
