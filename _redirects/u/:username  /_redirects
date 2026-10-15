@@ -1,3 +1,4 @@
 /profile.html /profile.html 200
 /profile /profile.html 200
+/notifications   /notifications.html   200
 /u/:username /desk.html?u=:username 200
