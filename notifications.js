@@ -111,8 +111,7 @@
     if (!user) { location.replace('/login.html'); return; }
 
     // Snapshot last_seen BEFORE we clear it, so the dots still render this visit
-    const desk = await AUTH.currentDesk();
-    lastSeen = (desk && desk.last_seen_notifications_at) || null;
+    lastSeen = await AUTH.getLastSeenNotificationsAt();
 
     const res = await AUTH.getNotifications();
 
