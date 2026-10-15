@@ -3,47 +3,46 @@
    Single source of truth for colour, type, space, radii,
    shadow, motion, and layout widths.
 
-   Link this file FIRST on every page, before style.css.
-   Every screen's own CSS should reference these tokens,
-   never hard-coded values.
+   Link this file FIRST on every page, before type.css
+   and before style.css.
    ========================================================= */
 
 :root {
 
   /* =======================================================
-     1. COLOUR — raw palette
+     1. COLOUR — raw palette (palette B — deeper)
      ======================================================= */
 
   /* Neutrals */
-  --navy:         #172B3A;
-  --navy-deep:    #10232F;
-  --navy-soft:    #254556;
-  --text:         #344A57;
-  --muted:        #718087;
-  --muted-soft:   #A7AEB0;
+  --navy:         #0F2733;
+  --navy-deep:    #081822;
+  --navy-soft:    #1E3A48;
+  --text:         #2D3F49;
+  --muted:        #63727D;
+  --muted-soft:   #9AA5AC;
 
   /* Surfaces */
-  --cream:        #F7F6F1;
-  --paper:        #FFFEFB;
+  --cream:        #F3F1EA;
+  --paper:        #FFFFFF;
   --white:        #FFFFFF;
 
   /* Brand accent */
-  --teal:         #2F6D70;
-  --teal-dark:    #24595C;
-  --teal-soft:    rgba(47, 109, 112, 0.10);
+  --teal:         #1F5F58;
+  --teal-dark:    #164A44;
+  --teal-soft:    rgba(31, 95, 88, 0.10);
 
   /* Mint accents (never a full-page background) */
   --mint:         #DCEBE3;
   --mint-strong:  #B9DED1;
-  --mint-deep:    #286D51;
+  --mint-deep:    #1F5F58;
 
   /* Lavender (rare — one audience tile only) */
-  --lavender:     #F0EFF8;
+  --lavender:     #EEF0EE;
 
   /* Structure */
-  --border:       #E5E4DD;
-  --border-soft:  rgba(23, 43, 58, 0.06);
-  --border-hard:  #C9D2CE;
+  --border:       #E0DED6;
+  --border-soft:  rgba(15, 39, 51, 0.06);
+  --border-hard:  #C9C7BF;
 
   /* =======================================================
      2. COLOUR — semantic (use these, not the raw ones)
@@ -52,7 +51,7 @@
   /* Page */
   --bg-page:              var(--cream);
   --bg-surface:           var(--paper);
-  --bg-surface-alt:       #FBFBF7;
+  --bg-surface-alt:       #F7F6F1;
 
   /* Text */
   --text-primary:         var(--navy);
@@ -70,9 +69,9 @@
   --action-secondary-border: var(--border);
 
   /* State: success */
-  --success-bg:           #EFF7F0;
-  --success-border:       #D2E5D9;
-  --success-fg:           #286D51;
+  --success-bg:           #E7F1EC;
+  --success-border:       #C9DFD6;
+  --success-fg:           #1F5F58;
 
   /* State: warning */
   --warning-bg:           #FBF0D9;
@@ -87,16 +86,19 @@
   /* State: info / live */
   --live-bg:              var(--mint);
   --live-border:          #C5DED1;
-  --live-fg:              #24595C;
+  --live-fg:              #1F5F58;
 
-  /* Focus ring (used by buttons, inputs, links) */
-  --focus-ring:           0 0 0 4px rgba(47, 109, 112, 0.18);
+  /* Focus ring */
+  --focus-ring:           0 0 0 4px rgba(31, 95, 88, 0.18);
 
   /* =======================================================
      3. TYPOGRAPHY — family
+     Headings   → Baloo 2  (curvy, strong, editorial)
+     Everything → Nunito   (rounded, warm, readable)
      ======================================================= */
 
-  --font-ui:      "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-heading: "Baloo 2", "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-ui:      "Nunito", "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono:    ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
   /* =======================================================
@@ -130,23 +132,23 @@
      6. TYPOGRAPHY — line height
      ======================================================= */
 
-  --lh-tight:     1.2;    /* display headings */
-  --lh-snug:      1.3;    /* section headings */
-  --lh-normal:    1.45;   /* UI text, chat bubbles */
-  --lh-relaxed:   1.6;    /* body copy */
-  --lh-loose:     1.8;    /* long paragraphs, form help */
+  --lh-tight:     1.2;
+  --lh-snug:      1.3;
+  --lh-normal:    1.45;
+  --lh-relaxed:   1.6;
+  --lh-loose:     1.8;
 
   /* =======================================================
      7. TYPOGRAPHY — letter spacing
      ======================================================= */
 
-  --ls-tightest:  -0.06em;   /* display headings */
-  --ls-tighter:   -0.04em;   /* page titles */
-  --ls-tight:     -0.02em;   /* section headings */
-  --ls-normal:     0;         /* body */
-  --ls-wide:       0.04em;   /* eyebrows, uppercase labels */
-  --ls-wider:      0.12em;   /* caps micro-labels */
-  --ls-widest:     0.17em;   /* tiny all-caps tags */
+  --ls-tightest:  -0.06em;
+  --ls-tighter:   -0.04em;
+  --ls-tight:     -0.02em;
+  --ls-normal:     0;
+  --ls-wide:       0.04em;
+  --ls-wider:      0.12em;
+  --ls-widest:     0.17em;
 
   /* =======================================================
      8. SPACING — 4px rhythm
@@ -168,13 +170,13 @@
      9. RADII
      ======================================================= */
 
-  --radius-xs:    6px;    /* micro controls, chips */
-  --radius-sm:    8px;    /* small buttons, tags */
-  --radius-md:    10px;   /* inputs, standard buttons */
-  --radius-lg:    12px;   /* cards, content surfaces */
-  --radius-xl:    16px;   /* larger cards, overlays */
-  --radius-2xl:   22px;   /* sheets, modals */
-  --radius-pill:  999px;  /* pills, avatars */
+  --radius-xs:    6px;
+  --radius-sm:    8px;
+  --radius-md:    10px;
+  --radius-lg:    12px;
+  --radius-xl:    16px;
+  --radius-2xl:   22px;
+  --radius-pill:  999px;
 
   /* =======================================================
      10. BORDERS
@@ -188,11 +190,11 @@
      ======================================================= */
 
   --shadow-none:  none;
-  --shadow-xs:    0 1px 2px rgba(23, 43, 58, 0.04);
-  --shadow-sm:    0 2px 6px rgba(23, 43, 58, 0.06);
-  --shadow-md:    0 8px 22px rgba(23, 43, 58, 0.08);
-  --shadow-lg:    0 20px 50px rgba(23, 43, 58, 0.12);
-  --shadow-nav:   0 -8px 28px rgba(23, 43, 58, 0.07);
+  --shadow-xs:    0 1px 2px rgba(15, 39, 51, 0.04);
+  --shadow-sm:    0 2px 6px rgba(15, 39, 51, 0.06);
+  --shadow-md:    0 8px 22px rgba(15, 39, 51, 0.08);
+  --shadow-lg:    0 20px 50px rgba(15, 39, 51, 0.12);
+  --shadow-nav:   0 -8px 28px rgba(15, 39, 51, 0.07);
 
   /* =======================================================
      12. MOTION
@@ -223,32 +225,19 @@
      14. LAYOUT WIDTHS
      ======================================================= */
 
-  --width-feed:      620px;   /* main feed column */
-  --width-narrow:    560px;   /* settings, forms */
-  --width-content:   720px;   /* long-form content */
-  --width-wide:      1120px;  /* public Desk, marketing */
-  --page-gutter:     18px;    /* mobile side padding */
+  --width-feed:      620px;
+  --width-narrow:    560px;
+  --width-content:   720px;
+  --width-wide:      1120px;
+  --page-gutter:     18px;
 
-  /* Height the bottom nav occupies (used for page bottom padding) */
   --bottom-nav-h:    74px;
-
-  /* =======================================================
-     15. BREAKPOINTS (documentation only — use in media queries)
-     ----------------------------------------------------------
-     sm   ≤ 380px   tiny phones
-     md   ≤ 520px   small phones
-     lg   ≤ 768px   standard phones / small tablets
-     xl   ≥ 900px   tablet / desktop
-     ======================================================= */
 
 }
 
 
 /* =========================================================
    GLOBAL TYPE DEFAULTS
-   -----------------------------------------
-   Only sets what every page should inherit. Individual
-   components still control their own size when needed.
    ========================================================= */
 
 html {
@@ -259,8 +248,9 @@ html {
 }
 
 body {
+  font-family: var(--font-ui);
   font-size: var(--text-md);
-  font-weight: var(--fw-regular);
+  font-weight: var(--fw-medium);
   line-height: var(--lh-relaxed);
   color: var(--text-primary);
   background: var(--bg-page);
@@ -270,35 +260,47 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* Headings — Baloo 2 */
 h1, h2, h3, h4 {
   margin: 0;
-  font-weight: var(--fw-semibold);
+  font-family: var(--font-heading);
+  font-weight: var(--fw-bold);
   color: var(--text-primary);
   letter-spacing: var(--ls-tight);
   line-height: var(--lh-snug);
 }
 
-h1 { font-size: var(--text-3xl); letter-spacing: var(--ls-tighter); }
-h2 { font-size: var(--text-2xl); letter-spacing: var(--ls-tighter); }
+h1 {
+  font-size: var(--text-3xl);
+  font-weight: var(--fw-extrabold);
+  letter-spacing: -0.045em;
+}
+h2 {
+  font-size: var(--text-2xl);
+  letter-spacing: var(--ls-tighter);
+}
 h3 { font-size: var(--text-xl); }
 h4 { font-size: var(--text-lg); }
 
 p {
   margin: 0;
   font-size: var(--text-md);
+  font-weight: var(--fw-medium);
   line-height: var(--lh-relaxed);
   color: var(--text-secondary);
 }
 
 small {
   font-size: var(--text-xs);
+  font-weight: var(--fw-semibold);
   line-height: var(--lh-normal);
   color: var(--text-muted);
 }
 
 label {
+  font-family: var(--font-ui);
   font-size: var(--text-sm);
-  font-weight: var(--fw-semibold);
+  font-weight: var(--fw-bold);
   line-height: 1.4;
   color: var(--text-primary);
 }
@@ -306,7 +308,7 @@ label {
 button {
   font-family: var(--font-ui);
   font-size: var(--text-base);
-  font-weight: var(--fw-semibold);
+  font-weight: var(--fw-bold);
   letter-spacing: var(--ls-normal);
 }
 
@@ -320,6 +322,7 @@ textarea,
 select {
   font-family: var(--font-ui);
   font-size: var(--text-md);
+  font-weight: var(--fw-medium);
   color: var(--text-primary);
 }
 
@@ -335,7 +338,7 @@ pre {
    ========================================================= */
 
 :focus-visible {
-  outline: 3px solid rgba(47, 109, 112, 0.42);
+  outline: 3px solid rgba(31, 95, 88, 0.42);
   outline-offset: 3px;
   border-radius: var(--radius-xs);
 }
