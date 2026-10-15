@@ -1,6 +1,6 @@
 /* =========================================================
    STMDESKLY v2 — New post
-   Category picker, text, photos, publish.
+   Category picker, text, photos, gig fields, publish.
    ========================================================= */
 (function () {
   'use strict';
@@ -21,11 +21,16 @@
   const saveBtn      = $('saveBtn');
   const topPostBtn   = $('topPostBtn');
 
+  const gigFields     = $('gigFields');
+  const gigBudgetMin  = $('gigBudgetMin');
+  const gigBudgetMax  = $('gigBudgetMax');
+  const gigDeadline   = $('gigDeadline');
+
   const MAX_PHOTOS    = 6;
   const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
   let category = null;
-  let photos = [];      // array of { url, uploading } — url filled when uploaded
+  let photos = [];
   let posting = false;
 
   function esc(s) {
@@ -40,7 +45,6 @@
     const body = bodyEl.value.trim();
     if (!category) return false;
     if (!body) return false;
-    // Can't submit while any photo is still uploading
     const uploading = photos.some(function (p) { return p.uploading; });
     if (uploading) return false;
     return true;
@@ -53,6 +57,11 @@
   }
 
   /* ---------- Category ---------- */
+  function paintGigFields() {
+    if (!gigFields) return;
+    gigFields.hidden = category !== 'gig';
+  }
+
   categoriesEl.addEventListener('click', function (e) {
     const btn = e.target.closest('.category');
     if (!btn) return;
@@ -65,10 +74,11 @@
     });
 
     category = next;
+    paintGigFields();
     refreshSubmit();
   });
 
-  /* ---------- Character counter ---------- */
+  /* ---------- Counter ---------- */
   function updateCounter() {
     const len = bodyEl.value.length;
     counterEl.textContent = len + ' / 1000';
@@ -107,7 +117,6 @@
       photoGrid.appendChild(tile);
     });
 
-    // Add button (only if under limit)
     if (photos.length < MAX_PHOTOS) {
       const addTile = document.createElement('button');
       addTile.type = 'button';
@@ -122,7 +131,6 @@
       photoGrid.appendChild(addTile);
     }
 
-    // Empty placeholders to fill the row (visual only)
     const total = photos.length + (photos.length < MAX_PHOTOS ? 1 : 0);
     const filler = Math.max(0, 3 - (total % 3 === 0 ? 3 : total % 3));
     for (let i = 0; i < filler; i++) {
@@ -168,7 +176,6 @@
         continue;
       }
 
-      // Insert placeholder tile immediately
       const slot = { url: null, uploading: true };
       photos.push(slot);
       paintPhotos();
@@ -176,7 +183,6 @@
       const res = await AUTH.uploadPostPhoto(file);
 
       if (!res.ok) {
-        // Remove the failed slot
         const i = photos.indexOf(slot);
         if (i !== -1) photos.splice(i, 1);
         paintPhotos();
@@ -193,7 +199,6 @@
   /* ---------- Status ---------- */
   function setStatus(text, tone) {
     statusText.textContent = text || '';
-    // The designer's CSS uses a dot colour via <i>. Replace the dot tone.
     const dot = document.querySelector('.savebar .status i');
     if (!dot) return;
     dot.style.background = tone === 'error' ? '#B33F43'
@@ -219,6 +224,16 @@
       whatsapp: whatsappEl.value.trim(),
     };
 
+    if (category === 'gig') {
+      const minVal = Number(gigBudgetMin.value);
+      const maxVal = Number(gigBudgetMax.value);
+
+      payload.gig_budget_min = isFinite(minVal) && minVal > 0 ? Math.round(minVal) : null;
+      payload.gig_budget_max = isFinite(maxVal) && maxVal > 0 ? Math.round(maxVal) : null;
+      payload.gig_deadline   = gigDeadline.value || null;
+      payload.gig_status     = 'open';
+    }
+
     const res = await AUTH.createPost(payload);
 
     if (!res.ok) {
@@ -243,6 +258,7 @@
 
     updateCounter();
     paintPhotos();
+    paintGigFields();
     refreshSubmit();
   })();
 })();
