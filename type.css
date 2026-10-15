@@ -1,0 +1,159 @@
+/* =========================================================
+   STMDESKLY v2 — type.css
+   Font roles for the whole app. Load AFTER tokens.css
+   and BEFORE any page stylesheet.
+
+   Headings      → Baloo 2
+   Everything else → Nunito
+   ========================================================= */
+
+/* ---------- Headings — Baloo 2 ---------- */
+
+h1,
+h2,
+h3,
+h4,
+.welcome h1,
+.wm-name,
+.page-heading,
+.section-heading,
+.post-title,
+.gig-title,
+.hero-title,
+.card-hero-title,
+.chat-name,
+.chat-head .c-name,
+.notifications h1,
+.notifications h2,
+.dash-hero-title,
+.settings-hero-title,
+.eyebrow,
+.section-label {
+  font-family: "Baloo 2", Poppins, system-ui, sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+/* Slightly tighter tracking on the biggest headings */
+h1,
+.welcome h1,
+.page-heading,
+.notifications h1 {
+  letter-spacing: -0.045em;
+  font-weight: 800;
+}
+
+/* ---------- Body / UI — Nunito ---------- */
+
+body,
+html,
+p,
+span,
+a,
+button,
+input,
+textarea,
+select,
+label,
+li,
+small,
+strong,
+em,
+.post-body,
+.post-meta,
+.post-author-link,
+.post-action,
+.post-category,
+.gig-budget-value,
+.gig-budget-label,
+.gig-deadline,
+.gig-apply,
+.gig-own-action,
+.gig-closed,
+.composer,
+.composer-prompt,
+.composer-button,
+.filter-chip,
+.sheet,
+.sheet-head,
+.sheet-body,
+.reply,
+.reply-name,
+.reply-text,
+.reply-time,
+.chat-log,
+.msg,
+.chat-composer,
+.chat-menu-item,
+.chat-context-item,
+.action-pill .ap-btn,
+.row-text,
+.row-time,
+.section-label,
+.notifications .row,
+.notifications .row-time,
+.empty-title,
+.empty-body,
+.state,
+.state.empty h2,
+.state.empty p {
+  font-family: Nunito, Poppins, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+/* Body copy weight — Nunito at 500 reads heavier than Poppins 500,
+   so we drop the display weight but keep the perceived weight. */
+body {
+  font-weight: 500;
+}
+
+.post-body,
+.msg,
+.reply-text,
+.welcome > p:last-child {
+  font-weight: 500;
+}
+
+/* ---------- Subs: labels, chips, timestamps — Nunito 700–800 ---------- */
+
+.eyebrow,
+.section-label,
+.post-category,
+.post-category-gig,
+.gig-budget-label,
+.gig-deadline,
+.row-time,
+.reply-time,
+.chat-meta,
+.msg .meta,
+.notifications .row-time,
+.chip,
+.filter-chip {
+  font-family: Nunito, Poppins, system-ui, sans-serif;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+}
+
+/* ---------- Buttons — Nunito 700 ---------- */
+
+button,
+.button,
+.composer-button,
+.gig-apply,
+.gig-own-action,
+.chat-send,
+.save-post,
+.ap-btn,
+.filter-chip,
+.chat-btn {
+  font-family: Nunito, Poppins, system-ui, sans-serif;
+  font-weight: 700;
+}
+
+/* ---------- Numbers — tabular where used ---------- */
+
+.wm-clock,
+.gig-budget-value,
+.reaction-count,
+.reply-count {
+  font-variant-numeric: tabular-nums;
+  }
