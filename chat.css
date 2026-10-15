@@ -1999,3 +1999,64 @@ body.page-chat .chat-composer {
   flex: 0 0 auto !important;
   margin-top: 0 !important;
 }
+/* =========================================================
+   APPEND — Long message: Read more toggle
+   ========================================================= */
+
+.chat-bubble-body {
+  display: block;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.chat-bubble-body.is-collapsed {
+  max-height: 13.5em;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, #000 72%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 72%, transparent 100%);
+}
+
+.chat-bubble-bottom {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.chat-bubble-bottom .chat-bubble-meta {
+  float: none !important;
+  margin-left: 0 !important;
+  margin-top: 0 !important;
+  top: 0 !important;
+}
+
+.chat-bubble-readmore {
+  flex: 0 0 auto;
+  align-self: flex-start;
+
+  padding: 0;
+  border: 0;
+  background: transparent;
+
+  color: inherit;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: -0.005em;
+
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+
+  opacity: 0.85;
+  transition: opacity 140ms ease;
+}
+
+.chat-bubble-readmore:hover { opacity: 1; }
+.chat-bubble-readmore:active { opacity: 0.65; }
+
+.chat-bubble.them .chat-bubble-readmore { color: var(--teal, #2F6D70); }
+.chat-bubble.me   .chat-bubble-readmore { color: #FFFFFF; opacity: 0.9; }
+.chat-bubble.me   .chat-bubble-readmore:hover { opacity: 1; }
