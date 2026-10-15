@@ -67,7 +67,7 @@
       return;
     }
 
-    deskUrl = location.origin + '/u/' + desk.username;
+    deskUrl = location.origin + '/desk.html?u=' + desk.username;
 
     if (deskUrlEl)      deskUrlEl.textContent = deskUrl.replace(/^https?:\/\//, '');
     if (openDeskButton) openDeskButton.href = deskUrl;
