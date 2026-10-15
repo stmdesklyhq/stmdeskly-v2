@@ -1,8 +1,6 @@
 /* =========================================================
    STMDESKLY v2 — Single chat
-   Draft mode: opening Message on a profile with no prior
-   thread does NOT create a thread. The thread is created
-   the moment the sender actually sends their first message.
+   Star indicator on bubbles. Pin messages. Draft mode.
    ========================================================= */
 (function () {
   'use strict';
@@ -34,6 +32,9 @@
   const cancelledBar    = $('cancelledBar');
   const cancelledText   = $('cancelledText');
   const reopenRequestBtn = $('reopenRequestBtn');
+  const pinnedStrip     = $('pinnedStrip');
+  const pinnedStripCopy = $('pinnedStripCopy');
+  const pinnedStripCount = $('pinnedStripCount');
   const chatMissing     = $('chatMissing');
   const chatLog         = $('chatLog');
   const chatComposer    = $('chatComposer');
@@ -61,6 +62,7 @@
   const blockedBannerText = $('blockedBannerText');
   const blockedUnblock  = $('blockedUnblock');
   const starLabel       = $('starLabel');
+  const pinLabel        = $('pinLabel');
 
   const scrollBottomBtn = $('chatScrollBottom');
   const scrollBadge     = $('chatScrollBadge');
@@ -83,6 +85,10 @@
   const starredClose   = $('starredClose');
   const starredList    = $('starredList');
 
+  const pinnedSheetOverlay = $('pinnedSheetOverlay');
+  const pinnedSheetClose   = $('pinnedSheetClose');
+  const pinnedSheetList    = $('pinnedSheetList');
+
   const REACTION_EMOJIS = ['👍', '❤️', '😂', '🔥', '🙏', '👏'];
 
   let me = null;
@@ -90,6 +96,9 @@
   let other = null;
   let allMessages = [];
   let reactionsMap = {};
+  let starredIds = new Set();
+  let pinnedMessages = [];
+  let pinnedMessageIds = new Set();
   let lastNewestId = null;
   let typingTimer = null;
   let presenceTimer = null;
@@ -244,6 +253,15 @@
     return m + ':' + (s < 10 ? '0' + s : s);
   }
 
+  function messagePreview(m) {
+    if (!m) return 'Message';
+    if (m.deleted_at) return 'Message deleted';
+    if (m.body) return m.body;
+    if (m.photo_url) return '📷 Photo';
+    if (m.audio_url) return '🎤 Voice note';
+    return 'Message';
+  }
+
   /* =========================================================
      Scroll helpers
      ========================================================= */
@@ -379,7 +397,6 @@
     function hide(el) { if (el) el.hidden = true; }
     function show(el) { if (el) el.hidden = false; }
 
-    /* Draft mode — no thread yet. Just show the composer. */
     if (thread.status === 'draft') {
       hide(acceptBar);
       hide(pendingBar);
@@ -433,6 +450,88 @@
     }
 
     paintBlockedBanner();
+  }
+
+  /* =========================================================
+     Pin strip / sheet
+     ========================================================= */
+
+  async function loadPins() {
+    if (!thread || !thread.id) {
+      pinnedMessages = [];
+      pinnedMessageIds = new Set();
+      return;
+    }
+    const res = await AUTH.getPinnedMessages(thread.id);
+    pinnedMessages = res.ok ? res.data : [];
+    pinnedMessageIds = new Set(pinnedMessages.map(function (r) { return r.message.id; }));
+  }
+
+  async function loadStarredIds() {
+    if (!thread || !thread.id) {
+      starredIds = new Set();
+      return;
+    }
+    const res = await AUTH.getStarredMessageIds(thread.id);
+    starredIds = new Set(res.ok ? res.data : []);
+  }
+
+  function renderPinnedStrip() {
+    if (!pinnedStrip) return;
+
+    if (!pinnedMessages.length) {
+      pinnedStrip.hidden = true;
+      return;
+    }
+
+    pinnedStrip.hidden = false;
+
+    const latest = pinnedMessages[0];
+    const m = latest.message;
+    pinnedStripCopy.textContent = messagePreview(m);
+
+    if (pinnedMessages.length > 1) {
+      pinnedStripCount.hidden = false;
+      pinnedStripCount.textContent = pinnedMessages.length;
+    } else {
+      pinnedStripCount.hidden = true;
+    }
+  }
+
+  function renderPinnedSheet() {
+    if (!pinnedSheetList) return;
+
+    if (!pinnedMessages.length) {
+      pinnedSheetList.innerHTML = '<div class="pinned-empty">No pinned messages.</div>';
+      return;
+    }
+
+    pinnedSheetList.innerHTML = pinnedMessages.map(function (row) {
+      const m = row.message;
+      const mine = m.sender_id === me.id;
+      const who = mine ? 'You' : (other.name || 'Them');
+      const when = dayLabel(m.created_at) + ' · ' + timeShort(m.created_at);
+      const body = messagePreview(m);
+
+      return '<div class="pinned-item" data-msg-id="' + esc(m.id) + '">' +
+        '<div class="pinned-item-copy">' +
+          '<div class="pinned-item-meta">' + esc(who) + ' · ' + esc(when) + '</div>' +
+          '<div class="pinned-item-body">' + esc(body) + '</div>' +
+        '</div>' +
+        '<button type="button" class="pinned-item-unpin" data-unpin-id="' + esc(m.id) + '" aria-label="Unpin message">Unpin</button>' +
+      '</div>';
+    }).join('');
+  }
+
+  function openPinnedSheet() {
+    if (!pinnedSheetOverlay) return;
+    renderPinnedSheet();
+    pinnedSheetOverlay.hidden = false;
+  }
+
+  function closePinnedSheet() {
+    if (!pinnedSheetOverlay) return;
+    pinnedSheetOverlay.hidden = true;
   }
 
   /* =========================================================
@@ -547,10 +646,17 @@
       const audioCls = hasAudio ? ' has-audio' : '';
       const stateCls = m.__failed ? ' is-failed' : (m.__pending ? ' is-pending' : '');
 
+      const isStarred = starredIds.has(m.id);
+      const starMark = isStarred
+        ? '<span class="chat-bubble-star" aria-label="Starred">' +
+            '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5-5.8-3-5.8 3 1.1-6.5L2.6 9.8l6.5-.9L12 3z"/></svg>' +
+          '</span>'
+        : '';
+
       const time = timeShort(m.created_at);
       const dot = (mine && !m.deleted_at) ? dotHtml(m) : '';
       const meta = m.deleted_at ? '' :
-        '<div class="chat-bubble-meta"><span>' + esc(time) + '</span>' + dot + '</div>';
+        '<div class="chat-bubble-meta">' + starMark + '<span>' + esc(time) + '</span>' + dot + '</div>';
 
       const reactionsHtml = (m.__pending || m.__failed) ? '' : reactionsHtmlFor(m.id);
 
@@ -584,7 +690,7 @@
 
   async function refreshMessages() {
     if (!thread) return;
-    if (!thread.id) return; // draft mode — nothing to fetch yet
+    if (!thread.id) return;
 
     if (refreshInFlight) {
       refreshQueued = true;
@@ -674,7 +780,6 @@
 
   /* =========================================================
      Ensure thread — turns draft mode into a real thread.
-     Called on first send (text, photo, or voice).
      ========================================================= */
 
   async function ensureThread() {
@@ -691,7 +796,6 @@
     thread = created.thread;
     paintBanners();
 
-    // Now that there's a thread, wire realtime + typing
     initTyping();
     initMessagesRealtime();
     updatePresence();
@@ -899,7 +1003,8 @@
     const sendable = !m.__failed && !String(m.id).startsWith('temp-');
     deleteAllBtn.hidden = !(mine && within24 && sendable);
 
-    if (starLabel) starLabel.textContent = 'Star';
+    if (starLabel) starLabel.textContent = starredIds.has(messageId) ? 'Unstar' : 'Star';
+    if (pinLabel) pinLabel.textContent = pinnedMessageIds.has(messageId) ? 'Unpin message' : 'Pin message';
 
     contextMenu.hidden = false;
   }
@@ -1253,15 +1358,10 @@
       const mine = m.sender_id === me.id;
       const who = mine ? 'You' : (other.name || 'Them');
       const when = dayLabel(m.created_at) + ' · ' + timeShort(m.created_at);
-      let body;
-      if (m.deleted_at) body = '<em>Message deleted</em>';
-      else if (m.body) body = esc(m.body);
-      else if (m.photo_url) body = '📷 Photo';
-      else if (m.audio_url) body = '🎤 Voice note';
-      else body = '';
+      const body = messagePreview(m);
       return '<button type="button" class="starred-item" data-msg-id="' + esc(m.id) + '">' +
         '<div class="starred-item-meta">' + esc(who) + ' · ' + esc(when) + '</div>' +
-        '<div class="starred-item-body">' + body + '</div>' +
+        '<div class="starred-item-body">' + esc(body) + '</div>' +
       '</button>';
     }).join('');
   }
@@ -1282,11 +1382,43 @@
   }
 
   async function toggleStarFromContext(messageId) {
+    const wasStarred = starredIds.has(messageId);
     const res = await AUTH.toggleStarMessage(messageId);
     if (!res.ok) {
       alert('Could not update star.');
       return;
     }
+    if (wasStarred) starredIds.delete(messageId);
+    else starredIds.add(messageId);
+    renderMessages();
+    closeContext();
+  }
+
+  async function togglePinFromContext(messageId) {
+    if (!thread || !thread.id) {
+      alert('Send a message first.');
+      closeContext();
+      return;
+    }
+
+    const wasPinned = pinnedMessageIds.has(messageId);
+    let res;
+
+    if (wasPinned) {
+      res = await AUTH.unpinMessage(messageId);
+    } else {
+      res = await AUTH.pinMessage(thread.id, messageId);
+    }
+
+    if (!res.ok) {
+      alert((res.error && res.error.message) || 'Could not update pin.');
+      closeContext();
+      return;
+    }
+
+    await loadPins();
+    renderPinnedStrip();
+    renderPinnedSheet();
     closeContext();
   }
 
@@ -1505,15 +1637,6 @@
       if (i >= 0) {
         allMessages[i].__pending = false;
         allMessages[i].__failed = true;
-
-        saveFailedVoice({
-          id: tempId,
-          threadId: 'draft-' + (thread && thread.user_b ? thread.user_b : 'x'),
-          audioDuration: temp.audio_duration,
-          blob: blob,
-          createdAt: Date.now()
-        });
-
         renderMessages();
       }
       return;
@@ -1848,6 +1971,11 @@
         return;
       }
 
+      if (action === 'pin') {
+        await togglePinFromContext(msgId);
+        return;
+      }
+
       if (action === 'copy') {
         try { await navigator.clipboard.writeText(msg.body || ''); closeContext(); }
         catch (err) { prompt('Copy:', msg.body || ''); closeContext(); }
@@ -2044,6 +2172,47 @@
     });
   }
 
+  if (pinnedStrip) {
+    pinnedStrip.addEventListener('click', function () {
+      openPinnedSheet();
+    });
+  }
+  if (pinnedSheetClose) {
+    pinnedSheetClose.addEventListener('click', closePinnedSheet);
+  }
+  if (pinnedSheetOverlay) {
+    pinnedSheetOverlay.addEventListener('click', function (e) {
+      if (e.target === pinnedSheetOverlay) closePinnedSheet();
+    });
+  }
+  if (pinnedSheetList) {
+    pinnedSheetList.addEventListener('click', async function (e) {
+      const unpinBtn = e.target.closest('.pinned-item-unpin');
+      if (unpinBtn) {
+        e.stopPropagation();
+        const id = unpinBtn.dataset.unpinId;
+        if (!id) return;
+
+        const res = await AUTH.unpinMessage(id);
+        if (!res.ok) {
+          alert('Could not unpin.');
+          return;
+        }
+        await loadPins();
+        renderPinnedStrip();
+        renderPinnedSheet();
+        return;
+      }
+
+      const item = e.target.closest('.pinned-item');
+      if (item) {
+        const msgId = item.dataset.msgId;
+        closePinnedSheet();
+        setTimeout(function () { scrollToMessage(msgId); }, 150);
+      }
+    });
+  }
+
   if (menuMute)   menuMute.addEventListener('click', doMuteToggle);
   if (menuReport) menuReport.addEventListener('click', doReport);
   if (menuBlock)  menuBlock.addEventListener('click', doBlockToggle);
@@ -2209,7 +2378,6 @@
       const toUserId = params.get('to');
 
       if (threadId) {
-        // Direct thread link — load normally.
         const res = await AUTH.loadThread(threadId);
         if (!res.ok) {
           if (chatMissing) chatMissing.hidden = false;
@@ -2218,25 +2386,20 @@
         thread = res.thread;
         other = res.other;
       } else if (toUserId) {
-        // Opened from a profile — first check if a thread already exists.
         const existing = await AUTH.findThread(toUserId);
         if (!existing.ok) {
           if (chatMissing) chatMissing.hidden = false;
           return;
         }
 
-        // Fetch the other user's info regardless (header, presence).
         const deskRes = await AUTH.getDeskByUserId(toUserId);
         other = (deskRes.ok && deskRes.desk)
           ? deskRes.desk
           : { user_id: toUserId, name: 'Someone' };
 
         if (existing.thread) {
-          // Existing thread — use it as-is.
           thread = existing.thread;
         } else {
-          // Draft mode — no thread exists yet. It gets created
-          // the moment the sender taps Send.
           thread = {
             id: null,
             status: 'draft',
@@ -2267,8 +2430,11 @@
       if (chatLog) chatLog.hidden = false;
 
       if (thread.id) {
-        // Full thread — load messages, restore failed voice notes, wire realtime.
         const failedVoice = await loadFailedVoice(thread.id);
+
+        // Load pins + starred IDs alongside messages
+        await loadPins();
+        await loadStarredIds();
 
         await refreshMessages();
 
@@ -2305,6 +2471,8 @@
           }
         }
 
+        renderPinnedStrip();
+
         scrollToBottomNow();
         pinToBottomAfterImages();
         updateScrollButton();
@@ -2314,17 +2482,12 @@
 
         await flushPendingReplies();
       } else {
-        // Draft mode — no messages to load yet. Just show the intro.
         renderMessages();
       }
 
       autoGrow();
       updatePresence();
 
-      /* Focus composer for:
-         - draft mode (sender, typing first message)
-         - accepted thread
-         - pending thread where we're the sender */
       const isRecipient = thread.initiated_by && thread.initiated_by !== me.id;
       const canType =
         (thread.status === 'accepted' ||
