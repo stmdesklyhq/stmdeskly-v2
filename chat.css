@@ -1967,3 +1967,35 @@ body.page-chat .chat-composer {
   flex: 0 0 auto !important;
   margin-top: auto !important;
 }
+
+
+/* =========================================================
+   APPEND — hard viewport frame
+   Position:fixed bypasses every 100dvh / 100vh quirk.
+   ========================================================= */
+
+body.page-chat {
+  position: fixed !important;
+  inset: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  max-height: none !important;
+}
+
+body.page-chat .chat-topbar { flex-shrink: 0 !important; }
+
+body.page-chat .chat-log {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+}
+
+body.page-chat .chat-composer {
+  flex: 0 0 auto !important;
+  margin-top: 0 !important;
+}
