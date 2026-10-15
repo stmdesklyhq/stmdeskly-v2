@@ -211,14 +211,14 @@
       return;
     }
     deskCard.hidden = false;
-    const url = location.origin + '/u/' + desk.username;
+    const url = location.origin + '/desk.html?u=' + desk.username;
     deskLinkUrl.textContent = url.replace(/^https?:\/\//, '');
   }
 
   if (copyDeskBtn) {
     copyDeskBtn.addEventListener('click', async function () {
       if (!desk || !desk.username) return;
-      const url = location.origin + '/u/' + desk.username;
+      const url = location.origin + '/desk.html?u=' + desk.username;
       try {
         await navigator.clipboard.writeText(url);
         copyDeskBtn.style.background = 'rgba(47, 109, 112, 0.14)';
@@ -431,7 +431,7 @@
           await navigator.share({ title: title, url: url });
         } else {
           await navigator.clipboard.writeText(url);
-          shareBtn.style.color = 'var(--teal, #2F6D70)';
+          shareBtn.style.color = 'var(--teal, #1F5F58)';
           setTimeout(function () { shareBtn.style.color = ''; }, 1200);
         }
       } catch (e) {}
