@@ -46,7 +46,10 @@
 <div class="app-shell">
 
 <header class="topbar">
-  <a class="wordmark" href="/home.html" aria-label="STMDeskly home">STMDeskly</a>
+  <a class="wordmark" href="/home.html" aria-label="STMDeskly home">
+    <span class="wm-name" id="wmName">STMDeskly</span>
+    <span class="wm-clock" id="wmClock" aria-hidden="true"></span>
+  </a>
   <div class="top-actions">
     <button class="icon-button" id="searchButton" aria-label="Search">
       <svg viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 4.5 4.5"/></svg>
@@ -63,10 +66,8 @@
 
 <main>
 
-<section class="welcome">
-  <p class="eyebrow">Your community</p>
+<section class="welcome" id="welcome">
   <h1 id="greeting">Hi there<span>.</span></h1>
-  <p>Find opportunities. Share your skills. Grow together.</p>
 </section>
 
 <nav class="category-scroll" id="categoryNav" aria-label="Filter posts">
@@ -134,12 +135,12 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
-<script src="auth.js?v=32"></script>
+<script src="auth.js?v=33"></script>
 <script src="home.js?v=7"></script>
 <script src="nav.js?v=101"></script>
 
 <script>
-/* Topbar scroll behaviour */
+/* ---------- Topbar scroll behaviour ---------- */
 (function () {
   var topbar = document.querySelector('.topbar');
   if (!topbar) return;
@@ -189,7 +190,7 @@
   document.addEventListener('scroll', onScroll, { passive: true, capture: true });
 })();
 
-/* Search icon → Explore */
+/* ---------- Search icon → Explore ---------- */
 (function () {
   var searchBtn = document.getElementById('searchButton');
   if (!searchBtn) return;
@@ -198,7 +199,68 @@
   });
 })();
 
-/* Notifications bell — dot only when there's something newer than last_seen */
+/* ---------- Wordmark → live clock swap ---------- */
+(function () {
+  var nameEl  = document.getElementById('wmName');
+  var clockEl = document.getElementById('wmClock');
+  if (!nameEl || !clockEl) return;
+
+  var swapped = false;
+
+  function tick() {
+    var d = new Date();
+    var h = d.getHours();
+    var m = d.getMinutes();
+    var s = d.getSeconds();
+    var ampm = h >= 12 ? 'pm' : 'am';
+    var h12 = h % 12; if (h12 === 0) h12 = 12;
+    clockEl.textContent =
+      (h12 < 10 ? '0' : '') + h12 + ':' +
+      (m < 10 ? '0' : '') + m + ':' +
+      (s < 10 ? '0' : '') + s + ' ' + ampm;
+  }
+
+  function swap() {
+    if (swapped) return;
+    swapped = true;
+
+    nameEl.classList.add('is-out');
+    clockEl.classList.add('is-in');
+
+    tick();
+    setInterval(tick, 1000);
+  }
+
+  setTimeout(swap, 1200);
+})();
+
+/* ---------- Greeting — show on arrival, retire for the session ---------- */
+(function () {
+  var w = document.getElementById('welcome');
+  if (!w) return;
+
+  var KEY = 'stm_greeting_shown';
+  var already = false;
+  try { already = sessionStorage.getItem(KEY) === '1'; } catch (e) {}
+
+  if (already) {
+    w.style.display = 'none';
+    return;
+  }
+
+  setTimeout(function () {
+    w.classList.add('is-leaving');
+    try { sessionStorage.setItem(KEY, '1'); } catch (e) {}
+  }, 2600);
+
+  w.addEventListener('transitionend', function (e) {
+    if (e.propertyName === 'max-height' || e.propertyName === 'opacity') {
+      w.style.display = 'none';
+    }
+  });
+})();
+
+/* ---------- Notifications bell — dot only when there's something newer ---------- */
 (function () {
   var btn = document.getElementById('notificationsButton');
   if (!btn) return;
