@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="tokens.css?v=1">
-  <link rel="stylesheet" href="new-post.css?v=1">
+<link rel="stylesheet" href="new-post.css?v=2">
 </head>
 <body>
 <div class="app">
@@ -67,6 +67,23 @@
     </div>
   </section>
 
+  <section class="gig-fields" id="gigFields" hidden>
+    <div class="section-head">
+      <h2>Gig details</h2>
+      <span>Optional</span>
+    </div>
+
+    <label for="gigBudgetMin">Budget <span>Optional</span></label>
+    <div class="budget-row">
+      <input id="gigBudgetMin" class="input" type="number" inputmode="numeric" min="0" placeholder="Min ₦">
+      <span class="budget-dash">–</span>
+      <input id="gigBudgetMax" class="input" type="number" inputmode="numeric" min="0" placeholder="Max ₦">
+    </div>
+
+    <label for="gigDeadline">Deadline <span>Optional</span></label>
+    <input id="gigDeadline" class="input" type="date">
+  </section>
+
   <section class="photos">
     <div class="section-head">
       <h2>Add photos</h2>
@@ -114,7 +131,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>
-<script src="auth.js?v=5"></script>
-<script src="new-post.js?v=1"></script>
+<script src="auth.js?v=26"></script>
+<script src="new-post.js?v=2"></script>
 </body>
-  </html>
+</html>
