@@ -2118,3 +2118,67 @@ body.page-chat .chat-composer {
   background: var(--teal, #2F6D70);
   color: #FFFEFB;
 }
+/* =========================================================
+   APPEND — Slide to reply
+   Hint only appears when a horizontal swipe actually begins.
+   ========================================================= */
+
+.chat-log {
+  touch-action: pan-y pinch-zoom;
+}
+
+.chat-bubble {
+  will-change: transform;
+  transition: transform 220ms cubic-bezier(.2, .7, .2, 1),
+              background 140ms ease,
+              color 140ms ease,
+              opacity 140ms ease;
+}
+
+.chat-bubble.is-swiping {
+  transition: none !important;
+  box-shadow: 0 6px 18px rgba(23, 43, 58, 0.10);
+}
+
+.chat-bubble.is-swiping:active {
+  transform: none;
+}
+
+/* Reply hint behind the bubble — hidden until swipe starts */
+.chat-reply-hint {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%) scale(0.55);
+  z-index: 0;
+  pointer-events: none;
+
+  display: none;
+  place-items: center;
+
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+
+  background: rgba(47, 109, 112, 0.14);
+  color: var(--teal, #2F6D70);
+
+  opacity: 0;
+
+  transition: opacity 120ms ease, background 140ms ease, color 140ms ease;
+  will-change: opacity, transform;
+}
+
+.chat-reply-hint.is-visible {
+  display: grid;
+}
+
+.chat-reply-hint svg {
+  width: 16px;
+  height: 16px;
+}
+
+.chat-reply-hint.is-armed {
+  background: var(--teal, #2F6D70);
+  color: #FFFEFB;
+}
