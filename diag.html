@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Diagnostic</title>
+<style>
+body { font-family: monospace; padding: 16px; font-size: 13px; line-height: 1.5; background: #fff; color: #000; }
+h3 { margin: 16px 0 4px; }
+pre { background: #f4f4f4; padding: 8px; border-radius: 6px; overflow-x: auto; white-space: pre-wrap; word-break: break-all; }
+</style>
+</head>
+<body>
+<h3>currentUser</h3>
+<pre id="u">loading…</pre>
+<h3>currentDesk</h3>
+<pre id="d">loading…</pre>
+<h3>desk raw select (all columns)</h3>
+<pre id="r">loading…</pre>
+<h3>desks count in table</h3>
+<pre id="c">loading…</pre>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="auth.js?v=32"></script>
+<script>
+(async function () {
+  const $ = (id) => document.getElementById(id);
+  try {
+    const u = await AUTH.currentUser();
+    $('u').textContent = u ? JSON.stringify({ id: u.id, email: u.email }, null, 2) : 'null';
+
+    const d = await AUTH.currentDesk();
+    $('d').textContent = d ? JSON.stringify(d, null, 2) : 'null';
+
+    if (u) {
+      const raw = await AUTH.sb.from('desks').select('*').eq('user_id', u.id);
+      $('r').textContent = JSON.stringify({ data: raw.data, error: raw.error }, null, 2);
+
+      const cnt = await AUTH.sb.from('desks').select('id', { count: 'exact', head: true });
+      $('c').textContent = JSON.stringify({ count: cnt.count, error: cnt.error }, null, 2);
+    } else {
+      $('r').textContent = 'no user session';
+      $('c').textContent = 'no user session';
+    }
+  } catch (e) {
+    $('u').textContent = 'ERR: ' + (e && e.message ? e.message : String(e));
+  }
+})();
+</script>
+</body>
+</html>
