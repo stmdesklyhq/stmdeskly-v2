@@ -1604,3 +1604,75 @@ body,
 .feed {
   margin-top: 4px;
 }
+
+/* =========================================================
+   APPEND — Wordmark slides out, live clock slides in
+   ========================================================= */
+
+.topbar > .wordmark {
+  display: inline-flex;
+  align-items: center;
+  height: 48px;
+  padding: 0 16px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Both children stack in the same slot; only one is visible */
+.topbar > .wordmark .wm-name,
+.topbar > .wordmark .wm-clock {
+  display: inline-block;
+  font-family: Poppins, system-ui, sans-serif;
+  line-height: 1;
+  white-space: nowrap;
+  transition:
+    transform 420ms cubic-bezier(.2, .7, .2, 1),
+    opacity 320ms ease;
+  will-change: transform, opacity;
+}
+
+/* The name — primary, sits in flow */
+.topbar > .wordmark .wm-name {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.05em;
+  color: var(--text-primary, #172B3A);
+  transform: translateX(0);
+  opacity: 1;
+}
+
+/* The clock — hidden to the right until swap */
+.topbar > .wordmark .wm-clock {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--teal, #1F5F58);
+  font-variant-numeric: tabular-nums;
+  transform: translate(40px, -50%);
+  opacity: 0;
+}
+
+/* --- Swap states --- */
+
+.topbar > .wordmark .wm-name.is-out {
+  transform: translateX(-40px);
+  opacity: 0;
+}
+
+.topbar > .wordmark .wm-clock.is-in {
+  transform: translate(0, -50%);
+  opacity: 1;
+}
+
+/* Reduced motion — swap without sliding */
+@media (prefers-reduced-motion: reduce) {
+  .topbar > .wordmark .wm-name,
+  .topbar > .wordmark .wm-clock {
+    transition: opacity 200ms linear !important;
+  }
+  .topbar > .wordmark .wm-name.is-out { transform: translateX(0); }
+  .topbar > .wordmark .wm-clock.is-in { transform: translate(0, -50%); }
+}
