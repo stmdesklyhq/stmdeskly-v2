@@ -44,3 +44,48 @@
   position: absolute;
   inset: 0;
 }
+/* =========================================================
+   APPEND — Gig fields
+   Only shown when category = Gig.
+   ========================================================= */
+
+.gig-fields {
+  padding: 4px 0 0;
+}
+
+.gig-fields[hidden] { display: none !important; }
+
+.budget-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.budget-row .input {
+  flex: 1;
+  min-width: 0;
+}
+
+.budget-dash {
+  flex: 0 0 auto;
+  color: var(--muted, #718087);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.gig-fields label {
+  display: block;
+  margin: 18px 0 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--navy, #172B3A);
+}
+
+.gig-fields label:first-of-type { margin-top: 0; }
+
+.gig-fields label span {
+  color: var(--muted, #718087);
+  font-size: 10.5px;
+  font-weight: 500;
+  margin-left: 4px;
+}
