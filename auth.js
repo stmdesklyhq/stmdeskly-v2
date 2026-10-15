@@ -1,3 +1,4 @@
+// auth.js — v30 — 15 Oct 2026
 // STMDESKLY v2 — Auth module
 (function () {
   'use strict';
@@ -360,7 +361,7 @@
     const user = userRes.data.user;
     if (!user) return { ok: false, error: { message: 'Not signed in' } };
 
-    const res = await sb.from('posts').insert({
+    const row = {
       user_id: user.id,
       category: input.category,
       title: input.title || null,
@@ -369,7 +370,39 @@
       contact_whatsapp: input.whatsapp || null,
       location: input.location || null,
       price: input.price || null,
-    }).select('id').single();
+    };
+
+    // Gig extras — only sent when present
+    if (input.gig_budget_min != null) row.gig_budget_min = input.gig_budget_min;
+    if (input.gig_budget_max != null) row.gig_budget_max = input.gig_budget_max;
+    if (input.gig_deadline) row.gig_deadline = input.gig_deadline;
+    if (input.gig_status) row.gig_status = input.gig_status;
+
+    const res = await sb.from('posts').insert(row).select('id').single();
+
+    if (res.error) return { ok: false, error: res.error };
+    return { ok: true, data: res.data };
+  }
+
+  async function updateGigStatus(postId, status) {
+    if (!postId) return { ok: false, error: { message: 'Missing post id' } };
+
+    const clean = String(status || '').trim().toLowerCase();
+    if (clean !== 'open' && clean !== 'filled' && clean !== 'closed') {
+      return { ok: false, error: { message: 'Invalid status' } };
+    }
+
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+
+    const res = await sb
+      .from('posts')
+      .update({ gig_status: clean })
+      .eq('id', postId)
+      .eq('user_id', user.id)
+      .select('id, gig_status')
+      .single();
 
     if (res.error) return { ok: false, error: res.error };
     return { ok: true, data: res.data };
@@ -1020,10 +1053,6 @@
 
     return { ok: true, data: rows };
   }
-
-  /* =========================================================
-     CHAT — starred message IDs for a single thread
-     ========================================================= */
 
   async function getStarredMessageIds(threadId) {
     if (!threadId) return { ok: true, data: [] };
@@ -1757,6 +1786,7 @@
     removePhoto: removePhoto,
 
     createPost: createPost,
+    updateGigStatus: updateGigStatus,
     uploadPostPhoto: uploadPostPhoto,
     toggleReaction: toggleReaction,
     getPostReactions: getPostReactions,
