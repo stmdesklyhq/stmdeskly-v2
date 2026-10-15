@@ -1213,3 +1213,49 @@ body,
 #notificationsButton svg {
   transform: translateY(-1px);
 }
+/* =========================================================
+   APPEND — Topbar actions, aligned + soft avatar outline
+   ========================================================= */
+
+/* Kill the previous bell nudge */
+#notificationsButton svg,
+.topbar > .top-actions .icon-button svg {
+  transform: none !important;
+}
+
+/* One clean line: consistent 36×36 cells, even gap, no asymmetry */
+.topbar > .top-actions {
+  gap: 4px;
+  padding: 0 8px;
+}
+
+.topbar > .top-actions .icon-button,
+.topbar > .top-actions .avatar-button {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+}
+
+.topbar > .top-actions .icon-button svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+  stroke-width: 1.9;
+}
+
+/* Avatar — hairline ink outline, quiet */
+.topbar > .top-actions .avatar-button .avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: var(--mint, #DCEBE3);
+  color: var(--teal, #2F6D70);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0;
+  box-shadow: inset 0 0 0 1px rgba(23, 43, 58, 0.10);
+   }
