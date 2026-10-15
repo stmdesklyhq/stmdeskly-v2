@@ -1,614 +1,335 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#F7F6F1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#F7F6F1">
+<title>Create your Desk — STMDeskly</title>
 
-  <title>Create your Desk — STMDeskly</title>
-  <meta name="description" content="Create your free STMDeskly page in under a minute.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="preload" as="style" href="tokens.css?v=1">
+<link rel="preload" as="style" href="type.css?v=1">
+<link rel="stylesheet" href="tokens.css?v=1">
+<link rel="stylesheet" href="type.css?v=1">
+<link rel="stylesheet" href="style.css?v=9">
+<link rel="stylesheet" href="auth.css?v=1">
 
-  <link rel="stylesheet" href="style.css?v=8">
-  <link rel="stylesheet" href="auth.css?v=3">
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 
 <body class="page-auth page-auth-signup">
 
-  <header class="auth-topbar">
-    <a href="/" class="auth-brand">
-      <img src="assets/images/deskly-logo-v2.png" alt="">
-      <span>STMDeskly</span>
-    </a>
+<header class="auth-topbar">
+  <a class="auth-brand" href="/index.html">
+    <img src="/icon-192.png" alt="">
+    <span>STMDeskly</span>
+  </a>
+  <a class="auth-topbar-back" href="/index.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M19 12H5M12 19l-7-7 7-7"/>
+    </svg>
+    <span>Home</span>
+  </a>
+</header>
 
-    <a href="/" class="auth-topbar-back">
-      <svg viewBox="0 0 24 24" fill="none"
-           stroke="currentColor" stroke-width="1.8"
-           stroke-linecap="round" stroke-linejoin="round"
-           aria-hidden="true">
-        <path d="M19 12H5"/>
-        <path d="M12 19l-7-7 7-7"/>
-      </svg>
-      <span>Back to home</span>
-    </a>
-  </header>
+<div class="auth-layout">
+
+  <aside class="auth-welcome">
+    <div class="auth-welcome-copy">
+      <span class="auth-eyebrow">YOUR SPACE, YOUR STORY</span>
+      <h1>One link. <span class="auth-period">Your</span> whole world.</h1>
+      <p>Photos, services, contact — everything people need to find you, in one place. Free.</p>
+
+      <div class="auth-benefits">
+        <div class="auth-benefit">
+          <span class="auth-benefit-mark">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 7h16M4 12h16M4 17h10"/>
+            </svg>
+          </span>
+          <div>
+            <strong>A page that's yours</strong>
+            <span>No code. No card. No monthly bill.</span>
+          </div>
+        </div>
+        <div class="auth-benefit">
+          <span class="auth-benefit-mark">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="9"/>
+              <path d="M3 12h18M12 3a15 15 0 0 1 0 18 15 15 0 0 1 0-18Z"/>
+            </svg>
+          </span>
+          <div>
+            <strong>Found by anyone</strong>
+            <span>Share one link — WhatsApp, IG, anywhere.</span>
+          </div>
+        </div>
+        <div class="auth-benefit">
+          <span class="auth-benefit-mark">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+            </svg>
+          </span>
+          <div>
+            <strong>Chat in-app</strong>
+            <span>People reach you without leaving the page.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="auth-preview">
+      <div class="auth-preview-top">
+        <span class="auth-preview-label">YOUR DESK · PREVIEW</span>
+        <span class="auth-preview-status"><span></span> Ready</span>
+      </div>
+      <div class="auth-preview-content">
+        <div class="auth-preview-avatar">
+          <svg viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg">
+            <rect width="52" height="52" rx="17" fill="#DCEBE3"/>
+            <text x="26" y="34" font-family="Baloo 2, sans-serif" font-size="20" font-weight="700" fill="#1F5F58" text-anchor="middle">CO</text>
+          </svg>
+        </div>
+        <div class="auth-preview-lines">
+          <span class="auth-line auth-line-wide"></span>
+          <span class="auth-line auth-line-short"></span>
+        </div>
+        <div class="auth-preview-blocks">
+          <div class="auth-preview-block auth-block-one">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 13.8a4.2 4.2 0 0 0 6.1.2l3-3a4.3 4.3 0 0 0-6.1-6.1l-1.7 1.7"/>
+              <path d="M14 10.2a4.2 4.2 0 0 0-6.1-.2l-3 3A4.3 4.3 0 0 0 11 19.1l1.7-1.7"/>
+            </svg>
+          </div>
+          <div class="auth-preview-block auth-block-two">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+            </svg>
+          </div>
+          <div class="auth-preview-block auth-block-three">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 4h16v12H5.17L4 17.17V4z"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="auth-preview-bottom">
+        <span>stmdeskly.com/u/you</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 12h14M13 5l7 7-7 7"/>
+        </svg>
+      </div>
+    </div>
+
+    <p class="auth-welcome-footer">Join people building their corner of STMDeskly.</p>
+  </aside>
 
   <main class="auth-main">
     <div class="auth-card">
 
-      <div id="formView">
+      <div class="auth-heading auth-form-heading">
+        <span class="auth-form-kicker">CREATE YOUR DESK</span>
+        <h2 class="auth-title">Make your Desk.</h2>
+        <p class="auth-sub">A real website. In one minute. Free.</p>
+      </div>
 
-        <div class="auth-form-heading">
-          <span class="auth-form-kicker" id="formKicker">LET'S GET YOU STARTED</span>
-          <h2 class="auth-title" id="formTitle">Create your Desk</h2>
-          <p class="auth-sub" id="formSub">
-            Your own place on the internet. Free, in a minute.
-          </p>
+      <div class="auth-error" id="formError" role="alert" hidden></div>
+
+      <button type="button" class="auth-google" id="googleBtn">
+        <svg class="auth-google-icon" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="#4285F4" d="M23.49 12.27c0-.79-.07-1.54-.19-2.27H12v4.51h6.47a5.53 5.53 0 0 1-2.4 3.63v3h3.88c2.27-2.09 3.54-5.17 3.54-8.87Z"/>
+          <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.94-2.91l-3.88-3c-1.08.72-2.45 1.16-4.06 1.16-3.13 0-5.78-2.11-6.73-4.96H1.29v3.09A11.99 11.99 0 0 0 12 24Z"/>
+          <path fill="#FBBC05" d="M5.27 14.29A7.2 7.2 0 0 1 4.89 12c0-.8.14-1.57.38-2.29V6.62H1.29A11.99 11.99 0 0 0 0 12c0 1.94.46 3.77 1.29 5.38l3.98-3.09Z"/>
+          <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.31 0 3.26 2.69 1.29 6.62l3.98 3.09C6.22 6.86 8.87 4.75 12 4.75Z"/>
+        </svg>
+        <span>Continue with Google</span>
+      </button>
+
+      <div class="auth-divider"><span>or</span></div>
+
+      <form id="signupForm" novalidate>
+
+        <div class="auth-field">
+          <label class="auth-label" for="name">Your name</label>
+          <input class="auth-input" type="text" id="name" name="name" placeholder="Chidi Okonkwo" autocomplete="name" required>
         </div>
 
-        <button type="button" class="auth-google" id="googleBtn">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/>
-            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84A11 11 0 0 0 12 23z"/>
-            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18A11 11 0 0 0 1 12c0 1.77.42 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84C6.71 7.31 9.14 5.38 12 5.38z"/>
+        <div class="auth-field">
+          <label class="auth-label" for="username">Username</label>
+          <input class="auth-input" type="text" id="username" name="username" placeholder="chidi-okonkwo" autocapitalize="off" autocorrect="off" spellcheck="false" required>
+          <small class="auth-hint" id="usernameHint">Your Desk URL will be stmdeskly.com/u/username</small>
+        </div>
+
+        <div class="auth-field">
+          <label class="auth-label" for="email">Email</label>
+          <input class="auth-input" type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email" required>
+        </div>
+
+        <div class="auth-field">
+          <label class="auth-label" for="password">Password</label>
+          <div class="auth-pw-wrap">
+            <input class="auth-input" type="password" id="password" name="password" placeholder="At least 8 characters" autocomplete="new-password" required>
+            <button type="button" class="reveal-btn" id="pwToggle" aria-label="Show password">Show</button>
+          </div>
+          <div class="auth-meter" id="pwMeter" hidden>
+            <span class="auth-meter-bar" id="bar1"></span>
+            <span class="auth-meter-bar" id="bar2"></span>
+            <span class="auth-meter-bar" id="bar3"></span>
+            <span class="auth-meter-bar" id="bar4"></span>
+          </div>
+          <small class="auth-meter-label" id="pwLabel"></small>
+        </div>
+
+        <label class="auth-terms">
+          <input type="checkbox" id="agree" required>
+          <span>I agree to the <a href="/term.html" target="_blank">Terms</a> and to keep STMDeskly a place people want to visit.</span>
+        </label>
+
+        <div id="turnstile-wrap" style="margin: 4px 0 18px;"></div>
+
+        <button type="submit" class="auth-submit" id="submitBtn">
+          Create my Desk
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14M13 5l7 7-7 7"/>
           </svg>
-          Continue with Google
         </button>
 
-        <div class="auth-divider" id="emailDivider">or continue with email</div>
-
-        <form id="signupForm" novalidate>
-
-          <div class="auth-field" data-field="name">
-            <label class="auth-label" for="name">Your name</label>
-            <input class="auth-input" type="text" id="name" name="name"
-              placeholder="Chidi Okonkwo" autocomplete="name" required>
-          </div>
-
-          <div class="auth-field" data-field="username">
-            <label class="auth-label" for="username">Choose your link</label>
-            <input class="auth-input" type="text" id="username" name="username"
-              placeholder="chidi" autocomplete="off" required
-              autocapitalize="off" autocorrect="off" spellcheck="false">
-            <span class="auth-hint" id="usernameHint">
-              stmdeskly.com/u/<strong id="usernamePreview">yourname</strong>
-            </span>
-          </div>
-
-          <div class="auth-field" data-field="email">
-            <label class="auth-label" for="email">Email address</label>
-            <input class="auth-input" type="email" id="email" name="email"
-              placeholder="you@example.com" autocomplete="email" required>
-          </div>
-
-          <div class="auth-field" data-field="password">
-            <label class="auth-label" for="password">Password</label>
-
-            <div class="auth-pw-wrap">
-              <input class="auth-input" type="password" id="password" name="password"
-                placeholder="At least 8 characters"
-                autocomplete="new-password" required>
-
-              <button type="button" class="auth-pw-toggle"
-                id="pwToggle" aria-label="Show password" aria-pressed="false">
-                <svg data-pw-icon="show" viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="1.8"
-                     stroke-linecap="round" stroke-linejoin="round"
-                     aria-hidden="true">
-                  <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/>
-                  <circle cx="12" cy="12" r="3"/>
-                </svg>
-                <svg data-pw-icon="hide" hidden viewBox="0 0 24 24" fill="none"
-                     stroke="currentColor" stroke-width="1.8"
-                     stroke-linecap="round" stroke-linejoin="round"
-                     aria-hidden="true">
-                  <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-6.5 0-10-7-10-7a19.77 19.77 0 0 1 4.22-5.06"/>
-                  <path d="M9.9 4.24A10.94 10.94 0 0 1 12 4c6.5 0 10 7 10 7a19.8 19.8 0 0 1-3.17 4.19"/>
-                  <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/>
-                  <line x1="2" y1="2" x2="22" y2="22"/>
-                </svg>
-              </button>
-            </div>
-
-            <div class="auth-meter" id="pwMeter">
-              <div class="auth-meter-bar"></div>
-              <div class="auth-meter-bar"></div>
-              <div class="auth-meter-bar"></div>
-              <div class="auth-meter-bar"></div>
-            </div>
-
-            <span class="auth-meter-label" id="pwLabel"></span>
-          </div>
-
-          <div class="auth-field" data-field="confirm">
-            <label class="auth-label" for="confirm">Confirm password</label>
-            <input class="auth-input" type="password" id="confirm" name="confirm"
-              placeholder="Enter your password again"
-              autocomplete="new-password" required>
-          </div>
-
-          <div class="auth-field" data-field="whatsapp">
-            <label class="auth-label" for="whatsapp">
-              WhatsApp number <span class="auth-optional">(optional)</span>
-            </label>
-            <input class="auth-input" type="tel" id="whatsapp" name="whatsapp"
-              placeholder="+234 800 000 0000" autocomplete="tel">
-          </div>
-
-          <div class="auth-field" data-field="terms">
-            <label class="auth-terms">
-              <input type="checkbox" id="terms" required>
-              <span>
-                I agree to the
-                <a href="/terms.html" target="_blank" rel="noopener noreferrer">Terms &amp; Privacy</a>.
-              </span>
-            </label>
-          </div>
-
-          <!-- Turnstile widget -->
-          <div class="cf-turnstile"
-               data-sitekey="0x4AAAAAAFVDiwAnKoWmrKoj"
-               data-theme="light"
-               data-size="flexible"
-               style="margin-bottom: 16px;"></div>
-
-          <!-- Honeypot — hidden from humans, bots fill it -->
-          <div style="position:absolute;left:-9999px;top:-9999px;" aria-hidden="true">
-            <label for="website_url">Website</label>
-            <input type="text" id="website_url" name="website_url" tabindex="-1" autocomplete="off">
-          </div>
-
-          <div class="auth-error" id="formError" role="alert" hidden></div>
-
-          <button type="submit" class="auth-submit" id="submitBtn">
-            <span id="submitText">Create my Desk</span>
-            <svg viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="1.8"
-                 stroke-linecap="round" stroke-linejoin="round"
-                 aria-hidden="true">
-              <path d="M5 12h14M13 6l6 6-6 6"/>
-            </svg>
-          </button>
-
-        </form>
-
-        <p class="auth-foot">
-          Already have a Desk? <a href="/login.html">Log in</a>
+        <p class="auth-form-note">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/>
+          </svg>
+          <span>Your details stay yours. We never sell your data.</span>
         </p>
 
-        <div class="auth-form-note">
-          <svg viewBox="0 0 24 24" fill="none"
-               stroke="currentColor" stroke-width="1.7"
-               stroke-linecap="round" stroke-linejoin="round"
-               aria-hidden="true">
-            <rect x="5" y="10" width="14" height="11" rx="2"/>
-            <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
-          </svg>
-          <span>Your account details stay private.</span>
-        </div>
-      </div>
+      </form>
 
-      <!-- Success view -->
-      <div id="successView" hidden>
-        <div class="auth-success">
-          <div class="auth-state-mark" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="2"
-                 stroke-linecap="round" stroke-linejoin="round">
-              <path d="M5 12l4 4L19 6"/>
-            </svg>
-          </div>
-
-          <h2>Your Desk is ready.</h2>
-          <p>Share this link anywhere so people can find you.</p>
-
-          <code id="deskLink">stmdeskly.com/u/yourname</code>
-
-          <a href="/dashboard.html" class="btn">Go to dashboard</a>
-        </div>
-      </div>
-
-      <!-- Email confirmation view -->
-      <div id="confirmView" hidden>
-        <div class="auth-success">
-          <div class="auth-state-mark" aria-hidden="true">
-            <svg viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="1.8"
-                 stroke-linecap="round" stroke-linejoin="round">
-              <rect x="3" y="5" width="18" height="14" rx="2"/>
-              <path d="m3 7 9 6 9-6"/>
-            </svg>
-          </div>
-
-          <h2>Check your email.</h2>
-          <p>
-            We sent a link to <strong id="confirmEmail"></strong>.
-            Open it to finish creating your Desk.
-          </p>
-
-          <a href="/login.html" class="btn">Go to login</a>
-        </div>
-      </div>
+      <p class="auth-foot">
+        Already have a Desk? <a href="/login.html">Log in</a>
+      </p>
 
     </div>
   </main>
 
-  <footer class="auth-page-footer">
-    <span>STMDeskly</span>
-    <span>Make your space on the internet.</span>
-  </footer>
+</div>
 
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="config.js"></script>
-  <script src="auth.js?v=23"></script>
+<footer class="auth-page-footer">
+  <span>STMDeskly</span>
+  <span>A real website. In one minute. Free.</span>
+</footer>
 
-  <script>
-    (function () {
-      'use strict';
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script src="auth.js?v=33"></script>
 
-      const $ = function (id) { return document.getElementById(id); };
+<script>
+(function () {
+  'use strict';
 
-      const formView    = $('formView');
-      const successView = $('successView');
-      const confirmView = $('confirmView');
-      const formError   = $('formError');
-      const signupForm  = $('signupForm');
-      const submitBtn   = $('submitBtn');
-      const submitText  = $('submitText');
+  var form = document.getElementById('signupForm');
+  var errorBox = document.getElementById('formError');
+  var submitBtn = document.getElementById('submitBtn');
+  var googleBtn = document.getElementById('googleBtn');
+  var pwToggle = document.getElementById('pwToggle');
+  var pwInput = document.getElementById('password');
+  var pwMeter = document.getElementById('pwMeter');
+  var pwLabel = document.getElementById('pwLabel');
+  var usernameInput = document.getElementById('username');
+  var usernameHint = document.getElementById('usernameHint');
 
-      let noDeskFlow = false;
+  var captchaToken = null;
 
-      function setSubmitText(text) {
-        submitText.textContent = text;
-      }
+  window.onTurnstileSuccess = function (token) { captchaToken = token; };
+  window.onTurnstileError = function () { captchaToken = null; };
 
-      function showError(message) {
-        formError.textContent = message;
-        formError.hidden = false;
-        formError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-      function clearError() {
-        formError.textContent = '';
-        formError.hidden = true;
-      }
+  function showError(msg) {
+    errorBox.textContent = msg || '';
+    errorBox.hidden = !msg;
+  }
 
-      function hideField(name) {
-        const field = signupForm.querySelector('[data-field="' + name + '"]');
-        if (field) field.style.display = 'none';
-      }
+  pwToggle.addEventListener('click', function () {
+    var show = pwInput.type === 'password';
+    pwInput.type = show ? 'text' : 'password';
+    pwToggle.textContent = show ? 'Hide' : 'Show';
+  });
 
-      // Grab the current Turnstile token, if the widget is on the page.
-      function getTurnstileToken() {
-        const el = document.querySelector('[name="cf-turnstile-response"]');
-        return el ? el.value : null;
-      }
+  pwInput.addEventListener('input', function () {
+    var s = AUTH.pwStrength(pwInput.value);
+    pwMeter.hidden = pwInput.value.length === 0;
+    [1,2,3,4].forEach(function (n) {
+      var bar = document.getElementById('bar' + n);
+      bar.className = 'auth-meter-bar' + (n <= s.score ? ' on-' + s.score : '');
+    });
+    pwLabel.textContent = pwInput.value ? s.label : '';
+  });
 
-      function resetTurnstile() {
-        if (window.turnstile && window.turnstile.reset) {
-          try { window.turnstile.reset(); } catch (e) {}
-        }
-      }
+  usernameInput.addEventListener('blur', async function () {
+    var v = usernameInput.value.trim();
+    if (!v) { usernameHint.textContent = 'Your Desk URL will be stmdeskly.com/u/username'; usernameHint.className = 'auth-hint'; return; }
+    usernameHint.textContent = 'Checking…';
+    var res = await AUTH.checkUsername(v);
+    if (res.ok) {
+      usernameHint.textContent = 'Available · stmdeskly.com/u/' + res.username;
+      usernameHint.className = 'auth-hint ok';
+    } else {
+      var msg = res.reason === 'taken' ? 'That username is taken.'
+              : res.reason === 'format' ? 'Use lowercase letters, numbers and dashes only.'
+              : 'Could not check. Try again.';
+      usernameHint.textContent = msg;
+      usernameHint.className = 'auth-hint bad';
+    }
+  });
 
-      // Check the current session.
-      (async function () {
-        try {
-          const user = await AUTH.currentUser();
-          if (!user) return;
+  form.addEventListener('submit', async function (e) {
+    e.preventDefault();
+    showError('');
 
-          const desk = await AUTH.currentDesk();
-          if (desk) {
-            window.location.replace('/dashboard.html');
-            return;
-          }
+    var name = document.getElementById('name').value.trim();
+    var username = usernameInput.value.trim();
+    var email = document.getElementById('email').value.trim();
+    var password = pwInput.value;
+    var agree = document.getElementById('agree').checked;
 
-          noDeskFlow = true;
+    if (!name || !username || !email || !password) { showError('Fill in every field.'); return; }
+    if (!agree) { showError('Please agree to the Terms to continue.'); return; }
+    if (password.length < 8) { showError('Password must be at least 8 characters.'); return; }
+    if (!captchaToken) { showError('Please complete the verification.'); return; }
 
-          $('formKicker').textContent = 'ONE MORE STEP';
-          $('formTitle').textContent  = 'Finish your Desk';
-          $('formSub').textContent    = 'Choose your link and you\'re done.';
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Creating your Desk…';
 
-          hideField('email');
-          hideField('password');
-          hideField('confirm');
-          hideField('terms');
+    var res = await AUTH.signupEmail({
+      name: name,
+      username: username,
+      email: email,
+      password: password,
+      captchaToken: captchaToken
+    });
 
-          // Hide Turnstile too — it's only needed for new signups.
-          const tsWidget = signupForm.querySelector('.cf-turnstile');
-          if (tsWidget) tsWidget.style.display = 'none';
+    if (!res.ok) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = 'Create my Desk <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>';
+      showError((res.error && res.error.message) || 'Could not create your Desk. Try again.');
+      return;
+    }
 
-          $('googleBtn').style.display = 'none';
-          $('emailDivider').style.display = 'none';
+    if (res.needsConfirm) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = 'Create my Desk';
+      showError('Check your email — we sent a confirmation link to ' + email);
+      return;
+    }
 
-          setSubmitText('Finish setup');
-        } catch (error) {
-          console.error('Could not check current session.');
-        }
-      })();
+    location.replace('/home.html');
+  });
 
-      // Google sign-in.
-      $('googleBtn').addEventListener('click', async function () {
-        clearError();
-        try {
-          const result = await AUTH.signInGoogle(location.origin + '/signup.html');
-          if (!result || !result.ok) {
-            showError('Could not start Google sign-in. Try again.');
-          }
-        } catch (error) {
-          showError('Could not start Google sign-in. Try again.');
-        }
-      });
-
-      // Password visibility.
-      $('pwToggle').addEventListener('click', function () {
-        const password = $('password');
-        const reveal = password.type === 'password';
-
-        password.type = reveal ? 'text' : 'password';
-
-        this.setAttribute('aria-label', reveal ? 'Hide password' : 'Show password');
-        this.setAttribute('aria-pressed', String(reveal));
-
-        const showIcon = this.querySelector('[data-pw-icon="show"]');
-        const hideIcon = this.querySelector('[data-pw-icon="hide"]');
-        if (showIcon) showIcon.hidden = reveal;
-        if (hideIcon) hideIcon.hidden = !reveal;
-      });
-
-      // Password strength indicator.
-      const meterBars = document.querySelectorAll('#pwMeter .auth-meter-bar');
-
-      $('password').addEventListener('input', function (event) {
-        const strength = AUTH.pwStrength(event.target.value);
-
-        meterBars.forEach(function (bar, index) {
-          bar.classList.remove('on-1', 'on-2', 'on-3', 'on-4');
-          if (index < strength.score) bar.classList.add('on-' + strength.score);
-        });
-
-        $('pwLabel').textContent = event.target.value ? strength.label : '';
-      });
-
-      // Username preview and availability.
-      let usernameTimer = null;
-
-      $('username').addEventListener('input', function (event) {
-        const value = event.target.value.trim().toLowerCase();
-
-        $('usernamePreview').textContent = value || 'yourname';
-        $('usernameHint').className = 'auth-hint';
-
-        clearTimeout(usernameTimer);
-        if (!value) return;
-
-        usernameTimer = setTimeout(async function () {
-          const result = await AUTH.checkUsername(value);
-          const hint = $('usernameHint');
-
-          if (result.ok) {
-            hint.className = 'auth-hint ok';
-            hint.innerHTML = 'stmdeskly.com/u/<strong>' + value + '</strong> — available';
-          } else if (result.reason === 'taken') {
-            hint.className = 'auth-hint bad';
-            hint.innerHTML = 'stmdeskly.com/u/<strong>' + value + '</strong> — already taken';
-          } else if (result.reason === 'format') {
-            hint.className = 'auth-hint bad';
-            hint.textContent = 'Use letters, numbers, dashes only (3–30 characters).';
-          }
-        }, 400);
-      });
-
-      // Signup form.
-      signupForm.addEventListener('submit', async function (event) {
-        event.preventDefault();
-        clearError();
-
-        const name     = $('name').value.trim();
-        const username = $('username').value.trim().toLowerCase();
-        const whatsapp = $('whatsapp').value.trim();
-
-        if (!name) {
-          showError('Please enter your name.');
-          return;
-        }
-        if (!username) {
-          showError('Please choose your link.');
-          return;
-        }
-
-        // -------- Finish setup (already authenticated, no Desk) --------
-        if (noDeskFlow) {
-          if (!AUTH.rlCheck('signup', 3, 15 * 60 * 1000)) {
-            showError('Too many attempts. Try again in a few minutes.');
-            return;
-          }
-
-          let usernameResult;
-          try {
-            usernameResult = await AUTH.checkUsername(username);
-          } catch (err) {
-            console.error('[signup] checkUsername failed:', err);
-            showError('Could not check that link. Please try again.');
-            return;
-          }
-
-          if (!usernameResult.ok) {
-            if (usernameResult.reason === 'taken') {
-              showError('That link is taken. Choose another.');
-            } else if (usernameResult.reason === 'format') {
-              showError('Link must use letters, numbers, and dashes only.');
-            } else {
-              showError('Could not check that link. Try another.');
-            }
-            return;
-          }
-
-          AUTH.rlRecord('signup', 15 * 60 * 1000);
-          submitBtn.disabled = true;
-          setSubmitText('Creating your Desk...');
-
-          try {
-            const result = await AUTH.createDesk({
-              username: username,
-              name: name,
-              whatsapp: whatsapp,
-            });
-
-            if (!result.ok) {
-              const msg = (result.error && result.error.message) || '';
-              if (/duplicate|unique/i.test(msg)) {
-                showError('That link was just taken. Choose another.');
-              } else if (/not signed in/i.test(msg)) {
-                showError('Your session expired. Reload the page and try again.');
-              } else {
-                showError('Could not create your Desk: ' + msg);
-              }
-              return;
-            }
-
-            $('deskLink').textContent = 'stmdeskly.com/u/' + username;
-            formView.hidden = true;
-            successView.hidden = false;
-          } catch (error) {
-            console.error('[signup] createDesk failed:', error);
-            showError('Could not create your Desk: ' + (error && error.message ? error.message : 'unknown error'));
-          } finally {
-            submitBtn.disabled = false;
-            setSubmitText('Finish setup');
-          }
-
-          return;
-        }
-
-        // -------- Normal email signup --------
-        const email    = $('email').value.trim();
-        const password = $('password').value;
-        const confirm  = $('confirm').value;
-        const terms    = $('terms').checked;
-
-        if (!email) {
-          showError('Please enter your email.');
-          return;
-        }
-
-        const strength = AUTH.pwStrength(password);
-        if (!strength.ok) {
-          showError('Password must be at least 8 characters and stronger.');
-          return;
-        }
-        if (password !== confirm) {
-          showError('Passwords do not match.');
-          return;
-        }
-        if (!terms) {
-          showError('Please accept the terms.');
-          return;
-        }
-
-        // Honeypot check
-        const honeypot = document.getElementById('website_url');
-        if (honeypot && honeypot.value) {
-          showError('Something went wrong. Please try again.');
-          return;
-        }
-
-        // Turnstile token — required
-        const turnstileToken = getTurnstileToken();
-        if (!turnstileToken) {
-          showError('Please complete the verification check.');
-          return;
-        }
-
-        if (!AUTH.rlCheck('signup', 3, 15 * 60 * 1000)) {
-          showError('Too many attempts. Try again in a few minutes.');
-          return;
-        }
-
-        let usernameResult;
-        try {
-          usernameResult = await AUTH.checkUsername(username);
-        } catch (err) {
-          console.error('[signup] checkUsername failed:', err);
-          showError('Could not check that link. Please try again.');
-          return;
-        }
-
-        if (!usernameResult.ok) {
-          if (usernameResult.reason === 'taken') {
-            showError('That link is taken. Choose another.');
-          } else if (usernameResult.reason === 'format') {
-            showError('Link must use letters, numbers, and dashes only.');
-          } else {
-            showError('Could not check that link. Try another.');
-          }
-          return;
-        }
-
-        submitBtn.disabled = true;
-        setSubmitText('Checking password...');
-
-        try {
-          const breached = await AUTH.pwBreached(password);
-          if (breached) {
-            showError('That password has appeared in a data breach. Choose a different one.');
-            resetTurnstile();
-            return;
-          }
-
-          setSubmitText('Creating your Desk...');
-          AUTH.rlRecord('signup', 15 * 60 * 1000);
-
-          const result = await AUTH.signupEmail({
-            email: email,
-            password: password,
-            name: name,
-            username: username,
-            whatsapp: whatsapp,
-            captchaToken: turnstileToken,
-          });
-
-          if (!result.ok) {
-            const message = (result.error && result.error.message) || 'Something went wrong.';
-
-            if (/already.*registered|user.*exists/i.test(message)) {
-              showError('That email is already in use. Try logging in.');
-            } else if (/duplicate|unique/i.test(message)) {
-              showError('That link is taken. Choose another.');
-            } else if (/captcha|verification/i.test(message)) {
-              showError('Verification failed. Please reload the page and try again.');
-            } else {
-              showError(message);
-            }
-            resetTurnstile();
-            return;
-          }
-
-          if (result.needsConfirm) {
-            $('confirmEmail').textContent = email;
-            formView.hidden = true;
-            confirmView.hidden = false;
-            return;
-          }
-
-          $('deskLink').textContent = 'stmdeskly.com/u/' + username;
-          formView.hidden = true;
-          successView.hidden = false;
-
-        } catch (error) {
-          console.error('[signup] signupEmail failed:', error);
-          showError('Something went wrong: ' + (error && error.message ? error.message : 'unknown error'));
-          resetTurnstile();
-        } finally {
-          submitBtn.disabled = false;
-          setSubmitText('Create my Desk');
-        }
-      });
-    })();
-  </script>
+  googleBtn.addEventListener('click', function () {
+    AUTH.signInGoogle(location.origin + '/signup.html');
+  });
+})();
+</script>
 
 </body>
-</html>
+            </html>
