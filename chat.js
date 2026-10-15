@@ -3,7 +3,8 @@
    Tap-to-record voice notes with IndexedDB persistence,
    wall-clock progress bar, scroll-to-bottom button.
    Cancel + reopen for pending threads.
-   Defensive against missing banner elements.
+   Composer is visible to the sender while pending so
+   the request arrives with a real message.
    ========================================================= */
 (function () {
   'use strict';
@@ -382,15 +383,17 @@
 
     if (thread.status === 'pending') {
       if (isRecipient) {
+        // Recipient: no composer until they accept.
         show(acceptBar);
         hide(pendingBar);
         hide(cancelledBar);
         hide(chatComposer);
       } else {
+        // Sender: composer visible so they can write the actual request.
         hide(acceptBar);
         show(pendingBar);
         hide(cancelledBar);
-        hide(chatComposer);
+        show(chatComposer);
       }
       return;
     }
@@ -2213,9 +2216,15 @@
 
       await flushPendingReplies();
 
-      if (thread.status === 'accepted' && !blockedState.me && !blockedState.them) {
-        chatInput.focus();
-      }
+      /* Autofocus the composer:
+         - sender of a pending thread → yes, so they can write
+         - accepted thread → yes
+         - recipient of a pending request → no, they see the Accept bar */
+      const isRecipient = thread.initiated_by && thread.initiated_by !== me.id;
+      const canType =
+        (thread.status === 'accepted' || (thread.status === 'pending' && !isRecipient)) &&
+        !blockedState.me && !blockedState.them;
+      if (canType) chatInput.focus();
 
       presenceTimer = setInterval(function () {
         AUTH.touchPresence();
