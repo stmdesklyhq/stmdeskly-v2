@@ -1,7 +1,8 @@
 /* =========================================================
    STMDESKLY v2 — Chats inbox
    Pin, archive, mark unread, mute, all five tabs.
-   Cancelled threads are hidden everywhere.
+   Cancelled threads hidden. Deleted messages shown as
+   "Message deleted" in the preview.
    ========================================================= */
 (function () {
   'use strict';
@@ -72,6 +73,16 @@
     return d.toLocaleDateString(undefined, { day: 'numeric', month: 'short' });
   }
 
+  /* Preview text for a single message. Checks deleted first. */
+  function previewFor(lm) {
+    if (!lm) return 'Message';
+    if (lm.deleted_at) return 'Message deleted';
+    if (lm.body) return esc(lm.body);
+    if (lm.photo_url) return '📷 Photo';
+    if (lm.audio_url) return '🎤 Voice note';
+    return 'Message';
+  }
+
   async function loadThreads() {
     const asA = await sb.from('chat_threads').select('*').eq('user_a', me.id);
     const asB = await sb.from('chat_threads').select('*').eq('user_b', me.id);
@@ -97,7 +108,7 @@
     const threadIds = threads.map(t => t.id);
     const mRes = await sb
       .from('chat_messages')
-      .select('thread_id, body, photo_url, sender_id, created_at, read_at')
+      .select('thread_id, body, photo_url, audio_url, sender_id, created_at, read_at, deleted_at')
       .in('thread_id', threadIds)
       .order('created_at', { ascending: false });
 
@@ -138,7 +149,6 @@
   function applyFilters(rows) {
     let out = rows;
 
-    /* Hide cancelled threads from every tab */
     out = out.filter(r => r.thread.status !== 'cancelled');
 
     if (currentTab === 'archived') {
@@ -204,13 +214,11 @@
     } else if (row.unread > 0 && row.lastIncoming) {
       const lm = row.lastIncoming;
       const who = other.name ? esc(String(other.name).split(/\s+/)[0]) : 'Them';
-      const body = lm.body ? esc(lm.body) : '📷 Photo';
-      preview = '<span class="chat-row-from">' + who + ':</span> ' + body;
+      preview = '<span class="chat-row-from">' + who + ':</span> ' + previewFor(lm);
     } else if (row.lastMessage) {
       const lm = row.lastMessage;
       const who = lm.sender_id === me.id ? '<strong>You:</strong> ' : '';
-      const body = lm.body ? esc(lm.body) : '📷 Photo';
-      preview = who + body;
+      preview = who + previewFor(lm);
     } else {
       preview = 'Say hi 👋';
     }
