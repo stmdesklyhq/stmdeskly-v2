@@ -1,4 +1,4 @@
-// auth.js — v30 — 15 Oct 2026
+// auth.js — v31 — 15 Oct 2026
 // STMDESKLY v2 — Auth module
 (function () {
   'use strict';
@@ -190,7 +190,7 @@
     const user = userRes.data.user;
     if (!user) return null;
     const res = await sb.from('desks')
-      .select('id, username, name')
+      .select('id, username, name, last_seen_notifications_at')
       .eq('user_id', user.id)
       .maybeSingle();
     if (res.error) return null;
@@ -1624,6 +1624,140 @@
   }
 
   /* =========================================================
+     NOTIFICATIONS
+     ========================================================= */
+
+  async function getNotifications() {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false, error: { message: 'Not signed in' } };
+    const me = user.id;
+    const LIMIT = 20;
+
+    // --- Chat requests: I'm the recipient, status = pending
+    const threadsRes = await sb
+      .from('chat_threads')
+      .select('id, user_a, user_b, initiated_by, created_at')
+      .eq('status', 'pending')
+      .neq('initiated_by', me)
+      .or('user_a.eq.' + me + ',user_b.eq.' + me)
+      .order('created_at', { ascending: false })
+      .limit(LIMIT);
+
+    const chatRequests = (threadsRes.data || []).map(function (t) {
+      return {
+        thread_id: t.id,
+        actor_id: t.initiated_by,
+        created_at: t.created_at
+      };
+    });
+
+    // --- My posts (needed for likes + replies)
+    const postsRes = await sb.from('posts').select('id').eq('user_id', me);
+    const myPostIds = (postsRes.data || []).map(function (p) { return p.id; });
+
+    let likes = [];
+    let replies = [];
+
+    if (myPostIds.length) {
+      const likesRes = await sb
+        .from('post_reactions')
+        .select('id, post_id, user_id, created_at')
+        .in('post_id', myPostIds)
+        .neq('user_id', me)
+        .order('created_at', { ascending: false })
+        .limit(LIMIT);
+
+      likes = (likesRes.data || []).map(function (r) {
+        return {
+          reaction_id: r.id,
+          post_id: r.post_id,
+          actor_id: r.user_id,
+          created_at: r.created_at
+        };
+      });
+
+      const repliesRes = await sb
+        .from('post_replies')
+        .select('id, post_id, user_id, created_at')
+        .in('post_id', myPostIds)
+        .neq('user_id', me)
+        .is('deleted_at', null)
+        .order('created_at', { ascending: false })
+        .limit(LIMIT);
+
+      replies = (repliesRes.data || []).map(function (r) {
+        return {
+          reply_id: r.id,
+          post_id: r.post_id,
+          actor_id: r.user_id,
+          created_at: r.created_at
+        };
+      });
+    }
+
+    // --- Actor desks
+    const actorIds = [...new Set(
+      chatRequests.map(function (r) { return r.actor_id; })
+        .concat(likes.map(function (r) { return r.actor_id; }))
+        .concat(replies.map(function (r) { return r.actor_id; }))
+        .filter(Boolean)
+    )];
+
+    const actorMap = {};
+    if (actorIds.length) {
+      const desksRes = await sb
+        .from('desks')
+        .select('user_id, name, username, avatar_url')
+        .in('user_id', actorIds);
+
+      (desksRes.data || []).forEach(function (d) {
+        actorMap[d.user_id] = {
+          name: d.name,
+          username: d.username,
+          avatar_url: d.avatar_url
+        };
+      });
+    }
+
+    function withActor(list) {
+      return list.map(function (item) {
+        item.actor = actorMap[item.actor_id] || { name: 'Someone' };
+        return item;
+      });
+    }
+
+    const truncated =
+      chatRequests.length === LIMIT ||
+      likes.length === LIMIT ||
+      replies.length === LIMIT;
+
+    return {
+      ok: true,
+      data: {
+        chatRequests: withActor(chatRequests),
+        likes: withActor(likes),
+        replies: withActor(replies),
+        truncated: truncated
+      }
+    };
+  }
+
+  async function markNotificationsSeen() {
+    const userRes = await sb.auth.getUser();
+    const user = userRes.data.user;
+    if (!user) return { ok: false };
+
+    const res = await sb
+      .from('desks')
+      .update({ last_seen_notifications_at: new Date().toISOString() })
+      .eq('user_id', user.id);
+
+    if (res.error) return { ok: false, error: res.error };
+    return { ok: true };
+  }
+
+  /* =========================================================
      PUSH NOTIFICATIONS
      ========================================================= */
 
@@ -1854,6 +1988,9 @@
     markThreadUnread: markThreadUnread,
     clearThreadUnread: clearThreadUnread,
     getForcedUnreadThreads: getForcedUnreadThreads,
+
+    getNotifications: getNotifications,
+    markNotificationsSeen: markNotificationsSeen,
 
     registerServiceWorker: registerServiceWorker,
     isPushSupported: isPushSupported,
