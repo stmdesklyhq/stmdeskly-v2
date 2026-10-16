@@ -1356,3 +1356,34 @@ body,
     opacity: 1;
   }
 }
+/* =========================================================
+   APPEND — Chips background band + feed spacing
+   ========================================================= */
+
+/* Chips get a cream band behind them so pinned content
+   doesn't show through */
+.category-scroll {
+  background: var(--cream, #F3F1EA);
+  padding-top: 8px;
+  padding-bottom: 12px;
+  margin-top: 12px;
+  margin-bottom: 12px;
+  box-shadow: 0 6px 12px -8px rgba(15, 39, 51, 0.10);
+}
+
+/* Give the feed a bit more top breathing room */
+.feed {
+  margin-top: 12px;
+}
+
+/* First card gets a soft top edge, not flush against chips */
+.post-card:first-child {
+  padding-top: 18px;
+}
+
+/* Cards separated by a touch more space on mobile */
+@media (max-width: 480px) {
+  .post-card {
+    padding: 18px 0;
+  }
+}
