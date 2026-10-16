@@ -23,8 +23,8 @@
   --muted-soft:   #9AA5AC;
 
   /* Surfaces */
-  --cream:        #F5F5F2;   /* page — very light warm grey */
-  --paper:        #FFFFFF;   /* cards — true white */
+  --cream:        #F5F5F2;
+  --paper:        #FFFFFF;
   --white:        #FFFFFF;
 
   /* Brand accent */
@@ -32,12 +32,12 @@
   --teal-dark:    #164A44;
   --teal-soft:    rgba(31, 95, 88, 0.10);
 
-  /* Mint accents (never a full-page background) */
+  /* Mint accents */
   --mint:         #DCEBE3;
   --mint-strong:  #B9DED1;
   --mint-deep:    #1F5F58;
 
-  /* Lavender (rare — one audience tile only) */
+  /* Lavender */
   --lavender:     #EEF0EE;
 
   /* Structure */
@@ -46,21 +46,18 @@
   --border-hard:  #C9CBC5;
 
   /* =======================================================
-     2. COLOUR — semantic (use these, not the raw ones)
+     2. COLOUR — semantic
      ======================================================= */
 
-  /* Page */
   --bg-page:              var(--cream);
   --bg-surface:           var(--paper);
   --bg-surface-alt:       #FAFAF7;
 
-  /* Text */
   --text-primary:         var(--navy);
   --text-secondary:       var(--text);
   --text-muted:           var(--muted);
   --text-inverse:         var(--white);
 
-  /* Actions */
   --action-primary-bg:    var(--teal);
   --action-primary-bg-hover: var(--teal-dark);
   --action-primary-fg:    var(--white);
@@ -69,37 +66,32 @@
   --action-secondary-fg:  var(--navy);
   --action-secondary-border: var(--border);
 
-  /* State: success */
   --success-bg:           #E7F1EC;
   --success-border:       #C9DFD6;
   --success-fg:           #1F5F58;
 
-  /* State: warning */
   --warning-bg:           #FBF0D9;
   --warning-border:       #E9D4A7;
   --warning-fg:           #79551B;
 
-  /* State: danger */
   --danger-bg:            #FFF1EF;
   --danger-border:        #F2D4D0;
   --danger-fg:            #B3261E;
 
-  /* State: info / live */
   --live-bg:              var(--mint);
   --live-border:          #C5DED1;
   --live-fg:              #1F5F58;
 
-  /* Focus ring */
   --focus-ring:           0 0 0 4px rgba(31, 95, 88, 0.18);
 
   /* =======================================================
      3. TYPOGRAPHY — family
-     Headings   → Baloo 2
-     Everything → Poppins
+     Headings   → Baloo 2 (curvy, confident)
+     Everything → Nunito (rounded, warm, readable)
      ======================================================= */
 
   --font-heading: "Baloo 2", "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-ui:      "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-ui:      "Nunito", "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono:    ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
   /* =======================================================
@@ -187,7 +179,7 @@
   --border-med:   1.5px;
 
   /* =======================================================
-     11. SHADOWS — use sparingly
+     11. SHADOWS
      ======================================================= */
 
   --shadow-none:  none;
@@ -251,7 +243,7 @@ html {
 body {
   font-family: var(--font-ui);
   font-size: var(--text-md);
-  font-weight: var(--fw-regular);
+  font-weight: var(--fw-medium);
   line-height: var(--lh-relaxed);
   color: var(--text-primary);
   background: var(--bg-page);
@@ -286,14 +278,14 @@ h4 { font-size: var(--text-lg); }
 p {
   margin: 0;
   font-size: var(--text-md);
-  font-weight: var(--fw-regular);
+  font-weight: var(--fw-medium);
   line-height: var(--lh-relaxed);
   color: var(--text-secondary);
 }
 
 small {
   font-size: var(--text-xs);
-  font-weight: var(--fw-medium);
+  font-weight: var(--fw-semibold);
   line-height: var(--lh-normal);
   color: var(--text-muted);
 }
@@ -301,7 +293,7 @@ small {
 label {
   font-family: var(--font-ui);
   font-size: var(--text-sm);
-  font-weight: var(--fw-semibold);
+  font-weight: var(--fw-bold);
   line-height: 1.4;
   color: var(--text-primary);
 }
@@ -309,7 +301,7 @@ label {
 button {
   font-family: var(--font-ui);
   font-size: var(--text-base);
-  font-weight: var(--fw-semibold);
+  font-weight: var(--fw-bold);
   letter-spacing: var(--ls-normal);
 }
 
@@ -323,7 +315,7 @@ textarea,
 select {
   font-family: var(--font-ui);
   font-size: var(--text-md);
-  font-weight: var(--fw-regular);
+  font-weight: var(--fw-medium);
   color: var(--text-primary);
 }
 
