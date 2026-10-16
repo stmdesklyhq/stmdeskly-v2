@@ -1327,3 +1327,133 @@ body,
     animation: none !important;
   }
    }
+/* =========================================================
+   APPEND — Edge-to-edge feed on mobile
+   Posts bleed to the screen edges. Content has room to
+   breathe horizontally instead of everything centred in
+   a padded column.
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  /* Shell: kill the gutter on mobile only */
+  .app-shell {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  /* Everything inside main gets the gutter back */
+  .welcome,
+  .category-scroll,
+  .composer,
+  .feed {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  /* Chips already have their own padding via the append — leave it */
+
+  /* Cards stretch full width */
+  .post-card {
+    padding-left: 16px;
+    padding-right: 16px;
+    padding-top: 16px;
+    padding-bottom: 16px;
+  }
+
+  /* Photos bleed right to the screen edges */
+  .post-photos {
+    margin-left: -16px;
+    margin-right: -16px;
+    gap: 2px;
+    border-radius: 0;
+  }
+
+  .post-photo-tile {
+    border-radius: 0;
+  }
+
+  /* Single photo also bleeds */
+  .post-photos:has(.post-photo-tile:only-child) {
+    margin-left: -16px;
+    margin-right: -16px;
+    gap: 0;
+  }
+
+  .post-photos:has(.post-photo-tile:only-child) .post-photo-tile {
+    border-radius: 0;
+  }
+
+  /* Gigs go edge-to-edge too — no more floating card */
+  .post-card.is-gig {
+    margin-left: 0;
+    margin-right: 0;
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+    padding-left: 20px;
+    padding-right: 16px;
+  }
+
+  /* Composer stays a floating pill but with tighter side margins */
+  .composer {
+    margin-left: 16px;
+    margin-right: 16px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  /* Category chips stay edge-to-edge scrolling */
+  .category-scroll {
+    padding-left: 16px;
+    padding-right: 16px;
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  /* The welcome greeting too */
+  .welcome {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  /* Divider between posts is a full-width line now */
+  .post-card {
+    border-bottom: 1px solid rgba(17, 24, 39, 0.10);
+  }
+
+  .post-card:first-child {
+    border-top: 1px solid rgba(17, 24, 39, 0.10);
+  }
+}
+
+/* =========================================================
+   APPEND — Tighter vertical rhythm
+   ========================================================= */
+
+.post-header {
+  margin-bottom: 6px;
+}
+
+.post-title {
+  margin-bottom: 3px;
+}
+
+.post-body {
+  margin-bottom: 2px;
+}
+
+.post-actions {
+  margin-top: 8px;
+  gap: 20px;
+}
+
+.reaction-count,
+.reply-count {
+  font-weight: 700;
+}
+
+/* Meta line — name and time sit tighter */
+.post-author {
+  column-gap: 6px;
+}
