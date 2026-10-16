@@ -1322,3 +1322,60 @@ body,
     animation: none !important;
   }
    }
+/* =========================================================
+   5. CATEGORY CHIPS — flow normally, rise as a fixed bar
+   ========================================================= */
+
+.category-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  background: var(--bg-page, #F3F1EA);
+  padding: 6px 18px 12px;
+  margin: 8px -18px 12px;
+
+  /* Normal position in the page flow */
+  position: relative;
+  z-index: 1;
+
+  transform: translateY(0);
+  transition:
+    transform 320ms cubic-bezier(.2, .7, .2, 1),
+    box-shadow 320ms ease;
+}
+
+.category-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* --- When the topbar hides, chips fly up to take its slot --- */
+
+.topbar.is-hidden ~ main .category-scroll {
+  position: fixed;
+  top: 8px;
+  left: 0;
+  right: 0;
+
+  /* Match the app shell's max width and gutter so it sits centred */
+  max-width: var(--width-feed, 620px);
+  margin: 0 auto;
+  padding: 6px 18px 12px;
+
+  z-index: 15;
+  box-shadow: 0 8px 18px -10px rgba(15, 39, 51, 0.14);
+}
+
+/* --- When the topbar returns, chips slide back into flow --- */
+
+.topbar.is-visible ~ main .category-scroll {
+  position: relative;
+  top: auto;
+  left: auto;
+  right: auto;
+  max-width: none;
+  margin: 8px -18px 12px;
+  box-shadow: none;
+}
