@@ -1427,3 +1427,24 @@ body,
 .topbar:not(.is-hidden) ~ main .category-scroll.is-pinned {
   top: calc(8px + 48px + 8px);
 }
+/* =========================================================
+   APPEND — Kill the empty strip when topbar hides
+   ========================================================= */
+
+/* The topbar's own margin collapses to zero when hidden */
+.topbar.is-hidden {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+/* Chips tighten their top padding — no ghost strip above them */
+.category-scroll {
+  padding-top: 4px;
+  margin-top: 4px;
+}
+
+/* On the way back in, topbar returns to its normal spacing */
+.topbar.is-visible {
+  margin-top: 8px;
+  margin-bottom: var(--space-4, 16px);
+}
