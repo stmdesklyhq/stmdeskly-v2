@@ -10,7 +10,8 @@
 :root {
 
   /* =======================================================
-     1. COLOUR — raw palette (palette B — deeper)
+     1. COLOUR — raw palette
+     Clean white paper, warm-neutral page, deeper ink.
      ======================================================= */
 
   /* Neutrals */
@@ -22,8 +23,8 @@
   --muted-soft:   #9AA5AC;
 
   /* Surfaces */
-  --cream:        #F3F1EA;
-  --paper:        #FFFFFF;
+  --cream:        #F5F5F2;   /* page — very light warm grey */
+  --paper:        #FFFFFF;   /* cards — true white */
   --white:        #FFFFFF;
 
   /* Brand accent */
@@ -40,9 +41,9 @@
   --lavender:     #EEF0EE;
 
   /* Structure */
-  --border:       #E0DED6;
+  --border:       #E4E5E1;
   --border-soft:  rgba(15, 39, 51, 0.06);
-  --border-hard:  #C9C7BF;
+  --border-hard:  #C9CBC5;
 
   /* =======================================================
      2. COLOUR — semantic (use these, not the raw ones)
@@ -51,7 +52,7 @@
   /* Page */
   --bg-page:              var(--cream);
   --bg-surface:           var(--paper);
-  --bg-surface-alt:       #F7F6F1;
+  --bg-surface-alt:       #FAFAF7;
 
   /* Text */
   --text-primary:         var(--navy);
@@ -93,30 +94,30 @@
 
   /* =======================================================
      3. TYPOGRAPHY — family
-     Headings   → Baloo 2  (curvy, strong, editorial)
-     Everything → Nunito   (rounded, warm, readable)
+     Headings   → Baloo 2
+     Everything → Poppins
      ======================================================= */
 
   --font-heading: "Baloo 2", "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-ui:      "Nunito", "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-ui:      "Poppins", system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono:    ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
   /* =======================================================
      4. TYPOGRAPHY — size scale (mobile-first)
      ======================================================= */
 
-  --text-2xs:     10px;   /* micro labels, chips */
-  --text-xs:      11px;   /* metadata */
-  --text-sm:      12px;   /* labels, supporting text */
-  --text-base:    13px;   /* buttons */
-  --text-md:      14px;   /* body copy */
-  --text-lg:      15px;   /* post titles, larger body */
-  --text-xl:      16px;   /* section headings */
-  --text-2xl:     20px;   /* secondary page heading */
-  --text-3xl:     24px;   /* main screen title */
-  --text-4xl:     28px;   /* large mobile hero */
-  --text-5xl:     32px;   /* tablet hero */
-  --text-6xl:     40px;   /* desktop hero */
+  --text-2xs:     10px;
+  --text-xs:      11px;
+  --text-sm:      12px;
+  --text-base:    13px;
+  --text-md:      14px;
+  --text-lg:      15px;
+  --text-xl:      16px;
+  --text-2xl:     20px;
+  --text-3xl:     24px;
+  --text-4xl:     28px;
+  --text-5xl:     32px;
+  --text-6xl:     40px;
 
   /* =======================================================
      5. TYPOGRAPHY — weight
@@ -250,7 +251,7 @@ html {
 body {
   font-family: var(--font-ui);
   font-size: var(--text-md);
-  font-weight: var(--fw-medium);
+  font-weight: var(--fw-regular);
   line-height: var(--lh-relaxed);
   color: var(--text-primary);
   background: var(--bg-page);
@@ -285,14 +286,14 @@ h4 { font-size: var(--text-lg); }
 p {
   margin: 0;
   font-size: var(--text-md);
-  font-weight: var(--fw-medium);
+  font-weight: var(--fw-regular);
   line-height: var(--lh-relaxed);
   color: var(--text-secondary);
 }
 
 small {
   font-size: var(--text-xs);
-  font-weight: var(--fw-semibold);
+  font-weight: var(--fw-medium);
   line-height: var(--lh-normal);
   color: var(--text-muted);
 }
@@ -300,7 +301,7 @@ small {
 label {
   font-family: var(--font-ui);
   font-size: var(--text-sm);
-  font-weight: var(--fw-bold);
+  font-weight: var(--fw-semibold);
   line-height: 1.4;
   color: var(--text-primary);
 }
@@ -308,7 +309,7 @@ label {
 button {
   font-family: var(--font-ui);
   font-size: var(--text-base);
-  font-weight: var(--fw-bold);
+  font-weight: var(--fw-semibold);
   letter-spacing: var(--ls-normal);
 }
 
@@ -322,7 +323,7 @@ textarea,
 select {
   font-family: var(--font-ui);
   font-size: var(--text-md);
-  font-weight: var(--fw-medium);
+  font-weight: var(--fw-regular);
   color: var(--text-primary);
 }
 
