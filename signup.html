@@ -188,7 +188,16 @@
           <span>I agree to the <a href="/term.html" target="_blank">Terms</a> and to keep STMDeskly a place people want to visit.</span>
         </label>
 
-        <div id="turnstile-wrap" style="margin: 4px 0 18px;"></div>
+        <div
+          class="cf-turnstile"
+          id="turnstile-wrap"
+          data-sitekey="0x4AAAAAAFVDiwAnKoWmrKoj"
+          data-callback="onTurnstileSuccess"
+          data-error-callback="onTurnstileError"
+          data-theme="light"
+          data-size="flexible"
+          style="margin: 4px 0 18px;"
+        ></div>
 
         <button type="submit" class="auth-submit" id="submitBtn">
           Create my Desk
@@ -332,4 +341,4 @@
 </script>
 
 </body>
-            </html>
+</html>
