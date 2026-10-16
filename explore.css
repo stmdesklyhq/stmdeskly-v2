@@ -534,3 +534,317 @@
   .explore-desk { padding: 10px 12px; gap: 10px; grid-template-columns: 42px 1fr 16px; }
   .explore-desk-avatar { width: 42px; height: 42px; font-size: 13px; }
    }
+
+/* =========================================================
+   APPEND — Tighten Explore
+   Same discipline as Home: less empty band between
+   sections, tighter top block, closer section labels.
+   ========================================================= */
+
+/* Topbar — single row, tighter margins */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 8px 12px 10px;
+  min-height: 48px;
+  position: sticky;
+  top: 8px;
+  z-index: 20;
+  transform: translateY(0);
+  transition: transform 240ms cubic-bezier(.2, .7, .2, 1);
+  will-change: transform;
+}
+
+.topbar.is-hidden {
+  transform: translateY(-120px);
+}
+
+.topbar.is-visible {
+  transform: translateY(0);
+}
+
+/* Wordmark pill */
+.topbar .wordmark {
+  display: inline-flex;
+  align-items: center;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(17, 24, 39, 0.06);
+  background: linear-gradient(
+    135deg,
+    rgba(220, 235, 227, 0.85) 0%,
+    rgba(255, 255, 255, 0.85) 60%
+  );
+  box-shadow:
+    0 1px 2px rgba(17, 24, 39, 0.04),
+    0 8px 22px rgba(17, 24, 39, 0.08);
+  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text-primary, #111827);
+}
+
+/* Right label pill — "Explore" */
+.topbar .topbar-label {
+  display: inline-flex;
+  align-items: center;
+  height: 44px;
+  padding: 0 18px;
+  border-radius: 14px;
+  border: 1px solid rgba(17, 24, 39, 0.06);
+  background: var(--paper, #FFFFFF);
+  box-shadow:
+    0 1px 2px rgba(17, 24, 39, 0.04),
+    0 8px 22px rgba(17, 24, 39, 0.08);
+  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--teal, #1F5F58);
+}
+
+/* Hero block — tight */
+.explore-hero {
+  padding: 4px 16px 14px;
+  margin: 0;
+}
+
+.explore-hero h1 {
+  margin: 0 0 4px;
+  font-family: var(--font-heading, "Baloo 2", Poppins, system-ui, sans-serif);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  color: var(--text-primary, #111827);
+}
+
+.explore-hero p {
+  margin: 0;
+  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--text-muted, #6B7280);
+}
+
+/* Search — sits right under hero, tighter */
+.explore-search {
+  margin: 0 12px 10px;
+  padding: 0 14px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--paper, #FFFFFF);
+  border: 1px solid var(--border, #DFE1E4);
+  border-radius: 14px;
+}
+
+.explore-search svg {
+  width: 18px;
+  height: 18px;
+  color: var(--text-muted, #6B7280);
+  flex-shrink: 0;
+}
+
+.explore-search input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  background: transparent;
+  outline: none;
+  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--text-primary, #111827);
+}
+
+.explore-search input::placeholder {
+  color: var(--text-muted, #6B7280);
+  opacity: 1;
+}
+
+.explore-clear {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-muted, #6B7280);
+  cursor: pointer;
+}
+
+.explore-clear svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Filter chips row — tighter */
+.explore-filters {
+  display: flex;
+  gap: 8px;
+  padding: 0 16px 12px;
+  margin: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.explore-filters::-webkit-scrollbar { display: none; }
+
+.explore-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 14px;
+  flex: none;
+  border: 1.5px solid var(--border, #DFE1E4);
+  border-radius: 999px;
+  background: var(--paper, #FFFFFF);
+  color: var(--text-secondary, #2A3540);
+  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 140ms cubic-bezier(.2, .7, .2, 1),
+    border-color 140ms cubic-bezier(.2, .7, .2, 1),
+    color 140ms cubic-bezier(.2, .7, .2, 1);
+}
+
+.explore-chip.is-current {
+  background: var(--teal, #1F5F58);
+  border-color: var(--teal, #1F5F58);
+  color: #FFFFFF;
+  font-weight: 800;
+}
+
+/* Results block */
+.explore-results {
+  padding: 0 12px;
+}
+
+/* Section labels ("4 DESKS", "5 POSTS") — pull them close
+   to the list. That empty band between chips and label was
+   the main thing making Explore feel sparse. */
+.explore-results > h2,
+.explore-results > .explore-section-label {
+  margin: 4px 4px 8px;
+  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted, #6B7280);
+}
+
+/* Desk / post rows — same curve as Home */
+.explore-result {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  margin: 0 0 6px;
+  border: 1px solid var(--border, #DFE1E4);
+  border-radius: 14px;
+  background: var(--paper, #FFFFFF);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 140ms cubic-bezier(.2, .7, .2, 1);
+}
+
+.explore-result:hover {
+  border-color: var(--border-hard, #C3C7CD);
+}
+
+.explore-result .result-avatar {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: var(--mint, #DCEBE3);
+  color: var(--teal, #1F5F58);
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 800;
+  overflow: hidden;
+}
+
+.explore-result .result-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 999px;
+}
+
+.explore-result .result-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.explore-result .result-name {
+  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-primary, #111827);
+  letter-spacing: -0.005em;
+  line-height: 1.2;
+  margin: 0 0 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.explore-result .result-meta {
+  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted, #6B7280);
+  line-height: 1.4;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.explore-result .result-arrow {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  color: var(--muted-soft, #9CA3AF);
+}
+
+/* Empty state sits tight */
+.explore-empty {
+  padding: 32px 20px;
+  text-align: center;
+}
+
+.explore-empty h2 {
+  margin: 12px 0 4px;
+  font-family: var(--font-heading, "Baloo 2", Poppins, system-ui, sans-serif);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+}
+
+.explore-empty p {
+  margin: 0;
+  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted, #6B7280);
+  line-height: 1.5;
+     }
