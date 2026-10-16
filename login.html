@@ -16,6 +16,8 @@
 <link rel="stylesheet" href="type.css?v=1">
 <link rel="stylesheet" href="style.css?v=9">
 <link rel="stylesheet" href="auth.css?v=1">
+
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 
 <body class="page-auth">
@@ -80,6 +82,17 @@
         </label>
       </div>
 
+      <div
+        class="cf-turnstile"
+        id="turnstile-wrap"
+        data-sitekey="0x4AAAAAAFVDiwAnKoWmrKoj"
+        data-callback="onTurnstileSuccess"
+        data-error-callback="onTurnstileError"
+        data-theme="light"
+        data-size="flexible"
+        style="margin: 4px 0 18px;"
+      ></div>
+
       <button type="submit" class="auth-submit" id="submitBtn">
         Log in
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -113,6 +126,11 @@
   var pwToggle = document.getElementById('pwToggle');
   var pwInput = document.getElementById('password');
 
+  var captchaToken = null;
+
+  window.onTurnstileSuccess = function (token) { captchaToken = token; };
+  window.onTurnstileError = function () { captchaToken = null; };
+
   function showError(msg) {
     errorBox.textContent = msg || '';
     errorBox.hidden = !msg;
@@ -133,6 +151,11 @@
 
     if (!email || !password) {
       showError('Enter your email and password.');
+      return;
+    }
+
+    if (!captchaToken) {
+      showError('Please complete the verification.');
       return;
     }
 
@@ -158,4 +181,4 @@
 </script>
 
 </body>
-            </html>
+</html>
