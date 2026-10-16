@@ -1342,3 +1342,116 @@ body,
     animation: none !important;
   }
    }
+
+/* =========================================================
+   APPEND — Flatten further + kill the scroll lag
+   ========================================================= */
+
+/* Kill sticky on the topbar. It caused the lag —
+   sticky + transform + a same-row sibling that also
+   swaps positioning = four layout recalculations per frame.
+   Instead: topbar just scrolls off. Simpler, faster. */
+.topbar {
+  position: relative;
+  top: auto;
+  will-change: auto;
+  transition: opacity 200ms ease;
+}
+
+.topbar.is-hidden {
+  transform: none;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.topbar.is-visible {
+  transform: none;
+  opacity: 1;
+}
+
+/* Kill sticky on the chips too — they go with the flow now */
+.category-scroll {
+  position: relative;
+  top: auto !important;
+  transition: none;
+}
+
+/* Remove the fixed-position swap entirely — it was the
+   source of half the jank */
+.topbar.is-hidden ~ main .category-scroll {
+  position: relative;
+  top: auto;
+  left: auto;
+  right: auto;
+  max-width: none;
+  margin: 0;
+  padding-top: 4px;
+  padding-bottom: 14px;
+  box-shadow: none;
+}
+
+/* Tighten the post — less padding, content hugs the header */
+.post-card {
+  padding: 14px 16px 12px;
+}
+
+.post-header {
+  margin-bottom: 3px;
+}
+
+.post-title {
+  margin: 0 0 2px;
+  font-size: 15px;
+}
+
+.post-body {
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+/* Actions row is smaller — closer to the content */
+.post-actions {
+  margin-top: 8px;
+  gap: 22px;
+}
+
+/* Name gets the FB-style emphasis: bigger, bolder */
+.post-author-link {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.005em;
+}
+
+/* Meta goes lighter so the name reads loudest */
+.post-meta {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-muted, #6B7280);
+}
+
+/* Hairline divider between posts — thinner and darker */
+.post-card {
+  border-bottom: 1px solid rgba(17, 24, 39, 0.08);
+}
+
+.feed {
+  border-top: 1px solid rgba(17, 24, 39, 0.08);
+}
+
+/* Kill the negative-margin photo bleed. It felt aggressive.
+   Photos go back inside the post padding. */
+.post-photos {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  gap: 3px;
+  margin-top: 8px;
+}
+
+.post-photo-tile {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.post-photos:has(.post-photo-tile:only-child) .post-photo-tile {
+  border-radius: 12px;
+}
