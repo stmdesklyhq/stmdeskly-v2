@@ -16,7 +16,7 @@
     color: #172B3A;
   }
   body {
-    font-family: Poppins, system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-family: Nunito, system-ui, -apple-system, "Segoe UI", sans-serif;
     font-size: 14px; line-height: 1.6;
     -webkit-font-smoothing: antialiased;
   }
@@ -33,12 +33,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
 <link rel="preload" as="style" href="tokens.css?v=1">
- <link rel="preload" as="style" href="type.css?v=1">
-<link rel="stylesheet" href="type.css?v=1">
+<link rel="preload" as="style" href="type.css?v=1">
 <link rel="preload" as="style" href="feed.css?v=4">
 <link rel="preload" as="style" href="nav.css?v=4">
 
 <link rel="stylesheet" href="tokens.css?v=1">
+<link rel="stylesheet" href="type.css?v=1">
 <link rel="stylesheet" href="feed.css?v=4">
 <link rel="stylesheet" href="nav.css?v=4">
 </head>
@@ -149,10 +149,11 @@
 <script src="nav.js?v=101"></script>
 
 <script>
-/* ---------- Topbar scroll behaviour ---------- */
+/* ---------- Topbar + category chips scroll behaviour ---------- */
 (function () {
   var topbar = document.querySelector('.topbar');
-  if (!topbar) return;
+  var chips  = document.getElementById('categoryNav');
+  if (!topbar || !chips) return;
 
   function getScrollY() {
     return Math.max(
@@ -163,19 +164,22 @@
     );
   }
 
-  var lastY = getScrollY();
+  var lastY   = getScrollY();
   var ticking = false;
-  var HIDE_AFTER = 24;
-  var SHOW_AFTER = 2;
+
+  var HIDE_AFTER   = 24;   // below this scroll depth, topbar hides
+  var CHIP_HIDE_AT = 80;   // below this scroll depth, chips pin to top
+  var CHIP_SHOW_ON = 3;    // gentle upward motion needed to recall chips
 
   function update() {
-    var y = getScrollY();
+    var y  = getScrollY();
     var dy = y - lastY;
 
-    if (dy > SHOW_AFTER && y > HIDE_AFTER) {
+    /* --- Topbar --- */
+    if (dy > 2 && y > HIDE_AFTER) {
       topbar.classList.add('is-hidden');
       topbar.classList.remove('is-visible');
-    } else if (dy < -SHOW_AFTER) {
+    } else if (dy < -2) {
       topbar.classList.remove('is-hidden');
       topbar.classList.add('is-visible');
     }
@@ -183,6 +187,23 @@
     if (y <= 4) {
       topbar.classList.remove('is-hidden');
       topbar.classList.add('is-visible');
+    }
+
+    /* --- Chips --- */
+    if (y > CHIP_HIDE_AT) {
+      chips.classList.add('is-pinned');
+    } else {
+      chips.classList.remove('is-pinned');
+    }
+
+    if (dy < -CHIP_SHOW_ON) {
+      chips.classList.remove('is-hidden');
+      chips.classList.add('is-visible');
+    } else if (dy > 1 && y > CHIP_HIDE_AT) {
+      chips.classList.remove('is-visible');
+    } else if (y <= 4) {
+      chips.classList.add('is-visible');
+      chips.classList.remove('is-hidden');
     }
 
     lastY = y;
@@ -194,6 +215,8 @@
     ticking = true;
     requestAnimationFrame(update);
   }
+
+  chips.classList.add('is-visible');
 
   window.addEventListener('scroll', onScroll, { passive: true });
   document.addEventListener('scroll', onScroll, { passive: true, capture: true });
@@ -223,13 +246,11 @@
     return pill.getAttribute('data-open') === 'true';
   }
 
-  // Tap search: open if closed, close if open
   searchBtn.addEventListener('click', function (e) {
     e.preventDefault();
     setOpen(!isOpen());
   });
 
-  // Tap bell / profile: run, then close
   bellBtn.addEventListener('click', function () {
     setOpen(false);
     location.href = '/notifications';
@@ -241,14 +262,12 @@
     location.href = '/profile.html';
   });
 
-  // Tap outside closes
   document.addEventListener('click', function (e) {
     if (!isOpen()) return;
     if (pill.contains(e.target)) return;
     setOpen(false);
   });
 
-  // Any scroll closes
   window.addEventListener('scroll', function () {
     if (!isOpen()) return;
     var y = window.scrollY || document.documentElement.scrollTop || 0;
