@@ -33,12 +33,12 @@
 
 <link rel="preload" as="style" href="tokens.css?v=1">
 <link rel="preload" as="style" href="type.css?v=1">
-<link rel="preload" as="style" href="feed.css?v=5">
+<link rel="preload" as="style" href="feed.css?v=6">
 <link rel="preload" as="style" href="nav.css?v=4">
 
 <link rel="stylesheet" href="tokens.css?v=1">
 <link rel="stylesheet" href="type.css?v=1">
-<link rel="stylesheet" href="feed.css?v=5">
+<link rel="stylesheet" href="feed.css?v=6">
 <link rel="stylesheet" href="nav.css?v=4">
 </head>
 
@@ -197,6 +197,55 @@
       location.href = '/notifications';
     });
   }
+})();
+
+/* ---------- Topbar scroll-hide — transform only ---------- */
+(function () {
+  var topbar = document.querySelector('.topbar');
+  if (!topbar) return;
+
+  function getY() {
+    return Math.max(
+      window.scrollY || 0,
+      window.pageYOffset || 0,
+      document.documentElement ? document.documentElement.scrollTop : 0,
+      document.body ? document.body.scrollTop : 0
+    );
+  }
+
+  var lastY = getY();
+  var ticking = false;
+  var HIDE_AFTER = 24;
+
+  function update() {
+    var y = getY();
+    var dy = y - lastY;
+
+    if (dy > 2 && y > HIDE_AFTER) {
+      topbar.classList.add('is-hidden');
+      topbar.classList.remove('is-visible');
+    } else if (dy < -2) {
+      topbar.classList.remove('is-hidden');
+      topbar.classList.add('is-visible');
+    }
+
+    if (y <= 4) {
+      topbar.classList.remove('is-hidden');
+      topbar.classList.add('is-visible');
+    }
+
+    lastY = y;
+    ticking = false;
+  }
+
+  function onScroll() {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(update);
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  document.addEventListener('scroll', onScroll, { passive: true, capture: true });
 })();
 
 /* ---------- Greeting — show on arrival, retire for the session ---------- */
