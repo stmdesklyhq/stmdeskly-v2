@@ -1,8 +1,7 @@
 /* =========================================================
    STMDESKLY v2 — Home feed
    Single canonical stylesheet. No stacked appends.
-   Sections marked [APPEND] were added after the base was
-   written. Everything else is the base layer.
+   Palette B. Baloo 2 headings, Nunito body.
    ========================================================= */
 
 /* =========================================================
@@ -10,9 +9,9 @@
    ========================================================= */
 
 html {
-  background-color: #F7F6F1;
+  background-color: var(--bg-page, #F3F1EA);
   font-size: 16px;
-  font-family: Poppins, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
 }
 
 html,
@@ -23,7 +22,7 @@ body {
 
 body,
 .app-shell {
-  background-color: #F7F6F1;
+  background-color: var(--bg-page, #F3F1EA);
 }
 
 /* =========================================================
@@ -35,19 +34,20 @@ body,
   max-width: var(--width-feed, 620px);
   min-height: 100dvh;
   margin: 0 auto;
-  padding: 0 var(--page-gutter, 18px) calc(var(--bottom-nav-h, 74px) + env(safe-area-inset-bottom) + var(--space-4, 16px));
+  padding: 0 var(--page-gutter, 18px)
+           calc(var(--bottom-nav-h, 74px) + env(safe-area-inset-bottom) + 16px);
 }
 
 /* =========================================================
-   3. TOPBAR
+   3. TOPBAR — split floating pills
    ========================================================= */
 
 .topbar {
   position: sticky;
   top: 8px;
-  z-index: 10;
+  z-index: 20;
   height: auto;
-  margin: 8px 0 var(--space-4, 16px);
+  margin: 8px 0 16px;
   padding: 0;
   display: flex;
   align-items: center;
@@ -55,27 +55,28 @@ body,
   gap: 8px;
   background: transparent;
   border: 0;
-  border-radius: 0;
-  box-shadow: none;
   transition:
     transform 240ms cubic-bezier(.2, .7, .2, 1),
-    opacity 200ms ease;
+    opacity 200ms ease,
+    margin 240ms cubic-bezier(.2, .7, .2, 1);
 }
 
 .topbar.is-hidden {
   transform: translateY(-120px);
   opacity: 0;
   pointer-events: none;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 
 .topbar.is-visible {
   transform: translateY(0);
   opacity: 1;
+  margin-top: 8px;
+  margin-bottom: 16px;
 }
 
-/* =========================================================
-   4. WORDMARK — wordmark + live clock swap
-   ========================================================= */
+/* --- Left pill: wordmark that becomes a live clock --- */
 
 .topbar > .wordmark {
   position: relative;
@@ -85,15 +86,15 @@ body,
   padding: 0 16px;
   overflow: hidden;
   border-radius: 16px;
-  border: 1px solid rgba(23, 43, 58, 0.06);
+  border: 1px solid rgba(15, 39, 51, 0.06);
   background: linear-gradient(
     135deg,
     rgba(220, 235, 227, 0.85) 0%,
-    rgba(255, 254, 251, 0.82) 60%
+    rgba(255, 255, 255, 0.82) 60%
   );
   box-shadow:
-    0 1px 2px rgba(23, 43, 58, 0.03),
-    0 8px 22px rgba(23, 43, 58, 0.07);
+    0 1px 2px rgba(15, 39, 51, 0.03),
+    0 8px 22px rgba(15, 39, 51, 0.07);
   backdrop-filter: blur(20px) saturate(1.4);
   -webkit-backdrop-filter: blur(20px) saturate(1.4);
 }
@@ -101,7 +102,7 @@ body,
 .topbar > .wordmark .wm-name,
 .topbar > .wordmark .wm-clock {
   display: inline-block;
-  font-family: Poppins, system-ui, sans-serif;
+  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
   line-height: 1;
   white-space: nowrap;
   transition:
@@ -112,20 +113,19 @@ body,
 
 .topbar > .wordmark .wm-name {
   font-size: 17px;
-  font-weight: 700;
-  letter-spacing: -0.05em;
-  color: var(--text-primary, #172B3A);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: var(--text-primary, #0F2733);
   transform: translateX(0);
   opacity: 1;
 }
 
-/* [APPEND — clock padding fix] */
 .topbar > .wordmark .wm-clock {
   position: absolute;
   left: 16px;
   top: 50%;
   font-size: 15px;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: -0.01em;
   color: var(--teal, #1F5F58);
   font-variant-numeric: tabular-nums;
@@ -144,10 +144,7 @@ body,
   opacity: 1;
 }
 
-/* =========================================================
-   5. ACTION PILL — single search that expands to reveal
-   bell + avatar. Tap any icon → close + run.
-   ========================================================= */
+/* --- Right pill: expandable action pill --- */
 
 .topbar > .action-pill {
   display: inline-flex;
@@ -155,11 +152,11 @@ body,
   height: 48px;
   padding: 6px;
   border-radius: 16px;
-  border: 1px solid rgba(23, 43, 58, 0.06);
-  background: rgba(255, 254, 251, 0.82);
+  border: 1px solid rgba(15, 39, 51, 0.06);
+  background: rgba(255, 255, 255, 0.82);
   box-shadow:
-    0 1px 2px rgba(23, 43, 58, 0.03),
-    0 8px 22px rgba(23, 43, 58, 0.07);
+    0 1px 2px rgba(15, 39, 51, 0.03),
+    0 8px 22px rgba(15, 39, 51, 0.07);
   backdrop-filter: blur(20px) saturate(1.4);
   -webkit-backdrop-filter: blur(20px) saturate(1.4);
   gap: 0;
@@ -180,7 +177,7 @@ body,
   border: 0;
   border-radius: 999px;
   background: transparent;
-  color: var(--text-primary, #172B3A);
+  color: var(--text-primary, #0F2733);
   cursor: pointer;
   transition:
     background 140ms cubic-bezier(.2, .7, .2, 1),
@@ -190,10 +187,9 @@ body,
 }
 
 .topbar > .action-pill .ap-btn:hover {
-  background: rgba(23, 43, 58, 0.06);
+  background: rgba(15, 39, 51, 0.06);
 }
 
-/* [APPEND — icon optical centring, no nudges beyond this one] */
 .topbar > .action-pill .ap-btn svg {
   display: block;
   width: 20px;
@@ -206,7 +202,6 @@ body,
   overflow: visible;
 }
 
-/* Hidden icons — collapse to zero, slide right */
 .topbar > .action-pill .ap-bell,
 .topbar > .action-pill .ap-profile {
   width: 0;
@@ -224,7 +219,6 @@ body,
   pointer-events: auto;
 }
 
-/* Bell dot */
 .topbar > .action-pill .ap-bell.notice i {
   position: absolute;
   right: 7px;
@@ -233,11 +227,10 @@ body,
   height: 7px;
   border-radius: 999px;
   background: #C75D5D;
-  box-shadow: 0 0 0 2px var(--bg-page, #F7F6F1);
+  box-shadow: 0 0 0 2px var(--bg-page, #F3F1EA);
   pointer-events: none;
 }
 
-/* Avatar in pill */
 .topbar > .action-pill .ap-profile .avatar {
   display: grid;
   place-items: center;
@@ -245,15 +238,15 @@ body,
   height: 28px;
   border-radius: 999px;
   background: var(--mint, #DCEBE3);
-  color: var(--teal, #2F6D70);
+  color: var(--teal, #1F5F58);
   font-size: 10.5px;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 0;
-  box-shadow: inset 0 0 0 1px rgba(23, 43, 58, 0.10);
+  box-shadow: inset 0 0 0 1px rgba(15, 39, 51, 0.10);
 }
 
 /* =========================================================
-   6. WELCOME — greeting shows, then retires for session
+   4. WELCOME — greeting retires after arrival
    ========================================================= */
 
 .welcome {
@@ -280,34 +273,56 @@ body,
 
 .welcome h1 {
   margin: 0;
-  font-family: Poppins, system-ui, sans-serif;
-  font-size: 26px;
+  font-family: var(--font-heading, "Baloo 2", Poppins, system-ui, sans-serif);
+  font-size: 28px;
   font-weight: 700;
-  letter-spacing: -0.05em;
+  letter-spacing: -0.035em;
   line-height: 1.15;
-  color: var(--text-primary, #172B3A);
+  color: var(--text-primary, #0F2733);
 }
 
 .welcome h1 span {
-  color: var(--teal, #2F6D70);
+  color: var(--teal, #1F5F58);
 }
 
 /* =========================================================
-   7. CATEGORY CHIPS
+   5. CATEGORY CHIPS — sticky, takes over the topbar slot
    ========================================================= */
 
 .category-scroll {
+  position: sticky;
+  top: 8px;
+  z-index: 15;
+
   display: flex;
   gap: 8px;
   overflow-x: auto;
-  margin: 20px -18px 20px;
-  padding: 0 18px 4px;
   scrollbar-width: none;
   -ms-overflow-style: none;
+
+  background: var(--bg-page, #F3F1EA);
+  padding: 6px 18px 12px;
+  margin: 8px -18px 12px;
+
+  transition:
+    top 320ms cubic-bezier(.2, .7, .2, 1),
+    transform 320ms cubic-bezier(.2, .7, .2, 1),
+    box-shadow 320ms ease;
 }
 
 .category-scroll::-webkit-scrollbar {
   display: none;
+}
+
+/* When topbar is hidden, chips rise to its slot */
+.topbar.is-hidden ~ main .category-scroll {
+  top: 8px;
+  box-shadow: 0 8px 18px -10px rgba(15, 39, 51, 0.14);
+}
+
+/* When topbar is visible, chips sit below it */
+.topbar.is-visible ~ main .category-scroll {
+  top: calc(8px + 48px + 8px);
 }
 
 .filter-chip {
@@ -317,12 +332,13 @@ body,
   min-height: 36px;
   flex: none;
   padding: 0 12px;
-  border: 1.5px solid var(--border, #E5E4DD);
+  border: 1.5px solid var(--border, #E0DED6);
   border-radius: 999px;
-  background: var(--paper, #FFFEFB);
-  color: var(--text-secondary, #344A57);
-  font-size: 11px;
-  font-weight: 500;
+  background: var(--paper, #FFFFFF);
+  color: var(--text-secondary, #2D3F49);
+  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
+  font-size: 11.5px;
+  font-weight: 700;
   white-space: nowrap;
   transition:
     background 140ms cubic-bezier(.2, .7, .2, 1),
@@ -341,19 +357,19 @@ body,
 }
 
 .filter-chip:hover {
-  border-color: var(--border-hard, #C9D2CE);
-  color: var(--text-primary, #172B3A);
+  border-color: var(--border-hard, #C9C7BF);
+  color: var(--text-primary, #0F2733);
 }
 
 .filter-chip.active {
-  background: var(--teal, #2F6D70);
-  border-color: var(--teal, #2F6D70);
-  color: var(--white, #FFFFFF);
-  font-weight: 600;
+  background: var(--teal, #1F5F58);
+  border-color: var(--teal, #1F5F58);
+  color: #FFFFFF;
+  font-weight: 800;
 }
 
 /* =========================================================
-   8. COMPOSER
+   6. COMPOSER
    ========================================================= */
 
 .composer {
@@ -361,19 +377,18 @@ body,
   align-items: center;
   gap: 12px;
   min-height: 60px;
-  margin-bottom: 22px;
+  margin-bottom: 20px;
   padding: 10px 12px;
-  border: 1.5px solid var(--border, #E5E4DD);
+  border: 1.5px solid var(--border, #E0DED6);
   border-radius: 16px;
-  background: var(--paper, #FFFEFB);
+  background: var(--paper, #FFFFFF);
   transition: border-color 140ms cubic-bezier(.2, .7, .2, 1);
 }
 
 .composer:hover {
-  border-color: var(--border-hard, #C9D2CE);
+  border-color: var(--border-hard, #C9C7BF);
 }
 
-/* [APPEND — composer avatar was square; forced circular] */
 .composer-avatar {
   display: grid;
   place-items: center;
@@ -382,9 +397,9 @@ body,
   flex-shrink: 0;
   border-radius: 999px;
   background: var(--mint, #DCEBE3);
-  color: var(--teal, #2F6D70);
+  color: var(--teal, #1F5F58);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 800;
   letter-spacing: 0;
   overflow: hidden;
 }
@@ -392,8 +407,9 @@ body,
 .composer-prompt {
   flex: 1;
   min-width: 0;
-  color: var(--text-muted, #718087);
-  font-size: 12px;
+  color: var(--text-muted, #63727D);
+  font-size: 12.5px;
+  font-weight: 500;
 }
 
 .composer-button {
@@ -403,16 +419,17 @@ body,
   min-height: 36px;
   padding: 0 12px;
   border-radius: 999px;
-  background: var(--teal, #2F6D70);
-  color: var(--white, #FFFFFF);
-  font-size: 11px;
-  font-weight: 600;
+  background: var(--teal, #1F5F58);
+  color: #FFFFFF;
+  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
+  font-size: 11.5px;
+  font-weight: 800;
   white-space: nowrap;
   transition: background 140ms cubic-bezier(.2, .7, .2, 1);
 }
 
 .composer-button:hover {
-  background: var(--teal-dark, #24595C);
+  background: var(--teal-dark, #164A44);
 }
 
 .composer-button svg {
@@ -420,25 +437,26 @@ body,
   height: 14px;
   fill: none;
   stroke: currentColor;
-  stroke-width: 2;
+  stroke-width: 2.2;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
 /* =========================================================
-   9. FEED CONTAINER — flat list
+   7. FEED CONTAINER
    ========================================================= */
 
 .feed {
   display: block;
-  margin-top: 4px;
+  margin-top: 8px;
 }
 
 .feed-loading,
 .feed-empty {
   padding: 40px 20px;
-  color: var(--text-muted, #718087);
-  font-size: 12px;
+  color: var(--text-muted, #63727D);
+  font-size: 12.5px;
+  font-weight: 500;
   line-height: 1.6;
   text-align: center;
 }
@@ -449,12 +467,12 @@ body,
 }
 
 /* =========================================================
-   10. POST — flat row
+   8. POST — flat row
    ========================================================= */
 
 .post-card {
   min-width: 0;
-  padding: 14px 0;
+  padding: 16px 0;
   border: 0;
   border-bottom: 1px solid rgba(15, 39, 51, 0.07);
   border-radius: 0;
@@ -470,11 +488,8 @@ body,
   border-top: 1px solid rgba(15, 39, 51, 0.07);
 }
 
-/* ---------- Post header — vertically centred row ---------- */
+/* --- Post header — one-line author row --- */
 
-/* [APPEND — header now uses align-items: center so meta
-   sits level with the avatar, not baseline-aligned to
-   the author name.] */
 .post-header {
   display: flex;
   align-items: center;
@@ -491,15 +506,14 @@ body,
   height: 36px;
   border-radius: 999px;
   background: var(--mint, #DCEBE3);
-  color: var(--teal, #2F6D70);
+  color: var(--teal, #1F5F58);
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 800;
   letter-spacing: 0;
   overflow: hidden;
   text-decoration: none;
 }
 
-/* [APPEND — author + meta centred, wraps in one flow] */
 .post-author {
   flex: 1;
   min-width: 0;
@@ -511,16 +525,16 @@ body,
 }
 
 .post-author-link {
-  font-family: Poppins, system-ui, sans-serif;
+  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
   font-size: 13px;
-  font-weight: 700;
-  letter-spacing: -0.015em;
+  font-weight: 800;
+  letter-spacing: -0.01em;
   line-height: 1.2;
-  color: var(--text-primary, #172B3A);
+  color: var(--text-primary, #0F2733);
 }
 
 .post-author-link:hover {
-  color: var(--teal, #2F6D70);
+  color: var(--teal, #1F5F58);
 }
 
 .post-meta {
@@ -528,23 +542,21 @@ body,
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
-  margin-top: 0;
   font-size: 11px;
   line-height: 1.2;
-  color: var(--text-muted, #718087);
+  color: var(--text-muted, #63727D);
 }
 
 .post-meta > span:not(.post-category) {
-  font-weight: 500;
+  font-weight: 600;
 }
 
-/* Divider dot between meta items */
 .post-meta > .post-category + span::before,
 .post-meta > span + span::before {
   content: "·";
   margin-right: 6px;
-  color: rgba(23, 43, 58, 0.28);
-  font-weight: 700;
+  color: rgba(15, 39, 51, 0.28);
+  font-weight: 800;
 }
 
 .post-category {
@@ -552,12 +564,12 @@ body,
   padding: 2px 9px;
   border-radius: 999px;
   font-size: 9.5px;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   line-height: 1.5;
-  background: rgba(47, 109, 112, 0.10);
-  color: var(--teal, #2F6D70);
+  background: rgba(31, 95, 88, 0.10);
+  color: var(--teal, #1F5F58);
 }
 
 .location {
@@ -576,7 +588,6 @@ body,
   stroke-linejoin: round;
 }
 
-/* [APPEND — removed the -2px margin-top, header now centres it] */
 .post-menu {
   flex-shrink: 0;
   width: 32px;
@@ -586,15 +597,15 @@ body,
   border: 0;
   border-radius: 999px;
   background: transparent;
-  color: var(--text-muted, #718087);
+  color: var(--text-muted, #63727D);
   transition:
     background 140ms cubic-bezier(.2, .7, .2, 1),
     color 140ms cubic-bezier(.2, .7, .2, 1);
 }
 
 .post-menu:hover {
-  background: rgba(23, 43, 58, 0.05);
-  color: var(--text-primary, #172B3A);
+  background: rgba(15, 39, 51, 0.05);
+  color: var(--text-primary, #0F2733);
 }
 
 .post-menu svg {
@@ -603,25 +614,25 @@ body,
   fill: currentColor;
 }
 
-/* ---------- Post content ---------- */
+/* --- Post content --- */
 
 .post-title {
   margin: 0 0 4px;
-  font-family: Poppins, system-ui, sans-serif;
-  font-size: 15px;
+  font-family: var(--font-heading, "Baloo 2", Poppins, system-ui, sans-serif);
+  font-size: 16px;
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.3;
-  color: var(--text-primary, #172B3A);
+  color: var(--text-primary, #0F2733);
 }
 
 .post-body {
   margin: 0;
-  font-family: Poppins, system-ui, sans-serif;
+  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
   font-size: 14px;
   font-weight: 500;
-  line-height: 1.5;
-  color: var(--text-secondary, #344A57);
+  line-height: 1.55;
+  color: var(--text-secondary, #2D3F49);
   overflow-wrap: anywhere;
   white-space: pre-wrap;
 }
@@ -632,12 +643,12 @@ body,
   padding: 3px 10px;
   border-radius: 999px;
   background: var(--mint, #DCEBE3);
-  color: var(--teal, #2F6D70);
+  color: var(--teal, #1F5F58);
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 800;
 }
 
-/* ---------- Post photos ---------- */
+/* --- Post photos --- */
 
 .post-photos {
   display: grid;
@@ -665,14 +676,13 @@ body,
   display: grid;
   place-items: center;
   background:
-    linear-gradient(0deg, rgba(7,17,25,.78), rgba(7,17,25,.5)),
+    linear-gradient(0deg, rgba(7, 17, 25, .78), rgba(7, 17, 25, .5)),
     linear-gradient(135deg, #6D7A70, #293A35);
-  color: var(--white, #FFFFFF);
+  color: #FFFFFF;
   font-size: 16px;
   font-weight: 700;
 }
 
-/* [APPEND — single photo stretches full-width, 16:10] */
 .post-photos:has(.post-photo-tile:only-child) {
   grid-template-columns: 1fr;
   gap: 0;
@@ -683,7 +693,7 @@ body,
   border-radius: 12px;
 }
 
-/* ---------- Post actions ---------- */
+/* --- Post actions --- */
 
 .post-actions {
   display: flex;
@@ -702,16 +712,16 @@ body,
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--text-muted, #718087);
-  font-family: Poppins, system-ui, sans-serif;
-  font-size: 11px;
-  font-weight: 600;
+  color: var(--text-muted, #63727D);
+  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
+  font-size: 11.5px;
+  font-weight: 700;
   letter-spacing: 0.01em;
   transition: color 140ms cubic-bezier(.2, .7, .2, 1);
 }
 
 .post-action:hover {
-  color: var(--teal, #2F6D70);
+  color: var(--teal, #1F5F58);
 }
 
 .post-action svg {
@@ -719,7 +729,7 @@ body,
   height: 18px;
   fill: none;
   stroke: currentColor;
-  stroke-width: 1.8;
+  stroke-width: 1.9;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
@@ -735,34 +745,32 @@ body,
 }
 
 .post-action[data-action="share"].copied {
-  color: var(--teal, #2F6D70);
+  color: var(--teal, #1F5F58);
 }
 
 .reaction-count,
 .reply-count {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 11.5px;
+  font-weight: 800;
   min-width: 8px;
 }
 
 /* =========================================================
-   11. GIG CARDS — break out of the flat list
+   9. GIG CARDS — bordered break-out
    ========================================================= */
 
 .post-card.is-gig {
   position: relative;
   overflow: hidden;
   padding: 14px 16px 14px 22px;
-  border: 1px solid var(--border, #E5E4DD);
-  border-bottom: 1px solid var(--border, #E5E4DD);
+  border: 1px solid var(--border, #E0DED6);
   border-radius: 16px;
-  background: var(--paper, #FFFEFB);
+  background: var(--paper, #FFFFFF);
   margin: 12px 0;
 }
 
 .post-card.is-gig:hover {
-  background: var(--paper, #FFFEFB);
-  border-color: var(--border-hard, #C9D2CE);
+  border-color: var(--border-hard, #C9C7BF);
 }
 
 .post-card.is-gig::before {
@@ -772,7 +780,7 @@ body,
   top: 0;
   bottom: 0;
   width: 4px;
-  background: var(--teal, #2F6D70);
+  background: var(--teal, #1F5F58);
 }
 
 .post-category-gig {
@@ -781,10 +789,10 @@ body,
   gap: 4px;
   padding: 3px 9px 3px 7px;
   border-radius: 999px;
-  background: var(--teal, #2F6D70);
-  color: #FFFEFB;
+  background: var(--teal, #1F5F58);
+  color: #FFFFFF;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -806,23 +814,24 @@ body,
   margin: 12px 0;
   padding: 12px 16px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #EDF5F0 0%, #E4EFE8 100%);
-  border: 1px solid rgba(47, 109, 112, 0.16);
+  background: linear-gradient(135deg, #E7F1EC 0%, #DDEBE4 100%);
+  border: 1px solid rgba(31, 95, 88, 0.16);
 }
 
 .gig-budget-value {
-  font-size: 18px;
-  font-weight: 800;
-  letter-spacing: -0.03em;
+  font-family: var(--font-heading, "Baloo 2", Poppins, system-ui, sans-serif);
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   line-height: 1.2;
-  color: var(--teal, #2F6D70);
+  color: var(--teal, #1F5F58);
 }
 
 .gig-budget-label {
   font-size: 9.5px;
   font-weight: 800;
   letter-spacing: 0.14em;
-  color: rgba(47, 109, 112, 0.7);
+  color: rgba(31, 95, 88, 0.75);
 }
 
 .gig-deadline {
@@ -833,8 +842,8 @@ body,
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.02em;
-  background: rgba(23, 43, 58, 0.06);
-  color: var(--text-muted, #718087);
+  background: rgba(15, 39, 51, 0.06);
+  color: var(--text-muted, #63727D);
 }
 
 .gig-deadline.is-soon {
@@ -859,17 +868,17 @@ body,
   padding: 12px 18px;
   border: 0;
   border-radius: 14px;
-  background: var(--teal, #2F6D70);
-  color: #FFFEFB;
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 700;
+  background: var(--teal, #1F5F58);
+  color: #FFFFFF;
+  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
+  font-size: 13.5px;
+  font-weight: 800;
   letter-spacing: -0.005em;
   cursor: pointer;
   transition: background 140ms ease, transform 140ms ease;
 }
 
-.gig-apply:hover { background: #24595C; }
+.gig-apply:hover { background: var(--teal-dark, #164A44); }
 .gig-apply:active { transform: scale(0.99); }
 
 .gig-apply svg {
@@ -877,7 +886,7 @@ body,
   height: 17px;
   fill: none;
   stroke: currentColor;
-  stroke-width: 2;
+  stroke-width: 2.2;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
@@ -888,21 +897,20 @@ body,
   min-height: 40px;
   margin-top: 12px;
   padding: 10px 18px;
-  border: 1px solid rgba(47, 109, 112, 0.30);
+  border: 1px solid rgba(31, 95, 88, 0.30);
   border-radius: 14px;
   background: transparent;
-  color: var(--teal, #2F6D70);
-  font-family: inherit;
-  font-size: 12.5px;
-  font-weight: 700;
-  letter-spacing: -0.005em;
+  color: var(--teal, #1F5F58);
+  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
+  font-size: 13px;
+  font-weight: 800;
   cursor: pointer;
   transition: background 140ms ease, border-color 140ms ease;
 }
 
 .gig-own-action:hover {
-  background: rgba(47, 109, 112, 0.06);
-  border-color: var(--teal, #2F6D70);
+  background: rgba(31, 95, 88, 0.06);
+  border-color: var(--teal, #1F5F58);
 }
 
 .gig-own-action:disabled {
@@ -918,12 +926,12 @@ body,
   border: 1px solid #D5D9D3;
   color: #5A6A72;
   font-size: 12.5px;
-  font-weight: 600;
+  font-weight: 700;
   text-align: center;
 }
 
 /* =========================================================
-   12. COMMENT SHEET
+   10. COMMENT SHEET
    ========================================================= */
 
 .sheet-overlay {
@@ -933,7 +941,7 @@ body,
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  background: rgba(16, 35, 47, 0.55);
+  background: rgba(15, 39, 51, 0.55);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   animation: sheet-fade 200ms cubic-bezier(.2, .7, .2, 1) both;
@@ -956,8 +964,8 @@ body,
   flex-direction: column;
   overflow: hidden;
   border-radius: 22px 22px 0 0;
-  background: var(--paper, #FFFEFB);
-  box-shadow: 0 -14px 44px rgba(23, 43, 58, 0.20);
+  background: var(--paper, #FFFFFF);
+  box-shadow: 0 -14px 44px rgba(15, 39, 51, 0.20);
   animation: sheet-up 260ms cubic-bezier(.2, .7, .2, 1) both;
 }
 
@@ -972,7 +980,7 @@ body,
   height: 4px;
   margin: 10px auto 0;
   border-radius: 999px;
-  background: var(--border, #E5E4DD);
+  background: var(--border, #E0DED6);
 }
 
 .sheet-head {
@@ -981,13 +989,14 @@ body,
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px 14px;
-  border-bottom: 1px solid var(--border, #E5E4DD);
+  border-bottom: 1px solid var(--border, #E0DED6);
 }
 
 .sheet-head > span {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-primary, #172B3A);
+  font-family: var(--font-heading, "Baloo 2", Poppins, system-ui, sans-serif);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary, #0F2733);
 }
 
 .sheet-head button {
@@ -997,8 +1006,8 @@ body,
   place-items: center;
   border: 0;
   border-radius: 999px;
-  background: var(--cream, #F7F6F1);
-  color: var(--text-primary, #172B3A);
+  background: var(--bg-page, #F3F1EA);
+  color: var(--text-primary, #0F2733);
   font-size: 19px;
   line-height: 1;
   cursor: pointer;
@@ -1019,15 +1028,15 @@ body,
 .sheet-post {
   padding: 12px 14px;
   margin-bottom: 16px;
-  border: 1px solid var(--border, #E5E4DD);
+  border: 1px solid var(--border, #E0DED6);
   border-radius: 12px;
-  background: #FBFBF7;
+  background: #FAF9F4;
 }
 
 .sheet-post .post-header      { margin-bottom: 6px; }
 .sheet-post .post-author-link { font-size: 12px; }
 .sheet-post .post-meta        { font-size: 10px; }
-.sheet-post .post-body        { font-size: 12px; margin: 0; }
+.sheet-post .post-body        { font-size: 12.5px; margin: 0; }
 
 .sheet-post .post-actions,
 .sheet-post .post-photos,
@@ -1045,8 +1054,9 @@ body,
 .sheet-empty {
   padding: 32px 0;
   text-align: center;
-  color: var(--text-muted, #718087);
-  font-size: 12px;
+  color: var(--text-muted, #63727D);
+  font-size: 12.5px;
+  font-weight: 500;
   line-height: 1.6;
 }
 
@@ -1064,9 +1074,9 @@ body,
   place-items: center;
   border-radius: 999px;
   background: var(--mint, #DCEBE3);
-  color: var(--teal, #2F6D70);
+  color: var(--teal, #1F5F58);
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 800;
 }
 
 .reply-body {
@@ -1081,21 +1091,23 @@ body,
 }
 
 .reply-name {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-primary, #172B3A);
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--text-primary, #0F2733);
 }
 
 .reply-time {
   font-size: 10px;
-  color: var(--text-muted, #718087);
+  font-weight: 600;
+  color: var(--text-muted, #63727D);
 }
 
 .reply-text {
   margin: 0;
-  font-size: 12px;
-  line-height: 1.6;
-  color: var(--text-secondary, #344A57);
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.55;
+  color: var(--text-secondary, #2D3F49);
   overflow-wrap: anywhere;
 }
 
@@ -1110,7 +1122,7 @@ body,
   border: 0;
   border-radius: 999px;
   background: transparent;
-  color: var(--text-muted, #718087);
+  color: var(--text-muted, #63727D);
   font-size: 17px;
   line-height: 1;
   cursor: pointer;
@@ -1130,8 +1142,8 @@ body,
   align-items: center;
   gap: 8px;
   padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-  border-top: 1px solid var(--border, #E5E4DD);
-  background: var(--paper, #FFFEFB);
+  border-top: 1px solid var(--border, #E0DED6);
+  background: var(--paper, #FFFFFF);
 }
 
 .sheet-composer input {
@@ -1139,11 +1151,13 @@ body,
   min-width: 0;
   height: 42px;
   padding: 0 16px;
-  border: 1px solid var(--border, #E5E4DD);
+  border: 1px solid var(--border, #E0DED6);
   border-radius: 999px;
-  background: var(--cream, #F7F6F1);
-  color: var(--text-primary, #172B3A);
-  font-size: 12px;
+  background: var(--bg-page, #F3F1EA);
+  color: var(--text-primary, #0F2733);
+  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
+  font-size: 12.5px;
+  font-weight: 500;
   outline: none;
   transition:
     border-color 140ms cubic-bezier(.2, .7, .2, 1),
@@ -1152,9 +1166,9 @@ body,
 }
 
 .sheet-composer input:focus {
-  border-color: var(--teal, #2F6D70);
-  background: var(--white, #FFFFFF);
-  box-shadow: 0 0 0 4px rgba(47, 109, 112, 0.18);
+  border-color: var(--teal, #1F5F58);
+  background: #FFFFFF;
+  box-shadow: 0 0 0 4px rgba(31, 95, 88, 0.18);
 }
 
 .sheet-composer button {
@@ -1165,18 +1179,18 @@ body,
   place-items: center;
   border: 0;
   border-radius: 999px;
-  background: var(--teal, #2F6D70);
-  color: var(--white, #FFFFFF);
+  background: var(--teal, #1F5F58);
+  color: #FFFFFF;
   cursor: pointer;
   transition: background 140ms cubic-bezier(.2, .7, .2, 1);
 }
 
 .sheet-composer button:hover:not(:disabled) {
-  background: var(--teal-dark, #24595C);
+  background: var(--teal-dark, #164A44);
 }
 
 .sheet-composer button:disabled {
-  background: var(--border, #E5E4DD);
+  background: var(--border, #E0DED6);
   cursor: not-allowed;
 }
 
@@ -1185,13 +1199,13 @@ body,
   height: 18px;
   fill: none;
   stroke: currentColor;
-  stroke-width: 2;
+  stroke-width: 2.2;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
 /* =========================================================
-   13. RESPONSIVE
+   11. RESPONSIVE
    ========================================================= */
 
 @media (min-width: 600px) {
@@ -1214,7 +1228,7 @@ body,
   }
 
   .post-card {
-    padding: 18px 0;
+    padding: 20px 0;
   }
 
   .post-card.is-gig {
@@ -1223,6 +1237,12 @@ body,
 
   .post-photos {
     gap: 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .post-card {
+    padding: 18px 0;
   }
 }
 
@@ -1269,11 +1289,11 @@ body,
 
   .composer-button {
     padding: 0 10px;
-    font-size: 10px;
+    font-size: 10.5px;
   }
 
   .post-card {
-    padding: 12px 0;
+    padding: 14px 0;
   }
 
   .post-card.is-gig {
@@ -1286,7 +1306,7 @@ body,
 }
 
 /* =========================================================
-   14. REDUCED MOTION
+   12. REDUCED MOTION
    ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
@@ -1295,156 +1315,10 @@ body,
   .topbar > .wordmark .wm-clock,
   .topbar > .action-pill,
   .topbar > .action-pill .ap-btn,
-  .welcome {
+  .welcome,
+  .category-scroll,
+  .filter-chip {
     transition: none !important;
+    animation: none !important;
   }
    }
-/* =========================================================
-   APPEND — Category chips as a collapsible sticky bar
-   Hides under the topbar on scroll-down, slides back from
-   the right on scroll-up, then locks in place.
-   ========================================================= */
-
-.category-scroll {
-  position: sticky;
-  top: 60px;
-  z-index: 9;
-
-  transition:
-    transform 340ms cubic-bezier(.2, .7, .2, 1),
-    opacity 240ms ease;
-}
-
-/* Hidden — slides up + fades, with a small horizontal nudge */
-.category-scroll.is-hidden {
-  transform: translate(18px, -64px);
-  opacity: 0;
-  pointer-events: none;
-  transition:
-    transform 320ms cubic-bezier(.4, 0, .7, .2),
-    opacity 220ms ease;
-}
-
-/* Visible — returns from the right, settles dead centre */
-.category-scroll.is-visible {
-  transform: translate(0, 0);
-  opacity: 1;
-  pointer-events: auto;
-  transition:
-    transform 380ms cubic-bezier(.2, .7, .2, 1),
-    opacity 240ms ease;
-}
-
-/* When they first arrive in the row, stagger the chips
-   so they slide in one after another rather than as a slab */
-.category-scroll.is-visible .filter-chip {
-  animation: chip-slide-in 380ms cubic-bezier(.2, .7, .2, 1) both;
-}
-.category-scroll.is-visible .filter-chip:nth-child(1) { animation-delay: 0ms; }
-.category-scroll.is-visible .filter-chip:nth-child(2) { animation-delay: 30ms; }
-.category-scroll.is-visible .filter-chip:nth-child(3) { animation-delay: 60ms; }
-.category-scroll.is-visible .filter-chip:nth-child(4) { animation-delay: 90ms; }
-.category-scroll.is-visible .filter-chip:nth-child(5) { animation-delay: 120ms; }
-
-@keyframes chip-slide-in {
-  from {
-    transform: translateX(24px);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-/* =========================================================
-   APPEND — Chips background band + feed spacing
-   ========================================================= */
-
-/* Chips get a cream band behind them so pinned content
-   doesn't show through */
-.category-scroll {
-  background: var(--cream, #F3F1EA);
-  padding-top: 8px;
-  padding-bottom: 12px;
-  margin-top: 12px;
-  margin-bottom: 12px;
-  box-shadow: 0 6px 12px -8px rgba(15, 39, 51, 0.10);
-}
-
-/* Give the feed a bit more top breathing room */
-.feed {
-  margin-top: 12px;
-}
-
-/* First card gets a soft top edge, not flush against chips */
-.post-card:first-child {
-  padding-top: 18px;
-}
-
-/* Cards separated by a touch more space on mobile */
-@media (max-width: 480px) {
-  .post-card {
-    padding: 18px 0;
-  }
-}
-/* =========================================================
-   APPEND — Category chips that take over the topbar's slot
-   When the topbar hides on scroll-down, the chips lift into
-   the vacated space. When the topbar returns, chips drop back.
-   ========================================================= */
-
-.category-scroll {
-  position: sticky;
-  top: 8px;
-  z-index: 9;
-
-  background: var(--cream, #F3F1EA);
-  padding: 8px 18px 12px;
-  margin: 12px -18px 12px;
-
-  transition:
-    transform 340ms cubic-bezier(.2, .7, .2, 1),
-    opacity 240ms ease,
-    top 340ms cubic-bezier(.2, .7, .2, 1);
-}
-
-/* When past the fold — chips rise into the topbar's place */
-.category-scroll.is-pinned {
-  top: 8px;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 18px -10px rgba(15, 39, 51, 0.14);
-}
-
-/* Chips remain visible but settle at the top */
-.category-scroll.is-visible {
-  transform: translate(0, -2px);
-  opacity: 1;
-  pointer-events: auto;
-}
-
-/* When the topbar comes back, chips drop back down by its height */
-.topbar.is-visible ~ main .category-scroll.is-pinned,
-.topbar:not(.is-hidden) ~ main .category-scroll.is-pinned {
-  top: calc(8px + 48px + 8px);
-}
-/* =========================================================
-   APPEND — Kill the empty strip when topbar hides
-   ========================================================= */
-
-/* The topbar's own margin collapses to zero when hidden */
-.topbar.is-hidden {
-  margin-top: 0;
-  margin-bottom: 0;
-}
-
-/* Chips tighten their top padding — no ghost strip above them */
-.category-scroll {
-  padding-top: 4px;
-  margin-top: 4px;
-}
-
-/* On the way back in, topbar returns to its normal spacing */
-.topbar.is-visible {
-  margin-top: 8px;
-  margin-bottom: var(--space-4, 16px);
-}
