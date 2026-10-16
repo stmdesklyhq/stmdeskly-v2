@@ -1455,3 +1455,68 @@ body,
 .post-photos:has(.post-photo-tile:only-child) .post-photo-tile {
   border-radius: 12px;
 }
+
+/* =========================================================
+   APPEND — Curved images + curved post corners
+   Photos sit inside the post padding. Both image and post
+   carry a small radius so nothing reads as a hard edge.
+   ========================================================= */
+
+/* Post — subtle curve, still in the column */
+.post-card {
+  border-radius: 14px;
+  margin: 8px 12px;
+  padding: 14px;
+  border: 1px solid var(--border, #DFE1E4);
+  border-bottom: 1px solid var(--border, #DFE1E4);
+  background: var(--paper, #FFFFFF);
+}
+
+.post-card:first-child {
+  border-top: 1px solid var(--border, #DFE1E4);
+}
+
+/* Gig posts — same curve, teal stripe still runs left */
+.post-card.is-gig {
+  border-radius: 14px;
+  margin: 8px 12px;
+  padding: 14px 14px 14px 20px;
+  border: 1px solid var(--border, #DFE1E4);
+}
+
+/* Photos — inside the padding, curved corners */
+.post-photos {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  gap: 4px;
+  margin-top: 10px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.post-photo-tile {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* Single photo — larger curve, in-padding */
+.post-photos:has(.post-photo-tile:only-child) {
+  gap: 0;
+}
+
+.post-photos:has(.post-photo-tile:only-child) .post-photo-tile {
+  border-radius: 12px;
+  aspect-ratio: 4 / 3;
+}
+
+/* Feed container loses its hard white background now that
+   posts are individual curved cards again */
+.feed {
+  background: transparent;
+  border-top: 0;
+}
+
+.feed-loading,
+.feed-empty {
+  background: transparent;
+}
