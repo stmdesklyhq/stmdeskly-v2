@@ -2,7 +2,7 @@
    STMDESKLY v2 — Home feed
    Single canonical stylesheet.
    Palette: neutral app grey. Fonts: Baloo 2 + Nunito.
-   Motion: transform + opacity only.
+   Structure: one topbar, chips row, composer row, flat feed.
    ========================================================= */
 
 /* =========================================================
@@ -40,42 +40,26 @@ body,
 }
 
 /* =========================================================
-   3. TOPBAR — split floating pills
+   3. TOPBAR — one bar, two zones
+   Left: clock / wordmark. Right: search, bell, avatar.
    ========================================================= */
 
 .topbar {
-  position: sticky;
-  top: 8px;
-  z-index: 20;
-  height: auto;
-  margin: 8px 16px 12px;
-  padding: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  background: transparent;
-  border: 0;
-  transition:
-    transform 260ms cubic-bezier(.2, .7, .2, 1),
-    opacity 200ms ease;
-  will-change: transform, opacity;
+  margin: 8px 12px 12px;
+  padding: 0;
+  min-height: 56px;
+  position: relative;
+  top: auto;
+  z-index: 1;
 }
 
-.topbar.is-hidden {
-  transform: translateY(-120px);
-  opacity: 0;
-  pointer-events: none;
-}
+/* --- Left: wordmark that becomes a live clock --- */
 
-.topbar.is-visible {
-  transform: translateY(0);
-  opacity: 1;
-}
-
-/* --- Left pill: wordmark that becomes a live clock --- */
-
-.topbar > .wordmark {
+.topbar > .topbar-left {
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -96,8 +80,8 @@ body,
   -webkit-backdrop-filter: blur(20px) saturate(1.4);
 }
 
-.topbar > .wordmark .wm-name,
-.topbar > .wordmark .wm-clock {
+.topbar > .topbar-left .wm-name,
+.topbar > .topbar-left .wm-clock {
   display: inline-block;
   font-family: var(--font-ui, Nunito, system-ui, sans-serif);
   line-height: 1;
@@ -108,7 +92,7 @@ body,
   will-change: transform, opacity;
 }
 
-.topbar > .wordmark .wm-name {
+.topbar > .topbar-left .wm-name {
   font-size: 17px;
   font-weight: 800;
   letter-spacing: -0.03em;
@@ -117,7 +101,7 @@ body,
   opacity: 1;
 }
 
-.topbar > .wordmark .wm-clock {
+.topbar > .topbar-left .wm-clock {
   position: absolute;
   left: 16px;
   top: 50%;
@@ -131,23 +115,24 @@ body,
   opacity: 0;
 }
 
-.topbar > .wordmark .wm-name.is-out {
+.topbar > .topbar-left .wm-name.is-out {
   transform: translateX(-40px);
   opacity: 0;
 }
 
-.topbar > .wordmark .wm-clock.is-in {
+.topbar > .topbar-left .wm-clock.is-in {
   transform: translate(0, -50%);
   opacity: 1;
 }
 
-/* --- Right pill: expandable action pill --- */
+/* --- Right: three-icon pill --- */
 
-.topbar > .action-pill {
+.topbar > .topbar-right {
   display: inline-flex;
   align-items: center;
+  gap: 2px;
   height: 48px;
-  padding: 6px;
+  padding: 4px;
   border-radius: 16px;
   border: 1px solid rgba(17, 24, 39, 0.06);
   background: rgba(255, 255, 255, 0.85);
@@ -156,38 +141,28 @@ body,
     0 8px 22px rgba(17, 24, 39, 0.08);
   backdrop-filter: blur(20px) saturate(1.4);
   -webkit-backdrop-filter: blur(20px) saturate(1.4);
-  gap: 0;
-  transition: gap 260ms cubic-bezier(.2, .7, .2, 1);
 }
 
-.topbar > .action-pill[data-open="true"] {
-  gap: 2px;
-}
-
-.topbar > .action-pill .ap-btn {
+.tb-icon {
   position: relative;
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
   padding: 0;
   border: 0;
   border-radius: 999px;
   background: transparent;
   color: var(--text-primary, #111827);
   cursor: pointer;
-  transition:
-    background 140ms cubic-bezier(.2, .7, .2, 1),
-    width 300ms cubic-bezier(.2, .7, .2, 1),
-    opacity 220ms ease,
-    transform 300ms cubic-bezier(.2, .7, .2, 1);
+  transition: background 140ms cubic-bezier(.2, .7, .2, 1);
 }
 
-.topbar > .action-pill .ap-btn:hover {
+.tb-icon:hover {
   background: rgba(17, 24, 39, 0.06);
 }
 
-.topbar > .action-pill .ap-btn svg {
+.tb-icon svg {
   display: block;
   width: 20px;
   height: 20px;
@@ -199,44 +174,42 @@ body,
   overflow: visible;
 }
 
-.topbar > .action-pill .ap-bell,
-.topbar > .action-pill .ap-profile {
-  width: 0;
-  opacity: 0;
-  transform: translateX(8px);
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.topbar > .action-pill[data-open="true"] .ap-bell,
-.topbar > .action-pill[data-open="true"] .ap-profile {
-  width: 36px;
-  opacity: 1;
-  transform: translateX(0);
-  pointer-events: auto;
-}
-
-.topbar > .action-pill .ap-bell.notice i {
+.tb-icon.tb-bell i {
   position: absolute;
-  right: 7px;
-  top: 7px;
+  right: 8px;
+  top: 8px;
   width: 7px;
   height: 7px;
   border-radius: 999px;
   background: #C75D5D;
   box-shadow: 0 0 0 2px var(--bg-page, #ECEDEF);
   pointer-events: none;
+  display: none;
 }
 
-.topbar > .action-pill .ap-profile .avatar {
+.tb-icon.tb-bell.notice i {
+  display: block;
+}
+
+.tb-avatar {
   display: grid;
   place-items: center;
-  width: 28px;
-  height: 28px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 999px;
+  text-decoration: none;
+}
+
+.tb-avatar .avatar {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
   border-radius: 999px;
   background: var(--mint, #DCEBE3);
   color: var(--teal, #1F5F58);
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 800;
   letter-spacing: 0;
   box-shadow: inset 0 0 0 1px rgba(17, 24, 39, 0.10);
@@ -284,8 +257,6 @@ body,
 
 /* =========================================================
    5. CATEGORY CHIPS
-   Sticky row. When the topbar hides, chips swap to fixed
-   positioning at the top. No transitions on layout.
    ========================================================= */
 
 .category-scroll {
@@ -295,41 +266,15 @@ body,
   scrollbar-width: none;
   -ms-overflow-style: none;
 
-  background: var(--bg-page, #ECEDEF);
+  background: transparent;
   padding: 4px 16px 14px;
   margin: 0;
-
   position: relative;
-  z-index: 1;
-
-  transition: opacity 200ms ease;
+  top: auto;
 }
 
 .category-scroll::-webkit-scrollbar {
   display: none;
-}
-
-.topbar.is-hidden ~ main .category-scroll {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  max-width: var(--width-feed, 620px);
-  margin: 0 auto;
-  padding-top: max(8px, env(safe-area-inset-top));
-  padding-bottom: 14px;
-  z-index: 15;
-  box-shadow: 0 8px 18px -10px rgba(17, 24, 39, 0.16);
-}
-
-.topbar.is-visible ~ main .category-scroll {
-  position: relative;
-  top: auto;
-  left: auto;
-  right: auto;
-  max-width: none;
-  margin: 0;
-  box-shadow: none;
 }
 
 .filter-chip {
@@ -376,7 +321,7 @@ body,
 }
 
 /* =========================================================
-   6. COMPOSER — floating pill
+   6. COMPOSER — full-width row above the feed
    ========================================================= */
 
 .composer {
@@ -384,7 +329,7 @@ body,
   align-items: center;
   gap: 12px;
   min-height: 56px;
-  margin: 0 16px 12px;
+  margin: 0 12px 12px;
   padding: 8px 10px;
   border: 1.5px solid var(--border, #DFE1E4);
   border-radius: 16px;
@@ -450,14 +395,13 @@ body,
 }
 
 /* =========================================================
-   7. FEED CONTAINER — solid white column
+   7. FEED CONTAINER
    ========================================================= */
 
 .feed {
   display: block;
   margin: 0;
-  background: var(--paper, #FFFFFF);
-  border-top: 1px solid var(--border, #DFE1E4);
+  background: transparent;
 }
 
 .feed-loading,
@@ -468,7 +412,7 @@ body,
   font-weight: 600;
   line-height: 1.6;
   text-align: center;
-  background: var(--paper, #FFFFFF);
+  background: transparent;
 }
 
 .feed-loading[hidden],
@@ -477,25 +421,25 @@ body,
 }
 
 /* =========================================================
-   8. POST — solid row, hairline divider
+   8. POST — curved card, sits on the grey page
    ========================================================= */
 
 .post-card {
   min-width: 0;
-  padding: 18px 16px;
-  border: 0;
-  border-bottom: 1px solid var(--border, #DFE1E4);
-  border-radius: 0;
+  margin: 8px 12px;
+  padding: 14px;
+  border: 1px solid var(--border, #DFE1E4);
+  border-radius: 14px;
   background: var(--paper, #FFFFFF);
-  transition: background 140ms cubic-bezier(.2, .7, .2, 1);
+  transition: border-color 140ms cubic-bezier(.2, .7, .2, 1);
 }
 
 .post-card:hover {
-  background: #FAFAFB;
+  border-color: var(--border-hard, #C3C7CD);
 }
 
 .post-card:first-child {
-  border-top: 0; /* .feed already provides the top line */
+  margin-top: 0;
 }
 
 /* --- Post header --- */
@@ -536,7 +480,7 @@ body,
 
 .post-author-link {
   font-family: var(--font-ui, Nunito, system-ui, sans-serif);
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 800;
   letter-spacing: -0.005em;
   line-height: 1.2;
@@ -552,12 +496,9 @@ body,
   flex-wrap: wrap;
   align-items: center;
   gap: 6px;
-  font-size: 11px;
+  font-size: 11.5px;
   line-height: 1.2;
   color: var(--text-muted, #6B7280);
-}
-
-.post-meta > span:not(.post-category) {
   font-weight: 600;
 }
 
@@ -658,22 +599,22 @@ body,
   font-weight: 800;
 }
 
-/* --- Post photos --- */
+/* --- Post photos — inside the card, curved --- */
 
 .post-photos {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 3px;
+  gap: 4px;
   margin-top: 10px;
-  margin-left: -16px;
-  margin-right: -16px;
+  border-radius: 10px;
+  overflow: hidden;
 }
 
 .post-photo-tile {
   position: relative;
   aspect-ratio: 1 / 1;
   overflow: hidden;
-  border-radius: 0;
+  border-radius: 10px;
   background: #E5E8E2;
 }
 
@@ -701,7 +642,8 @@ body,
 }
 
 .post-photos:has(.post-photo-tile:only-child) .post-photo-tile {
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 4 / 3;
+  border-radius: 12px;
 }
 
 /* --- Post actions --- */
@@ -709,7 +651,7 @@ body,
 .post-actions {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 22px;
   margin-top: 10px;
   padding-top: 0;
   border-top: 0;
@@ -767,22 +709,21 @@ body,
 }
 
 /* =========================================================
-   9. GIG CARDS — same column, teal stripe distinguishes
+   9. GIG CARDS — same shape, teal stripe marks them
    ========================================================= */
 
 .post-card.is-gig {
   position: relative;
   overflow: hidden;
-  padding: 18px 16px 18px 22px;
-  border: 0;
-  border-bottom: 1px solid var(--border, #DFE1E4);
-  border-radius: 0;
+  padding: 14px 14px 14px 20px;
+  margin: 8px 12px;
+  border: 1px solid var(--border, #DFE1E4);
+  border-radius: 14px;
   background: var(--paper, #FFFFFF);
-  margin: 0;
 }
 
-.post-card.is-gig:hover {
-  background: #FAFAFB;
+.post-card.is-gig:first-child {
+  margin-top: 0;
 }
 
 .post-card.is-gig::before {
@@ -1221,104 +1162,67 @@ body,
    ========================================================= */
 
 @media (min-width: 600px) {
-  .topbar {
+  .topbar,
+  .composer,
+  .post-card {
     margin-left: 20px;
     margin-right: 20px;
   }
 
-  .welcome {
-    padding-left: 20px;
-    padding-right: 20px;
+  .post-card.is-gig {
+    margin-left: 20px;
+    margin-right: 20px;
   }
 
+  .welcome,
   .category-scroll {
     padding-left: 20px;
     padding-right: 20px;
   }
 
-  .composer {
-    margin-left: 20px;
-    margin-right: 20px;
-  }
-
-  .post-card {
-    padding-left: 20px;
-    padding-right: 20px;
-  }
-
-  .post-card.is-gig {
-    padding-left: 26px;
-    padding-right: 20px;
-  }
-
-  .post-photos {
-    margin-left: -20px;
-    margin-right: -20px;
-  }
-
-  .topbar > .wordmark,
-  .topbar > .action-pill {
+  .topbar > .topbar-left,
+  .topbar > .topbar-right {
     height: 52px;
   }
 }
 
 @media (max-width: 370px) {
-  .topbar {
-    margin-left: 12px;
-    margin-right: 12px;
-  }
-
-  .welcome {
-    padding-left: 12px;
-    padding-right: 12px;
-  }
-
-  .category-scroll {
-    padding-left: 12px;
-    padding-right: 12px;
-  }
-
-  .composer {
-    margin-left: 12px;
-    margin-right: 12px;
-  }
-
+  .topbar,
+  .composer,
   .post-card {
-    padding-left: 12px;
-    padding-right: 12px;
+    margin-left: 10px;
+    margin-right: 10px;
   }
 
   .post-card.is-gig {
-    padding-left: 18px;
-    padding-right: 12px;
+    margin-left: 10px;
+    margin-right: 10px;
   }
 
-  .post-photos {
-    margin-left: -12px;
-    margin-right: -12px;
+  .welcome,
+  .category-scroll {
+    padding-left: 10px;
+    padding-right: 10px;
   }
 
-  .topbar > .wordmark {
+  .topbar > .topbar-left {
     height: 44px;
     padding: 0 14px;
   }
 
-  .topbar > .wordmark .wm-name {
+  .topbar > .topbar-left .wm-name {
     font-size: 16px;
   }
 
-  .topbar > .action-pill {
+  .topbar > .topbar-right {
     height: 44px;
+    padding: 3px;
   }
 
-  .topbar > .action-pill .ap-btn {
-    width: 32px;
-    height: 32px;
-  }
-
-  .topbar > .action-pill[data-open="true"] .ap-bell,
-  .topbar > .action-pill[data-open="true"] .ap-profile {
-    width: 32px;
+  .tb-icon,
+  .tb-avatar {
+    width: 36px;
+    height: 36px;
   }
 
   .post-actions {
@@ -1331,192 +1235,12 @@ body,
    ========================================================= */
 
 @media (prefers-reduced-motion: reduce) {
-  .topbar,
-  .topbar > .wordmark .wm-name,
-  .topbar > .wordmark .wm-clock,
-  .topbar > .action-pill,
-  .topbar > .action-pill .ap-btn,
+  .topbar > .topbar-left .wm-name,
+  .topbar > .topbar-left .wm-clock,
   .welcome,
-  .filter-chip {
+  .filter-chip,
+  .tb-icon {
     transition: none !important;
     animation: none !important;
   }
    }
-
-/* =========================================================
-   APPEND — Flatten further + kill the scroll lag
-   ========================================================= */
-
-/* Kill sticky on the topbar. It caused the lag —
-   sticky + transform + a same-row sibling that also
-   swaps positioning = four layout recalculations per frame.
-   Instead: topbar just scrolls off. Simpler, faster. */
-.topbar {
-  position: relative;
-  top: auto;
-  will-change: auto;
-  transition: opacity 200ms ease;
-}
-
-.topbar.is-hidden {
-  transform: none;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.topbar.is-visible {
-  transform: none;
-  opacity: 1;
-}
-
-/* Kill sticky on the chips too — they go with the flow now */
-.category-scroll {
-  position: relative;
-  top: auto !important;
-  transition: none;
-}
-
-/* Remove the fixed-position swap entirely — it was the
-   source of half the jank */
-.topbar.is-hidden ~ main .category-scroll {
-  position: relative;
-  top: auto;
-  left: auto;
-  right: auto;
-  max-width: none;
-  margin: 0;
-  padding-top: 4px;
-  padding-bottom: 14px;
-  box-shadow: none;
-}
-
-/* Tighten the post — less padding, content hugs the header */
-.post-card {
-  padding: 14px 16px 12px;
-}
-
-.post-header {
-  margin-bottom: 3px;
-}
-
-.post-title {
-  margin: 0 0 2px;
-  font-size: 15px;
-}
-
-.post-body {
-  font-size: 14px;
-  line-height: 1.45;
-}
-
-/* Actions row is smaller — closer to the content */
-.post-actions {
-  margin-top: 8px;
-  gap: 22px;
-}
-
-/* Name gets the FB-style emphasis: bigger, bolder */
-.post-author-link {
-  font-size: 14px;
-  font-weight: 800;
-  letter-spacing: -0.005em;
-}
-
-/* Meta goes lighter so the name reads loudest */
-.post-meta {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: var(--text-muted, #6B7280);
-}
-
-/* Hairline divider between posts — thinner and darker */
-.post-card {
-  border-bottom: 1px solid rgba(17, 24, 39, 0.08);
-}
-
-.feed {
-  border-top: 1px solid rgba(17, 24, 39, 0.08);
-}
-
-/* Kill the negative-margin photo bleed. It felt aggressive.
-   Photos go back inside the post padding. */
-.post-photos {
-  margin-left: 0 !important;
-  margin-right: 0 !important;
-  gap: 3px;
-  margin-top: 8px;
-}
-
-.post-photo-tile {
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.post-photos:has(.post-photo-tile:only-child) .post-photo-tile {
-  border-radius: 12px;
-}
-
-/* =========================================================
-   APPEND — Curved images + curved post corners
-   Photos sit inside the post padding. Both image and post
-   carry a small radius so nothing reads as a hard edge.
-   ========================================================= */
-
-/* Post — subtle curve, still in the column */
-.post-card {
-  border-radius: 14px;
-  margin: 8px 12px;
-  padding: 14px;
-  border: 1px solid var(--border, #DFE1E4);
-  border-bottom: 1px solid var(--border, #DFE1E4);
-  background: var(--paper, #FFFFFF);
-}
-
-.post-card:first-child {
-  border-top: 1px solid var(--border, #DFE1E4);
-}
-
-/* Gig posts — same curve, teal stripe still runs left */
-.post-card.is-gig {
-  border-radius: 14px;
-  margin: 8px 12px;
-  padding: 14px 14px 14px 20px;
-  border: 1px solid var(--border, #DFE1E4);
-}
-
-/* Photos — inside the padding, curved corners */
-.post-photos {
-  margin-left: 0 !important;
-  margin-right: 0 !important;
-  gap: 4px;
-  margin-top: 10px;
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-.post-photo-tile {
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-/* Single photo — larger curve, in-padding */
-.post-photos:has(.post-photo-tile:only-child) {
-  gap: 0;
-}
-
-.post-photos:has(.post-photo-tile:only-child) .post-photo-tile {
-  border-radius: 12px;
-  aspect-ratio: 4 / 3;
-}
-
-/* Feed container loses its hard white background now that
-   posts are individual curved cards again */
-.feed {
-  background: transparent;
-  border-top: 0;
-}
-
-.feed-loading,
-.feed-empty {
-  background: transparent;
-}
