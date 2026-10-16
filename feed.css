@@ -1,7 +1,8 @@
 /* =========================================================
    STMDESKLY v2 — Home feed
-   Single canonical stylesheet. No stacked appends.
-   Palette B. Baloo 2 headings, Nunito body.
+   Single canonical stylesheet.
+   Palette B. Baloo 2 headings, Poppins body.
+   Motion: transform + opacity only — never layout properties.
    ========================================================= */
 
 /* =========================================================
@@ -11,7 +12,7 @@
 html {
   background-color: var(--bg-page, #F3F1EA);
   font-size: 16px;
-  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
+  font-family: var(--font-ui, Poppins, system-ui, sans-serif);
 }
 
 html,
@@ -40,6 +41,7 @@ body,
 
 /* =========================================================
    3. TOPBAR — split floating pills
+   Animates transform + opacity only.
    ========================================================= */
 
 .topbar {
@@ -55,25 +57,23 @@ body,
   gap: 8px;
   background: transparent;
   border: 0;
+
+  /* Only transform + opacity — GPU composited, no layout */
   transition:
-    transform 240ms cubic-bezier(.2, .7, .2, 1),
-    opacity 200ms ease,
-    margin 240ms cubic-bezier(.2, .7, .2, 1);
+    transform 260ms cubic-bezier(.2, .7, .2, 1),
+    opacity 200ms ease;
+  will-change: transform, opacity;
 }
 
 .topbar.is-hidden {
   transform: translateY(-120px);
   opacity: 0;
   pointer-events: none;
-  margin-top: 0;
-  margin-bottom: 0;
 }
 
 .topbar.is-visible {
   transform: translateY(0);
   opacity: 1;
-  margin-top: 8px;
-  margin-bottom: 16px;
 }
 
 /* --- Left pill: wordmark that becomes a live clock --- */
@@ -102,7 +102,7 @@ body,
 .topbar > .wordmark .wm-name,
 .topbar > .wordmark .wm-clock {
   display: inline-block;
-  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
+  font-family: var(--font-ui, Poppins, system-ui, sans-serif);
   line-height: 1;
   white-space: nowrap;
   transition:
@@ -113,8 +113,8 @@ body,
 
 .topbar > .wordmark .wm-name {
   font-size: 17px;
-  font-weight: 800;
-  letter-spacing: -0.04em;
+  font-weight: 700;
+  letter-spacing: -0.05em;
   color: var(--text-primary, #0F2733);
   transform: translateX(0);
   opacity: 1;
@@ -286,14 +286,13 @@ body,
 }
 
 /* =========================================================
-   5. CATEGORY CHIPS — sticky, takes over the topbar slot
+   5. CATEGORY CHIPS
+   In flow by default. When the topbar hides, they swap to
+   fixed positioning at the top — no transition on layout,
+   just an instant reposition with a soft shadow fade-in.
    ========================================================= */
 
 .category-scroll {
-  position: sticky;
-  top: 8px;
-  z-index: 15;
-
   display: flex;
   gap: 8px;
   overflow-x: auto;
@@ -304,25 +303,40 @@ body,
   padding: 6px 18px 12px;
   margin: 8px -18px 12px;
 
-  transition:
-    top 320ms cubic-bezier(.2, .7, .2, 1),
-    transform 320ms cubic-bezier(.2, .7, .2, 1),
-    box-shadow 320ms ease;
+  position: relative;
+  z-index: 1;
+
+  /* No transitions on layout props — only opacity for the shadow fade */
+  transition: opacity 200ms ease;
 }
 
 .category-scroll::-webkit-scrollbar {
   display: none;
 }
 
-/* When topbar is hidden, chips rise to its slot */
+/* When topbar is hidden — chips swap to fixed, sit at the top */
 .topbar.is-hidden ~ main .category-scroll {
-  top: 8px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  max-width: var(--width-feed, 620px);
+  margin: 0 auto;
+  padding-top: max(8px, env(safe-area-inset-top));
+  padding-bottom: 12px;
+  z-index: 15;
   box-shadow: 0 8px 18px -10px rgba(15, 39, 51, 0.14);
 }
 
-/* When topbar is visible, chips sit below it */
+/* When topbar is visible — chips return to page flow */
 .topbar.is-visible ~ main .category-scroll {
-  top: calc(8px + 48px + 8px);
+  position: relative;
+  top: auto;
+  left: auto;
+  right: auto;
+  max-width: none;
+  margin: 8px -18px 12px;
+  box-shadow: none;
 }
 
 .filter-chip {
@@ -336,9 +350,9 @@ body,
   border-radius: 999px;
   background: var(--paper, #FFFFFF);
   color: var(--text-secondary, #2D3F49);
-  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
+  font-family: var(--font-ui, Poppins, system-ui, sans-serif);
   font-size: 11.5px;
-  font-weight: 700;
+  font-weight: 600;
   white-space: nowrap;
   transition:
     background 140ms cubic-bezier(.2, .7, .2, 1),
@@ -365,7 +379,7 @@ body,
   background: var(--teal, #1F5F58);
   border-color: var(--teal, #1F5F58);
   color: #FFFFFF;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 /* =========================================================
@@ -399,7 +413,7 @@ body,
   background: var(--mint, #DCEBE3);
   color: var(--teal, #1F5F58);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0;
   overflow: hidden;
 }
@@ -421,9 +435,9 @@ body,
   border-radius: 999px;
   background: var(--teal, #1F5F58);
   color: #FFFFFF;
-  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
+  font-family: var(--font-ui, Poppins, system-ui, sans-serif);
   font-size: 11.5px;
-  font-weight: 800;
+  font-weight: 600;
   white-space: nowrap;
   transition: background 140ms cubic-bezier(.2, .7, .2, 1);
 }
@@ -488,8 +502,6 @@ body,
   border-top: 1px solid rgba(15, 39, 51, 0.07);
 }
 
-/* --- Post header — one-line author row --- */
-
 .post-header {
   display: flex;
   align-items: center;
@@ -508,7 +520,7 @@ body,
   background: var(--mint, #DCEBE3);
   color: var(--teal, #1F5F58);
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0;
   overflow: hidden;
   text-decoration: none;
@@ -525,9 +537,9 @@ body,
 }
 
 .post-author-link {
-  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
+  font-family: var(--font-ui, Poppins, system-ui, sans-serif);
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: -0.01em;
   line-height: 1.2;
   color: var(--text-primary, #0F2733);
@@ -548,7 +560,7 @@ body,
 }
 
 .post-meta > span:not(.post-category) {
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .post-meta > .post-category + span::before,
@@ -556,7 +568,7 @@ body,
   content: "·";
   margin-right: 6px;
   color: rgba(15, 39, 51, 0.28);
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .post-category {
@@ -564,7 +576,7 @@ body,
   padding: 2px 9px;
   border-radius: 999px;
   font-size: 9.5px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   line-height: 1.5;
@@ -614,8 +626,6 @@ body,
   fill: currentColor;
 }
 
-/* --- Post content --- */
-
 .post-title {
   margin: 0 0 4px;
   font-family: var(--font-heading, "Baloo 2", Poppins, system-ui, sans-serif);
@@ -628,10 +638,10 @@ body,
 
 .post-body {
   margin: 0;
-  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
+  font-family: var(--font-ui, Poppins, system-ui, sans-serif);
   font-size: 14px;
-  font-weight: 500;
-  line-height: 1.55;
+  font-weight: 400;
+  line-height: 1.6;
   color: var(--text-secondary, #2D3F49);
   overflow-wrap: anywhere;
   white-space: pre-wrap;
@@ -645,10 +655,8 @@ body,
   background: var(--mint, #DCEBE3);
   color: var(--teal, #1F5F58);
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 600;
 }
-
-/* --- Post photos --- */
 
 .post-photos {
   display: grid;
@@ -693,8 +701,6 @@ body,
   border-radius: 12px;
 }
 
-/* --- Post actions --- */
-
 .post-actions {
   display: flex;
   align-items: center;
@@ -713,9 +719,9 @@ body,
   border: 0;
   background: transparent;
   color: var(--text-muted, #63727D);
-  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
+  font-family: var(--font-ui, Poppins, system-ui, sans-serif);
   font-size: 11.5px;
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: 0.01em;
   transition: color 140ms cubic-bezier(.2, .7, .2, 1);
 }
@@ -751,12 +757,12 @@ body,
 .reaction-count,
 .reply-count {
   font-size: 11.5px;
-  font-weight: 800;
+  font-weight: 600;
   min-width: 8px;
 }
 
 /* =========================================================
-   9. GIG CARDS — bordered break-out
+   9. GIG CARDS
    ========================================================= */
 
 .post-card.is-gig {
@@ -792,7 +798,7 @@ body,
   background: var(--teal, #1F5F58);
   color: #FFFFFF;
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -829,7 +835,7 @@ body,
 
 .gig-budget-label {
   font-size: 9.5px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.14em;
   color: rgba(31, 95, 88, 0.75);
 }
@@ -840,7 +846,7 @@ body,
   padding: 2px 8px;
   border-radius: 999px;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.02em;
   background: rgba(15, 39, 51, 0.06);
   color: var(--text-muted, #63727D);
@@ -870,9 +876,9 @@ body,
   border-radius: 14px;
   background: var(--teal, #1F5F58);
   color: #FFFFFF;
-  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
+  font-family: var(--font-ui, Poppins, system-ui, sans-serif);
   font-size: 13.5px;
-  font-weight: 800;
+  font-weight: 600;
   letter-spacing: -0.005em;
   cursor: pointer;
   transition: background 140ms ease, transform 140ms ease;
@@ -901,9 +907,9 @@ body,
   border-radius: 14px;
   background: transparent;
   color: var(--teal, #1F5F58);
-  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
+  font-family: var(--font-ui, Poppins, system-ui, sans-serif);
   font-size: 13px;
-  font-weight: 800;
+  font-weight: 600;
   cursor: pointer;
   transition: background 140ms ease, border-color 140ms ease;
 }
@@ -926,7 +932,7 @@ body,
   border: 1px solid #D5D9D3;
   color: #5A6A72;
   font-size: 12.5px;
-  font-weight: 700;
+  font-weight: 600;
   text-align: center;
 }
 
@@ -1076,7 +1082,7 @@ body,
   background: var(--mint, #DCEBE3);
   color: var(--teal, #1F5F58);
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .reply-body {
@@ -1092,21 +1098,21 @@ body,
 
 .reply-name {
   font-size: 12.5px;
-  font-weight: 800;
+  font-weight: 600;
   color: var(--text-primary, #0F2733);
 }
 
 .reply-time {
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--text-muted, #63727D);
 }
 
 .reply-text {
   margin: 0;
   font-size: 12.5px;
-  font-weight: 500;
-  line-height: 1.55;
+  font-weight: 400;
+  line-height: 1.6;
   color: var(--text-secondary, #2D3F49);
   overflow-wrap: anywhere;
 }
@@ -1155,9 +1161,9 @@ body,
   border-radius: 999px;
   background: var(--bg-page, #F3F1EA);
   color: var(--text-primary, #0F2733);
-  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
+  font-family: var(--font-ui, Poppins, system-ui, sans-serif);
   font-size: 12.5px;
-  font-weight: 500;
+  font-weight: 400;
   outline: none;
   transition:
     border-color 140ms cubic-bezier(.2, .7, .2, 1),
@@ -1316,66 +1322,8 @@ body,
   .topbar > .action-pill,
   .topbar > .action-pill .ap-btn,
   .welcome,
-  .category-scroll,
   .filter-chip {
     transition: none !important;
     animation: none !important;
   }
    }
-/* =========================================================
-   5. CATEGORY CHIPS — flow normally, rise as a fixed bar
-   ========================================================= */
-
-.category-scroll {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-
-  background: var(--bg-page, #F3F1EA);
-  padding: 6px 18px 12px;
-  margin: 8px -18px 12px;
-
-  /* Normal position in the page flow */
-  position: relative;
-  z-index: 1;
-
-  transform: translateY(0);
-  transition:
-    transform 320ms cubic-bezier(.2, .7, .2, 1),
-    box-shadow 320ms ease;
-}
-
-.category-scroll::-webkit-scrollbar {
-  display: none;
-}
-
-/* --- When the topbar hides, chips fly up to take its slot --- */
-
-.topbar.is-hidden ~ main .category-scroll {
-  position: fixed;
-  top: 8px;
-  left: 0;
-  right: 0;
-
-  /* Match the app shell's max width and gutter so it sits centred */
-  max-width: var(--width-feed, 620px);
-  margin: 0 auto;
-  padding: 6px 18px 12px;
-
-  z-index: 15;
-  box-shadow: 0 8px 18px -10px rgba(15, 39, 51, 0.14);
-}
-
-/* --- When the topbar returns, chips slide back into flow --- */
-
-.topbar.is-visible ~ main .category-scroll {
-  position: relative;
-  top: auto;
-  left: auto;
-  right: auto;
-  max-width: none;
-  margin: 8px -18px 12px;
-  box-shadow: none;
-}
