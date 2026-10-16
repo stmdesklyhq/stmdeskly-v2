@@ -1,8 +1,8 @@
 /* =========================================================
    STMDESKLY v2 — Home feed
    Single canonical stylesheet.
-   Palette B. Baloo 2 headings, Poppins body.
-   Motion: transform + opacity only — never layout properties.
+   Palette: neutral app grey. Fonts: Baloo 2 + Nunito.
+   Motion: transform + opacity only.
    ========================================================= */
 
 /* =========================================================
@@ -10,9 +10,9 @@
    ========================================================= */
 
 html {
-  background-color: var(--bg-page, #F3F1EA);
+  background-color: var(--bg-page, #ECEDEF);
   font-size: 16px;
-  font-family: var(--font-ui, Poppins, system-ui, sans-serif);
+  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
 }
 
 html,
@@ -23,7 +23,7 @@ body {
 
 body,
 .app-shell {
-  background-color: var(--bg-page, #F3F1EA);
+  background-color: var(--bg-page, #ECEDEF);
 }
 
 /* =========================================================
@@ -35,13 +35,12 @@ body,
   max-width: var(--width-feed, 620px);
   min-height: 100dvh;
   margin: 0 auto;
-  padding: 0 var(--page-gutter, 18px)
-           calc(var(--bottom-nav-h, 74px) + env(safe-area-inset-bottom) + 16px);
+  padding: 0 0 calc(var(--bottom-nav-h, 74px) + env(safe-area-inset-bottom) + 16px);
+  background: var(--bg-page, #ECEDEF);
 }
 
 /* =========================================================
    3. TOPBAR — split floating pills
-   Animates transform + opacity only.
    ========================================================= */
 
 .topbar {
@@ -49,7 +48,7 @@ body,
   top: 8px;
   z-index: 20;
   height: auto;
-  margin: 8px 0 16px;
+  margin: 8px 16px 12px;
   padding: 0;
   display: flex;
   align-items: center;
@@ -57,8 +56,6 @@ body,
   gap: 8px;
   background: transparent;
   border: 0;
-
-  /* Only transform + opacity — GPU composited, no layout */
   transition:
     transform 260ms cubic-bezier(.2, .7, .2, 1),
     opacity 200ms ease;
@@ -86,15 +83,15 @@ body,
   padding: 0 16px;
   overflow: hidden;
   border-radius: 16px;
-  border: 1px solid rgba(15, 39, 51, 0.06);
+  border: 1px solid rgba(17, 24, 39, 0.06);
   background: linear-gradient(
     135deg,
     rgba(220, 235, 227, 0.85) 0%,
-    rgba(255, 255, 255, 0.82) 60%
+    rgba(255, 255, 255, 0.85) 60%
   );
   box-shadow:
-    0 1px 2px rgba(15, 39, 51, 0.03),
-    0 8px 22px rgba(15, 39, 51, 0.07);
+    0 1px 2px rgba(17, 24, 39, 0.04),
+    0 8px 22px rgba(17, 24, 39, 0.08);
   backdrop-filter: blur(20px) saturate(1.4);
   -webkit-backdrop-filter: blur(20px) saturate(1.4);
 }
@@ -102,7 +99,7 @@ body,
 .topbar > .wordmark .wm-name,
 .topbar > .wordmark .wm-clock {
   display: inline-block;
-  font-family: var(--font-ui, Poppins, system-ui, sans-serif);
+  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
   line-height: 1;
   white-space: nowrap;
   transition:
@@ -113,9 +110,9 @@ body,
 
 .topbar > .wordmark .wm-name {
   font-size: 17px;
-  font-weight: 700;
-  letter-spacing: -0.05em;
-  color: var(--text-primary, #0F2733);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--text-primary, #111827);
   transform: translateX(0);
   opacity: 1;
 }
@@ -125,7 +122,7 @@ body,
   left: 16px;
   top: 50%;
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: -0.01em;
   color: var(--teal, #1F5F58);
   font-variant-numeric: tabular-nums;
@@ -152,11 +149,11 @@ body,
   height: 48px;
   padding: 6px;
   border-radius: 16px;
-  border: 1px solid rgba(15, 39, 51, 0.06);
-  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(17, 24, 39, 0.06);
+  background: rgba(255, 255, 255, 0.85);
   box-shadow:
-    0 1px 2px rgba(15, 39, 51, 0.03),
-    0 8px 22px rgba(15, 39, 51, 0.07);
+    0 1px 2px rgba(17, 24, 39, 0.04),
+    0 8px 22px rgba(17, 24, 39, 0.08);
   backdrop-filter: blur(20px) saturate(1.4);
   -webkit-backdrop-filter: blur(20px) saturate(1.4);
   gap: 0;
@@ -177,7 +174,7 @@ body,
   border: 0;
   border-radius: 999px;
   background: transparent;
-  color: var(--text-primary, #0F2733);
+  color: var(--text-primary, #111827);
   cursor: pointer;
   transition:
     background 140ms cubic-bezier(.2, .7, .2, 1),
@@ -187,7 +184,7 @@ body,
 }
 
 .topbar > .action-pill .ap-btn:hover {
-  background: rgba(15, 39, 51, 0.06);
+  background: rgba(17, 24, 39, 0.06);
 }
 
 .topbar > .action-pill .ap-btn svg {
@@ -227,7 +224,7 @@ body,
   height: 7px;
   border-radius: 999px;
   background: #C75D5D;
-  box-shadow: 0 0 0 2px var(--bg-page, #F3F1EA);
+  box-shadow: 0 0 0 2px var(--bg-page, #ECEDEF);
   pointer-events: none;
 }
 
@@ -242,7 +239,7 @@ body,
   font-size: 10.5px;
   font-weight: 800;
   letter-spacing: 0;
-  box-shadow: inset 0 0 0 1px rgba(15, 39, 51, 0.10);
+  box-shadow: inset 0 0 0 1px rgba(17, 24, 39, 0.10);
 }
 
 /* =========================================================
@@ -252,7 +249,7 @@ body,
 .welcome {
   position: relative;
   z-index: 1;
-  padding: 4px 0 22px;
+  padding: 4px 16px 18px;
   overflow: hidden;
   max-height: 200px;
   opacity: 1;
@@ -276,9 +273,9 @@ body,
   font-family: var(--font-heading, "Baloo 2", Poppins, system-ui, sans-serif);
   font-size: 28px;
   font-weight: 700;
-  letter-spacing: -0.035em;
+  letter-spacing: -0.03em;
   line-height: 1.15;
-  color: var(--text-primary, #0F2733);
+  color: var(--text-primary, #111827);
 }
 
 .welcome h1 span {
@@ -287,9 +284,8 @@ body,
 
 /* =========================================================
    5. CATEGORY CHIPS
-   In flow by default. When the topbar hides, they swap to
-   fixed positioning at the top — no transition on layout,
-   just an instant reposition with a soft shadow fade-in.
+   Sticky row. When the topbar hides, chips swap to fixed
+   positioning at the top. No transitions on layout.
    ========================================================= */
 
 .category-scroll {
@@ -299,14 +295,13 @@ body,
   scrollbar-width: none;
   -ms-overflow-style: none;
 
-  background: var(--bg-page, #F3F1EA);
-  padding: 6px 18px 12px;
-  margin: 8px -18px 12px;
+  background: var(--bg-page, #ECEDEF);
+  padding: 4px 16px 14px;
+  margin: 0;
 
   position: relative;
   z-index: 1;
 
-  /* No transitions on layout props — only opacity for the shadow fade */
   transition: opacity 200ms ease;
 }
 
@@ -314,7 +309,6 @@ body,
   display: none;
 }
 
-/* When topbar is hidden — chips swap to fixed, sit at the top */
 .topbar.is-hidden ~ main .category-scroll {
   position: fixed;
   top: 0;
@@ -323,19 +317,18 @@ body,
   max-width: var(--width-feed, 620px);
   margin: 0 auto;
   padding-top: max(8px, env(safe-area-inset-top));
-  padding-bottom: 12px;
+  padding-bottom: 14px;
   z-index: 15;
-  box-shadow: 0 8px 18px -10px rgba(15, 39, 51, 0.14);
+  box-shadow: 0 8px 18px -10px rgba(17, 24, 39, 0.16);
 }
 
-/* When topbar is visible — chips return to page flow */
 .topbar.is-visible ~ main .category-scroll {
   position: relative;
   top: auto;
   left: auto;
   right: auto;
   max-width: none;
-  margin: 8px -18px 12px;
+  margin: 0;
   box-shadow: none;
 }
 
@@ -346,13 +339,13 @@ body,
   min-height: 36px;
   flex: none;
   padding: 0 12px;
-  border: 1.5px solid var(--border, #E0DED6);
+  border: 1.5px solid var(--border, #DFE1E4);
   border-radius: 999px;
   background: var(--paper, #FFFFFF);
-  color: var(--text-secondary, #2D3F49);
-  font-family: var(--font-ui, Poppins, system-ui, sans-serif);
+  color: var(--text-secondary, #2A3540);
+  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
   font-size: 11.5px;
-  font-weight: 600;
+  font-weight: 700;
   white-space: nowrap;
   transition:
     background 140ms cubic-bezier(.2, .7, .2, 1),
@@ -371,49 +364,49 @@ body,
 }
 
 .filter-chip:hover {
-  border-color: var(--border-hard, #C9C7BF);
-  color: var(--text-primary, #0F2733);
+  border-color: var(--border-hard, #C3C7CD);
+  color: var(--text-primary, #111827);
 }
 
 .filter-chip.active {
   background: var(--teal, #1F5F58);
   border-color: var(--teal, #1F5F58);
   color: #FFFFFF;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 /* =========================================================
-   6. COMPOSER
+   6. COMPOSER — floating pill
    ========================================================= */
 
 .composer {
   display: flex;
   align-items: center;
   gap: 12px;
-  min-height: 60px;
-  margin-bottom: 20px;
-  padding: 10px 12px;
-  border: 1.5px solid var(--border, #E0DED6);
+  min-height: 56px;
+  margin: 0 16px 12px;
+  padding: 8px 10px;
+  border: 1.5px solid var(--border, #DFE1E4);
   border-radius: 16px;
   background: var(--paper, #FFFFFF);
   transition: border-color 140ms cubic-bezier(.2, .7, .2, 1);
 }
 
 .composer:hover {
-  border-color: var(--border-hard, #C9C7BF);
+  border-color: var(--border-hard, #C3C7CD);
 }
 
 .composer-avatar {
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   flex-shrink: 0;
   border-radius: 999px;
   background: var(--mint, #DCEBE3);
   color: var(--teal, #1F5F58);
-  font-size: 12px;
-  font-weight: 700;
+  font-size: 11.5px;
+  font-weight: 800;
   letter-spacing: 0;
   overflow: hidden;
 }
@@ -421,23 +414,23 @@ body,
 .composer-prompt {
   flex: 1;
   min-width: 0;
-  color: var(--text-muted, #63727D);
+  color: var(--text-muted, #6B7280);
   font-size: 12.5px;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .composer-button {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  min-height: 36px;
+  min-height: 34px;
   padding: 0 12px;
   border-radius: 999px;
   background: var(--teal, #1F5F58);
   color: #FFFFFF;
-  font-family: var(--font-ui, Poppins, system-ui, sans-serif);
+  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
   font-size: 11.5px;
-  font-weight: 600;
+  font-weight: 800;
   white-space: nowrap;
   transition: background 140ms cubic-bezier(.2, .7, .2, 1);
 }
@@ -457,22 +450,25 @@ body,
 }
 
 /* =========================================================
-   7. FEED CONTAINER
+   7. FEED CONTAINER — solid white column
    ========================================================= */
 
 .feed {
   display: block;
-  margin-top: 8px;
+  margin: 0;
+  background: var(--paper, #FFFFFF);
+  border-top: 1px solid var(--border, #DFE1E4);
 }
 
 .feed-loading,
 .feed-empty {
   padding: 40px 20px;
-  color: var(--text-muted, #63727D);
-  font-size: 12.5px;
-  font-weight: 500;
+  color: var(--text-muted, #6B7280);
+  font-size: 13px;
+  font-weight: 600;
   line-height: 1.6;
   text-align: center;
+  background: var(--paper, #FFFFFF);
 }
 
 .feed-loading[hidden],
@@ -481,33 +477,35 @@ body,
 }
 
 /* =========================================================
-   8. POST — flat row
+   8. POST — solid row, hairline divider
    ========================================================= */
 
 .post-card {
   min-width: 0;
-  padding: 16px 0;
+  padding: 18px 16px;
   border: 0;
-  border-bottom: 1px solid rgba(15, 39, 51, 0.07);
+  border-bottom: 1px solid var(--border, #DFE1E4);
   border-radius: 0;
-  background: transparent;
+  background: var(--paper, #FFFFFF);
   transition: background 140ms cubic-bezier(.2, .7, .2, 1);
 }
 
 .post-card:hover {
-  background: rgba(15, 39, 51, 0.02);
+  background: #FAFAFB;
 }
 
 .post-card:first-child {
-  border-top: 1px solid rgba(15, 39, 51, 0.07);
+  border-top: 0; /* .feed already provides the top line */
 }
+
+/* --- Post header --- */
 
 .post-header {
   display: flex;
   align-items: center;
   gap: 10px;
   min-width: 0;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .post-avatar {
@@ -520,7 +518,7 @@ body,
   background: var(--mint, #DCEBE3);
   color: var(--teal, #1F5F58);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 0;
   overflow: hidden;
   text-decoration: none;
@@ -532,17 +530,17 @@ body,
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  column-gap: 8px;
+  column-gap: 6px;
   row-gap: 3px;
 }
 
 .post-author-link {
-  font-family: var(--font-ui, Poppins, system-ui, sans-serif);
+  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
   font-size: 13px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-weight: 800;
+  letter-spacing: -0.005em;
   line-height: 1.2;
-  color: var(--text-primary, #0F2733);
+  color: var(--text-primary, #111827);
 }
 
 .post-author-link:hover {
@@ -556,19 +554,19 @@ body,
   gap: 6px;
   font-size: 11px;
   line-height: 1.2;
-  color: var(--text-muted, #63727D);
+  color: var(--text-muted, #6B7280);
 }
 
 .post-meta > span:not(.post-category) {
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .post-meta > .post-category + span::before,
 .post-meta > span + span::before {
   content: "·";
   margin-right: 6px;
-  color: rgba(15, 39, 51, 0.28);
-  font-weight: 700;
+  color: rgba(17, 24, 39, 0.28);
+  font-weight: 800;
 }
 
 .post-category {
@@ -576,7 +574,7 @@ body,
   padding: 2px 9px;
   border-radius: 999px;
   font-size: 9.5px;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   line-height: 1.5;
@@ -609,15 +607,15 @@ body,
   border: 0;
   border-radius: 999px;
   background: transparent;
-  color: var(--text-muted, #63727D);
+  color: var(--text-muted, #6B7280);
   transition:
     background 140ms cubic-bezier(.2, .7, .2, 1),
     color 140ms cubic-bezier(.2, .7, .2, 1);
 }
 
 .post-menu:hover {
-  background: rgba(15, 39, 51, 0.05);
-  color: var(--text-primary, #0F2733);
+  background: rgba(17, 24, 39, 0.05);
+  color: var(--text-primary, #111827);
 }
 
 .post-menu svg {
@@ -626,23 +624,25 @@ body,
   fill: currentColor;
 }
 
+/* --- Post content --- */
+
 .post-title {
-  margin: 0 0 4px;
+  margin: 0 0 3px;
   font-family: var(--font-heading, "Baloo 2", Poppins, system-ui, sans-serif);
   font-size: 16px;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.015em;
   line-height: 1.3;
-  color: var(--text-primary, #0F2733);
+  color: var(--text-primary, #111827);
 }
 
 .post-body {
   margin: 0;
-  font-family: var(--font-ui, Poppins, system-ui, sans-serif);
+  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
   font-size: 14px;
-  font-weight: 400;
-  line-height: 1.6;
-  color: var(--text-secondary, #2D3F49);
+  font-weight: 500;
+  line-height: 1.55;
+  color: var(--text-secondary, #2A3540);
   overflow-wrap: anywhere;
   white-space: pre-wrap;
 }
@@ -655,21 +655,25 @@ body,
   background: var(--mint, #DCEBE3);
   color: var(--teal, #1F5F58);
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 800;
 }
+
+/* --- Post photos --- */
 
 .post-photos {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 4px;
+  gap: 3px;
   margin-top: 10px;
+  margin-left: -16px;
+  margin-right: -16px;
 }
 
 .post-photo-tile {
   position: relative;
   aspect-ratio: 1 / 1;
   overflow: hidden;
-  border-radius: 8px;
+  border-radius: 0;
   background: #E5E8E2;
 }
 
@@ -698,8 +702,9 @@ body,
 
 .post-photos:has(.post-photo-tile:only-child) .post-photo-tile {
   aspect-ratio: 16 / 10;
-  border-radius: 12px;
 }
+
+/* --- Post actions --- */
 
 .post-actions {
   display: flex;
@@ -718,11 +723,11 @@ body,
   padding: 0;
   border: 0;
   background: transparent;
-  color: var(--text-muted, #63727D);
-  font-family: var(--font-ui, Poppins, system-ui, sans-serif);
-  font-size: 11.5px;
-  font-weight: 500;
-  letter-spacing: 0.01em;
+  color: var(--text-muted, #6B7280);
+  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.005em;
   transition: color 140ms cubic-bezier(.2, .7, .2, 1);
 }
 
@@ -735,7 +740,7 @@ body,
   height: 18px;
   fill: none;
   stroke: currentColor;
-  stroke-width: 1.9;
+  stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
@@ -756,27 +761,28 @@ body,
 
 .reaction-count,
 .reply-count {
-  font-size: 11.5px;
-  font-weight: 600;
+  font-size: 12px;
+  font-weight: 800;
   min-width: 8px;
 }
 
 /* =========================================================
-   9. GIG CARDS
+   9. GIG CARDS — same column, teal stripe distinguishes
    ========================================================= */
 
 .post-card.is-gig {
   position: relative;
   overflow: hidden;
-  padding: 14px 16px 14px 22px;
-  border: 1px solid var(--border, #E0DED6);
-  border-radius: 16px;
+  padding: 18px 16px 18px 22px;
+  border: 0;
+  border-bottom: 1px solid var(--border, #DFE1E4);
+  border-radius: 0;
   background: var(--paper, #FFFFFF);
-  margin: 12px 0;
+  margin: 0;
 }
 
 .post-card.is-gig:hover {
-  border-color: var(--border-hard, #C9C7BF);
+  background: #FAFAFB;
 }
 
 .post-card.is-gig::before {
@@ -798,7 +804,7 @@ body,
   background: var(--teal, #1F5F58);
   color: #FFFFFF;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 0.06em;
   text-transform: uppercase;
 }
@@ -818,7 +824,7 @@ body,
   flex-direction: column;
   gap: 2px;
   margin: 12px 0;
-  padding: 12px 16px;
+  padding: 12px 14px;
   border-radius: 12px;
   background: linear-gradient(135deg, #E7F1EC 0%, #DDEBE4 100%);
   border: 1px solid rgba(31, 95, 88, 0.16);
@@ -828,14 +834,14 @@ body,
   font-family: var(--font-heading, "Baloo 2", Poppins, system-ui, sans-serif);
   font-size: 19px;
   font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.015em;
   line-height: 1.2;
   color: var(--teal, #1F5F58);
 }
 
 .gig-budget-label {
   font-size: 9.5px;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 0.14em;
   color: rgba(31, 95, 88, 0.75);
 }
@@ -846,10 +852,10 @@ body,
   padding: 2px 8px;
   border-radius: 999px;
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 700;
   letter-spacing: 0.02em;
-  background: rgba(15, 39, 51, 0.06);
-  color: var(--text-muted, #63727D);
+  background: rgba(17, 24, 39, 0.06);
+  color: var(--text-muted, #6B7280);
 }
 
 .gig-deadline.is-soon {
@@ -876,9 +882,9 @@ body,
   border-radius: 14px;
   background: var(--teal, #1F5F58);
   color: #FFFFFF;
-  font-family: var(--font-ui, Poppins, system-ui, sans-serif);
+  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
   font-size: 13.5px;
-  font-weight: 600;
+  font-weight: 800;
   letter-spacing: -0.005em;
   cursor: pointer;
   transition: background 140ms ease, transform 140ms ease;
@@ -900,16 +906,16 @@ body,
 .gig-own-action {
   display: block;
   width: 100%;
-  min-height: 40px;
+  min-height: 42px;
   margin-top: 12px;
   padding: 10px 18px;
   border: 1px solid rgba(31, 95, 88, 0.30);
   border-radius: 14px;
   background: transparent;
   color: var(--teal, #1F5F58);
-  font-family: var(--font-ui, Poppins, system-ui, sans-serif);
+  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 800;
   cursor: pointer;
   transition: background 140ms ease, border-color 140ms ease;
 }
@@ -932,7 +938,7 @@ body,
   border: 1px solid #D5D9D3;
   color: #5A6A72;
   font-size: 12.5px;
-  font-weight: 600;
+  font-weight: 700;
   text-align: center;
 }
 
@@ -947,7 +953,7 @@ body,
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  background: rgba(15, 39, 51, 0.55);
+  background: rgba(17, 24, 39, 0.55);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   animation: sheet-fade 200ms cubic-bezier(.2, .7, .2, 1) both;
@@ -971,7 +977,7 @@ body,
   overflow: hidden;
   border-radius: 22px 22px 0 0;
   background: var(--paper, #FFFFFF);
-  box-shadow: 0 -14px 44px rgba(15, 39, 51, 0.20);
+  box-shadow: 0 -14px 44px rgba(17, 24, 39, 0.20);
   animation: sheet-up 260ms cubic-bezier(.2, .7, .2, 1) both;
 }
 
@@ -986,7 +992,7 @@ body,
   height: 4px;
   margin: 10px auto 0;
   border-radius: 999px;
-  background: var(--border, #E0DED6);
+  background: var(--border, #DFE1E4);
 }
 
 .sheet-head {
@@ -995,14 +1001,14 @@ body,
   align-items: center;
   justify-content: space-between;
   padding: 12px 16px 14px;
-  border-bottom: 1px solid var(--border, #E0DED6);
+  border-bottom: 1px solid var(--border, #DFE1E4);
 }
 
 .sheet-head > span {
   font-family: var(--font-heading, "Baloo 2", Poppins, system-ui, sans-serif);
   font-size: 15px;
   font-weight: 700;
-  color: var(--text-primary, #0F2733);
+  color: var(--text-primary, #111827);
 }
 
 .sheet-head button {
@@ -1012,8 +1018,8 @@ body,
   place-items: center;
   border: 0;
   border-radius: 999px;
-  background: var(--bg-page, #F3F1EA);
-  color: var(--text-primary, #0F2733);
+  background: var(--bg-page, #ECEDEF);
+  color: var(--text-primary, #111827);
   font-size: 19px;
   line-height: 1;
   cursor: pointer;
@@ -1034,9 +1040,9 @@ body,
 .sheet-post {
   padding: 12px 14px;
   margin-bottom: 16px;
-  border: 1px solid var(--border, #E0DED6);
+  border: 1px solid var(--border, #DFE1E4);
   border-radius: 12px;
-  background: #FAF9F4;
+  background: var(--bg-surface-alt, #F7F8FA);
 }
 
 .sheet-post .post-header      { margin-bottom: 6px; }
@@ -1060,9 +1066,9 @@ body,
 .sheet-empty {
   padding: 32px 0;
   text-align: center;
-  color: var(--text-muted, #63727D);
+  color: var(--text-muted, #6B7280);
   font-size: 12.5px;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1.6;
 }
 
@@ -1082,7 +1088,7 @@ body,
   background: var(--mint, #DCEBE3);
   color: var(--teal, #1F5F58);
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 800;
 }
 
 .reply-body {
@@ -1098,22 +1104,22 @@ body,
 
 .reply-name {
   font-size: 12.5px;
-  font-weight: 600;
-  color: var(--text-primary, #0F2733);
+  font-weight: 800;
+  color: var(--text-primary, #111827);
 }
 
 .reply-time {
   font-size: 10px;
-  font-weight: 500;
-  color: var(--text-muted, #63727D);
+  font-weight: 600;
+  color: var(--text-muted, #6B7280);
 }
 
 .reply-text {
   margin: 0;
   font-size: 12.5px;
-  font-weight: 400;
-  line-height: 1.6;
-  color: var(--text-secondary, #2D3F49);
+  font-weight: 500;
+  line-height: 1.55;
+  color: var(--text-secondary, #2A3540);
   overflow-wrap: anywhere;
 }
 
@@ -1128,7 +1134,7 @@ body,
   border: 0;
   border-radius: 999px;
   background: transparent;
-  color: var(--text-muted, #63727D);
+  color: var(--text-muted, #6B7280);
   font-size: 17px;
   line-height: 1;
   cursor: pointer;
@@ -1148,7 +1154,7 @@ body,
   align-items: center;
   gap: 8px;
   padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
-  border-top: 1px solid var(--border, #E0DED6);
+  border-top: 1px solid var(--border, #DFE1E4);
   background: var(--paper, #FFFFFF);
 }
 
@@ -1157,13 +1163,13 @@ body,
   min-width: 0;
   height: 42px;
   padding: 0 16px;
-  border: 1px solid var(--border, #E0DED6);
+  border: 1px solid var(--border, #DFE1E4);
   border-radius: 999px;
-  background: var(--bg-page, #F3F1EA);
-  color: var(--text-primary, #0F2733);
-  font-family: var(--font-ui, Poppins, system-ui, sans-serif);
+  background: var(--bg-page, #ECEDEF);
+  color: var(--text-primary, #111827);
+  font-family: var(--font-ui, Nunito, system-ui, sans-serif);
   font-size: 12.5px;
-  font-weight: 400;
+  font-weight: 500;
   outline: none;
   transition:
     border-color 140ms cubic-bezier(.2, .7, .2, 1),
@@ -1196,7 +1202,7 @@ body,
 }
 
 .sheet-composer button:disabled {
-  background: var(--border, #E0DED6);
+  background: var(--border, #DFE1E4);
   cursor: not-allowed;
 }
 
@@ -1215,54 +1221,81 @@ body,
    ========================================================= */
 
 @media (min-width: 600px) {
-  .app-shell {
-    padding-left: 28px;
-    padding-right: 28px;
+  .topbar {
+    margin-left: 20px;
+    margin-right: 20px;
+  }
+
+  .welcome {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .category-scroll {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .composer {
+    margin-left: 20px;
+    margin-right: 20px;
+  }
+
+  .post-card {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+
+  .post-card.is-gig {
+    padding-left: 26px;
+    padding-right: 20px;
+  }
+
+  .post-photos {
+    margin-left: -20px;
+    margin-right: -20px;
   }
 
   .topbar > .wordmark,
   .topbar > .action-pill {
     height: 52px;
   }
-
-  .category-scroll {
-    margin-left: 0;
-    margin-right: 0;
-    padding-left: 0;
-    padding-right: 0;
-    flex-wrap: wrap;
-  }
-
-  .post-card {
-    padding: 20px 0;
-  }
-
-  .post-card.is-gig {
-    padding: 18px 20px 18px 24px;
-  }
-
-  .post-photos {
-    gap: 6px;
-  }
-}
-
-@media (max-width: 480px) {
-  .post-card {
-    padding: 18px 0;
-  }
 }
 
 @media (max-width: 370px) {
-  .app-shell {
+  .topbar {
+    margin-left: 12px;
+    margin-right: 12px;
+  }
+
+  .welcome {
     padding-left: 12px;
     padding-right: 12px;
   }
 
   .category-scroll {
-    margin-left: -12px;
-    margin-right: -12px;
     padding-left: 12px;
     padding-right: 12px;
+  }
+
+  .composer {
+    margin-left: 12px;
+    margin-right: 12px;
+  }
+
+  .post-card {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .post-card.is-gig {
+    padding-left: 18px;
+    padding-right: 12px;
+  }
+
+  .post-photos {
+    margin-left: -12px;
+    margin-right: -12px;
   }
 
   .topbar > .wordmark {
@@ -1288,24 +1321,6 @@ body,
     width: 32px;
   }
 
-  .composer {
-    padding: 8px 10px;
-    gap: 8px;
-  }
-
-  .composer-button {
-    padding: 0 10px;
-    font-size: 10.5px;
-  }
-
-  .post-card {
-    padding: 14px 0;
-  }
-
-  .post-card.is-gig {
-    padding: 12px 14px 12px 20px;
-  }
-
   .post-actions {
     gap: 16px;
   }
@@ -1327,133 +1342,3 @@ body,
     animation: none !important;
   }
    }
-/* =========================================================
-   APPEND — Edge-to-edge feed on mobile
-   Posts bleed to the screen edges. Content has room to
-   breathe horizontally instead of everything centred in
-   a padded column.
-   ========================================================= */
-
-@media (max-width: 700px) {
-
-  /* Shell: kill the gutter on mobile only */
-  .app-shell {
-    padding-left: 0;
-    padding-right: 0;
-  }
-
-  /* Everything inside main gets the gutter back */
-  .welcome,
-  .category-scroll,
-  .composer,
-  .feed {
-    padding-left: 16px;
-    padding-right: 16px;
-  }
-
-  /* Chips already have their own padding via the append — leave it */
-
-  /* Cards stretch full width */
-  .post-card {
-    padding-left: 16px;
-    padding-right: 16px;
-    padding-top: 16px;
-    padding-bottom: 16px;
-  }
-
-  /* Photos bleed right to the screen edges */
-  .post-photos {
-    margin-left: -16px;
-    margin-right: -16px;
-    gap: 2px;
-    border-radius: 0;
-  }
-
-  .post-photo-tile {
-    border-radius: 0;
-  }
-
-  /* Single photo also bleeds */
-  .post-photos:has(.post-photo-tile:only-child) {
-    margin-left: -16px;
-    margin-right: -16px;
-    gap: 0;
-  }
-
-  .post-photos:has(.post-photo-tile:only-child) .post-photo-tile {
-    border-radius: 0;
-  }
-
-  /* Gigs go edge-to-edge too — no more floating card */
-  .post-card.is-gig {
-    margin-left: 0;
-    margin-right: 0;
-    border-radius: 0;
-    border-left: 0;
-    border-right: 0;
-    padding-left: 20px;
-    padding-right: 16px;
-  }
-
-  /* Composer stays a floating pill but with tighter side margins */
-  .composer {
-    margin-left: 16px;
-    margin-right: 16px;
-    padding-left: 12px;
-    padding-right: 12px;
-  }
-
-  /* Category chips stay edge-to-edge scrolling */
-  .category-scroll {
-    padding-left: 16px;
-    padding-right: 16px;
-    margin-left: 0;
-    margin-right: 0;
-  }
-
-  /* The welcome greeting too */
-  .welcome {
-    padding-left: 16px;
-    padding-right: 16px;
-  }
-
-  /* Divider between posts is a full-width line now */
-  .post-card {
-    border-bottom: 1px solid rgba(17, 24, 39, 0.10);
-  }
-
-  .post-card:first-child {
-    border-top: 1px solid rgba(17, 24, 39, 0.10);
-  }
-}
-
-/* =========================================================
-   APPEND — Tighter vertical rhythm
-   ========================================================= */
-
-.post-header {
-  margin-bottom: 6px;
-}
-
-.post-title {
-  margin-bottom: 3px;
-}
-
-.post-body {
-  margin-bottom: 2px;
-}
-
-.post-actions {
-  margin-top: 8px;
-  gap: 20px;
-}
-
-.reaction-count,
-.reply-count {
-  font-weight: 700;
-}
-
-/* Meta line — name and time sit tighter */
-.post-author {
-  column-gap: 6px;
-}
