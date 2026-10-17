@@ -1379,3 +1379,49 @@ body,
 .post-card:first-child {
   margin-top: 0;
 }
+/* =========================================================
+   APPEND — Solid pinned band for chips + composer
+   Fills the transparent gaps so feed content doesn't
+   show through when the row is stuck at the top.
+   ========================================================= */
+
+/* Chips row — solid band, no transparency */
+.category-scroll {
+  background: var(--bg-page, #ECEDEF) !important;
+  box-shadow: 0 1px 0 rgba(17, 24, 39, 0.06);
+}
+
+/* Composer row — solid band, no transparency, shadow under */
+.composer {
+  background: var(--paper, #FFFFFF) !important;
+  box-shadow:
+    0 1px 2px rgba(17, 24, 39, 0.04),
+    0 10px 24px -12px rgba(17, 24, 39, 0.14) !important;
+}
+
+/* The strip between chips and composer — the wrapper
+   that holds both sticky elements — needs a solid colour
+   too, otherwise a 4px gap shows the post behind */
+.category-scroll + .composer {
+  margin-top: 0;
+}
+
+/* When stuck, the whole top band gets a shadow under it
+   so it reads as one bar, not two floating elements */
+.topbar.is-hidden ~ main .category-scroll {
+  box-shadow: none;
+}
+
+.topbar.is-hidden ~ main .composer {
+  box-shadow:
+    0 1px 2px rgba(17, 24, 39, 0.04),
+    0 12px 28px -10px rgba(17, 24, 39, 0.18) !important;
+}
+
+/* The gap between the two stickies: add a filler strip
+   behind them so nothing shows through. Simplest fix —
+   give the composer its own gap-filling top padding. */
+.composer {
+  padding-top: 8px !important;
+  margin-top: -4px !important;
+}
