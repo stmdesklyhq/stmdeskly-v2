@@ -1545,3 +1545,112 @@ body,
 .composer {
   background: #FFFFFF !important;
 }
+/* =========================================================
+   APPEND — Preview rhythm
+   Match the spacing of tokens-preview v3 in the live app.
+   ========================================================= */
+
+/* Cards breathe again */
+.post-card,
+.post-card.is-gig {
+  padding: 18px;
+  border-radius: 16px;
+  margin: 0 14px 12px;
+}
+
+.post-card.is-gig {
+  padding: 18px 18px 18px 22px;
+}
+
+/* Header has room above the content */
+.post-header {
+  margin-bottom: 10px;
+}
+
+/* Title and body breathe under the header */
+.post-title {
+  margin: 0 0 6px;
+  font-size: 17px;
+}
+
+.post-body {
+  line-height: 1.6;
+  margin-bottom: 4px;
+}
+
+/* Photos stand alone with margin above */
+.post-photos {
+  margin-top: 14px;
+  gap: 6px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.post-photo-tile {
+  border-radius: 12px;
+}
+
+.post-photos:has(.post-photo-tile:only-child) .post-photo-tile {
+  border-radius: 14px;
+}
+
+/* Actions sit with breathing room below content */
+.post-actions {
+  margin-top: 14px;
+  gap: 26px;
+}
+
+/* Gig card internals match preview */
+.gig-budget {
+  padding: 16px 18px;
+  border-radius: 14px;
+  margin: 16px 0;
+}
+
+.gig-budget-value {
+  font-size: 22px;
+}
+
+.gig-apply {
+  min-height: 50px;
+  margin-top: 16px;
+  padding: 14px 20px;
+  font-size: 14px;
+  border-radius: 16px;
+}
+
+/* Composer gets more body */
+.composer {
+  min-height: 58px;
+  padding: 10px 14px;
+  margin: 0 14px 14px;
+  border-radius: 18px;
+}
+
+/* Chips row breathes more */
+.category-scroll {
+  padding: 4px 14px 12px;
+}
+
+.filter-chip {
+  min-height: 38px;
+  padding: 0 14px;
+  font-size: 12px;
+  border-radius: 999px;
+}
+
+/* Welcome greeting has more presence */
+.welcome {
+  padding: 8px 18px 16px;
+}
+
+.welcome h1 {
+  font-size: 30px;
+  line-height: 1.1;
+}
+
+/* Pinned band padding matches preview proportions */
+.home-pinned {
+  padding-top: 10px;
+  padding-bottom: 14px;
+}
