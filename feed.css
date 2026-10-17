@@ -1425,3 +1425,59 @@ body,
   padding-top: 8px !important;
   margin-top: -4px !important;
 }
+/* =========================================================
+   PINNED BAND — chips + composer as one sticky block
+   ========================================================= */
+
+.home-pinned {
+  position: sticky;
+  top: 0;
+  z-index: 18;
+  background: var(--bg-page, #ECEDEF);
+  padding-top: 8px;
+  padding-bottom: 8px;
+  transition: box-shadow 200ms ease;
+}
+
+/* When the topbar is hidden, the pinned band rises to the top */
+.topbar.is-hidden ~ main .home-pinned {
+  box-shadow: 0 10px 20px -12px rgba(17, 24, 39, 0.14);
+}
+
+/* Chips row — inside the band, no independent stickiness */
+.category-scroll {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  background: transparent;
+  padding: 0 16px 10px;
+  margin: 0;
+  position: relative;
+  top: auto;
+  z-index: 1;
+}
+
+.category-scroll::-webkit-scrollbar { display: none; }
+
+/* Composer — inside the band, no independent stickiness */
+.composer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  margin: 0 12px;
+  padding: 7px 10px;
+  border: 1.5px solid var(--border, #DFE1E4);
+  border-radius: 16px;
+  background: var(--paper, #FFFFFF);
+  position: relative;
+  top: auto;
+  z-index: 1;
+  transition: border-color 140ms cubic-bezier(.2, .7, .2, 1);
+}
+
+.composer:hover {
+  border-color: var(--border-hard, #C3C7CD);
+}
