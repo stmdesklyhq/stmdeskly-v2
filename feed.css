@@ -1519,3 +1519,29 @@ body,
   top: auto !important;
   z-index: 1 !important;
 }
+/* =========================================================
+   APPEND — Frosted glass on pinned band + nav
+   Real backdrop-filter. Falls back to solid on browsers
+   that don't support it.
+   ========================================================= */
+
+/* Pinned band — frosted glass instead of solid cream */
+.home-pinned {
+  background: rgba(236, 237, 239, 0.72);
+  backdrop-filter: blur(20px) saturate(1.6);
+  -webkit-backdrop-filter: blur(20px) saturate(1.6);
+}
+
+/* When stuck to the top, add a hairline under the band so
+   it separates from content without a heavy border */
+.topbar.is-hidden ~ main .home-pinned {
+  box-shadow:
+    0 1px 0 rgba(17, 24, 39, 0.06),
+    0 12px 24px -14px rgba(17, 24, 39, 0.18);
+}
+
+/* The composer pill inside the frosted band — leave it
+   solid so it reads as a distinct control, not chrome */
+.composer {
+  background: #FFFFFF !important;
+}
