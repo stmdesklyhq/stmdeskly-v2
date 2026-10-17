@@ -1311,3 +1311,71 @@ body,
 .feed {
   margin-top: 0;
 }
+/* =========================================================
+   APPEND — Chips + composer stick at top; topbar hides
+   When you scroll, the topbar tucks away and the chips +
+   composer lock into that slot. The feed scrolls under.
+   ========================================================= */
+
+/* The sticky stack: chips + composer as one unit */
+.category-scroll {
+  position: sticky;
+  top: 8px;
+  z-index: 18;
+  background: var(--bg-page, #ECEDEF);
+  padding-top: 8px;
+  padding-bottom: 4px;
+  margin-bottom: 0;
+}
+
+.composer {
+  position: sticky;
+  top: 60px;
+  z-index: 17;
+  background: var(--bg-page, #ECEDEF);
+  padding-top: 4px;
+  padding-bottom: 10px;
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+/* Give both of them a "pinned" feel — slight blur, subtle
+   shadow under the composer only, when they're stuck */
+.category-scroll.is-stuck,
+.composer.is-stuck {
+  /* nothing to do — the shadow is on .composer always */
+}
+
+.composer {
+  box-shadow:
+    0 1px 2px rgba(17, 24, 39, 0.02),
+    0 10px 20px -12px rgba(17, 24, 39, 0.10);
+}
+
+/* When topbar hides, the stack rises to fill its space */
+.topbar.is-hidden ~ main .category-scroll {
+  top: 4px;
+}
+
+.topbar.is-hidden ~ main .composer {
+  top: 56px;
+}
+
+/* When topbar returns, the stack drops back below it */
+.topbar.is-visible ~ main .category-scroll {
+  top: 8px;
+}
+
+.topbar.is-visible ~ main .composer {
+  top: 60px;
+}
+
+/* The feed starts clean below the sticky stack */
+.feed {
+  margin-top: 0;
+}
+
+/* First card sits tight against the composer */
+.post-card:first-child {
+  margin-top: 0;
+}
