@@ -1502,3 +1502,20 @@ body,
   margin-top: 0 !important;
   min-height: 52px;
 }
+/* =========================================================
+   APPEND — Composer must sit inside the pinned wrapper
+   No independent sticky. The wrapper owns the stickiness.
+   ========================================================= */
+
+.composer {
+  position: relative !important;
+  top: auto !important;
+  z-index: 1 !important;
+}
+
+/* And the chips too — no independent positioning */
+.category-scroll {
+  position: relative !important;
+  top: auto !important;
+  z-index: 1 !important;
+}
