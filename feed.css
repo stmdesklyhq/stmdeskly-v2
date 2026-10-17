@@ -1481,3 +1481,24 @@ body,
 .composer:hover {
   border-color: var(--border-hard, #C3C7CD);
 }
+/* =========================================================
+   APPEND — Tighten chips→composer gap
+   Everything above is superseded. This is final.
+   ========================================================= */
+
+.home-pinned {
+  padding-top: 8px;
+  padding-bottom: 10px;
+}
+
+.category-scroll {
+  padding-bottom: 0 !important;
+  margin-bottom: 8px !important;
+}
+
+.composer {
+  padding-top: 7px !important;
+  padding-bottom: 7px !important;
+  margin-top: 0 !important;
+  min-height: 52px;
+}
